@@ -1,6 +1,6 @@
 {
   "asset": "models/trainer_avatar.glb",
-  "generator": "tools/blender/build_trainer.py",
+  "generator": "tools/blender/build_coach.py",
   "fps": 30,
   "clips": [
     {

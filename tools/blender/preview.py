@@ -17,9 +17,9 @@ def setup_scene(resolution=(480, 640), samples=24):
     world.use_nodes = True
     bg = world.node_tree.nodes.get("Background")
     bg.inputs[0].default_value = (0.16, 0.17, 0.18, 1)
-    bg.inputs[1].default_value = 0.9
+    bg.inputs[1].default_value = 0.55
     # key + fill lights
-    for name, loc, energy in (("key", (-2.2, -3.0, 3.2), 900), ("fill", (2.5, -2.0, 1.8), 350), ("rim", (0.5, 3.0, 2.8), 500)):
+    for name, loc, energy in (("key", (-2.2, -3.0, 3.2), 420), ("fill", (2.5, -2.0, 1.8), 130), ("rim", (0.5, 3.0, 2.8), 300)):
         light = bpy.data.lights.new(name, "AREA")
         light.energy = energy
         light.size = 2.0
