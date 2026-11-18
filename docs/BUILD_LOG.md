@@ -83,3 +83,37 @@ Claude must append to this file after each implementation phase.
   7. Technical checks → 3D animation: three clips listed; play/pause, replay, 0.5×/0.25× work; drag orbits.
   8. Report phone model, Android version, inference ms and any crash.
 - **Next phase:** Phase 1 — product shell and offline catalogue (after Phase 0 is confirmed on a device).
+
+---
+
+### 2026-11-18 / Phase 1 — Product shell and offline catalogue
+- **Implemented:**
+  - Onboarding (5 steps): welcome → adult confirmation (answer never stored; under-18 cannot proceed)
+    → safety notice with required acknowledgement → focus (Fitness / Fighting Fundamentals) → beginner goal.
+    System back walks the flow. Pure `OnboardingReducer` state machine.
+  - Local guest mode: `UserPreferencesRepository` (Jetpack DataStore) stores only onboarding-complete,
+    focus, goal and last viewed lesson. No account, no network.
+  - `AppContainer` (manual DI), `AppViewModel`, `OnboardingViewModel`, `CatalogViewModel`.
+  - Home: continue last viewed lesson, suggested lesson (pure `LessonSuggestions`), category entry
+    points (open Train pre-filtered), safety reminder.
+  - Train: category + length filters, lesson list, loading / error (retry) / empty / no-match (clear filters).
+    Difficulty filter intentionally omitted — all MVP lessons are beginner, so it would do nothing.
+  - Lesson detail: purpose, facts, draft-content label, safety, space & equipment, 3D-demo section
+    (honest text until the trainer exists), numbered steps, cues, common mistakes with safer adjustments,
+    camera-feedback mode and limitations. No "Start practice" button until practice exists.
+  - Profile: focus/goal, privacy explanation, live permission status, safety text, technical checks,
+    "Reset app data" with confirmation (clears DataStore, returns to onboarding).
+  - Content: catalogue extended to the full MVP movement set (9 lessons) with `purpose`, `space`,
+    `equipment`, `commonMistakes`, `reviewStatus`. **All content is draft pending qualified-coach review**
+    and is labelled as such in the UI. `data/exercises.json` and the app asset are kept identical (tested).
+- **Build command and result:** GitHub Actions run 44287000199 (commit 41094c6): unit tests ✅,
+  `assembleDebug` ✅, APK content check ✅, `lintDebug` ✅. APK ≈58 MB. Published to `debug-latest`.
+- **Tests run and result:** 49 JVM unit tests (onboarding reducer, catalogue filter/suggestions,
+  strict catalogue parsing incl. forbidden-claims check and data/asset sync, plus Phase 0 pose tests):
+  49/49 passed locally (Kotlin 2.0.21 + JUnit) and in CI.
+- **Device/emulator tested:** none yet (Phase 0 device check also still pending).
+- **Known issues:** no instrumentation/UI tests yet (need an emulator in CI — planned for Phase 2/3);
+  focus/goal can only be changed via reset; content needs coach review before any public release.
+- **Decisions made:** DataStore 1.1.7 for preferences; age answer not persisted; under-18 users are
+  stopped with a neutral message; lesson-detail practice button deferred to avoid a non-working control.
+- **Next phase:** Phase 2 — 3D coach (Blender trainer avatar + GLB pipeline into lesson detail).
