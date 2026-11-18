@@ -46,6 +46,6 @@ fun ScreenHeader(title: String, onBack: (() -> Unit)?) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         }
-        Text(title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
+        Text(title.uppercase(), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground)
     }
 }

@@ -1,6 +1,5 @@
 package eu.motionforge.app.feature.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -13,7 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.motionforge.app.core.design.Eyebrow
-import eu.motionforge.app.core.design.FactChip
+import eu.motionforge.app.core.design.HeroCard
+import eu.motionforge.app.core.design.LessonCard
+import eu.motionforge.app.core.design.accent
+import eu.motionforge.app.feature.session.SessionPlanner
+import eu.motionforge.app.feature.session.SessionStep
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.ScreenColumn
@@ -29,9 +32,11 @@ fun HomeScreen(
     catalog: CatalogUiState,
     onOpenLesson: (String) -> Unit,
     onOpenCategory: (TrainingCategory) -> Unit,
+    onStartQuickSession: () -> Unit,
+    sessionsThisWeek: Int?,
     onRetry: () -> Unit,
 ) {
-    ScreenColumn(title = "Welcome") {
+    ScreenColumn(title = "Ready to move?") {
         val focusText = preferences.focus?.displayName ?: "All lessons"
         val goalText = preferences.goal?.displayName
         Text(
@@ -56,26 +61,44 @@ fun HomeScreen(
                 val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
                 val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
 
+                val accent = (preferences.focus ?: TrainingCategory.FITNESS).accent
+                val quick = SessionPlanner.quick(exercises, preferences.focus)
+                if (quick != null) {
+                    HeroCard(
+                        eyebrow = "Today · about ${(quick.totalSeconds + 30) / 60} min",
+                        title = quick.title,
+                        body = quick.steps.filterIsInstance<SessionStep.Work>().joinToString(" → ") { it.name },
+                        action = "Start session",
+                        accent = accent,
+                        onClick = onStartQuickSession,
+                    )
+                } else {
+                    Panel { Text("No lessons are available in this build.") }
+                }
+                if (sessionsThisWeek != null) {
+                    Text(
+                        if (sessionsThisWeek == 0) "No sessions saved this week yet." else "$sessionsThisWeek session${if (sessionsThisWeek == 1) "" else "s"} saved this week.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 if (lastViewed != null) {
-                    LessonCard("Continue where you left off", lastViewed, onOpenLesson)
+                    HomeLesson("Continue where you left off", lastViewed, onOpenLesson)
                 }
                 if (suggestion != null) {
-                    LessonCard("Suggested next", suggestion, onOpenLesson)
-                } else if (lastViewed == null) {
-                    Panel { Text("No lessons are available in this build.") }
+                    HomeLesson("Suggested lesson", suggestion, onOpenLesson)
                 }
 
                 Eyebrow("Categories")
                 TrainingCategory.entries.forEach { category ->
                     val count = exercises.count { it.category == category }
-                    Panel(onClick = { onOpenCategory(category) }) {
-                        Text(category.displayName, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "$count beginner lessons",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    LessonCard(
+                        title = category.displayName,
+                        subtitle = "$count beginner lessons",
+                        facts = emptyList(),
+                        accent = category.accent,
+                        onClick = { onOpenCategory(category) },
+                    )
                 }
             }
         }
@@ -92,14 +115,13 @@ fun HomeScreen(
 }
 
 @Composable
-private fun LessonCard(label: String, exercise: Exercise, onOpenLesson: (String) -> Unit) {
-    Panel(onClick = { onOpenLesson(exercise.id) }) {
-        Eyebrow(label)
-        Text(exercise.name, style = MaterialTheme.typography.titleLarge)
-        Text(exercise.purpose, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FactChip(exercise.category.displayName)
-            FactChip("${exercise.durationSeconds} s")
-        }
-    }
+private fun HomeLesson(label: String, exercise: Exercise, onOpenLesson: (String) -> Unit) {
+    LessonCard(
+        title = exercise.name,
+        subtitle = exercise.purpose,
+        facts = listOf(exercise.category.displayName, "${exercise.durationSeconds} s"),
+        accent = exercise.category.accent,
+        onClick = { onOpenLesson(exercise.id) },
+        eyebrow = label,
+    )
 }

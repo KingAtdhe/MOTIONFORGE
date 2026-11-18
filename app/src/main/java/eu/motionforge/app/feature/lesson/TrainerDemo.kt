@@ -169,3 +169,45 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
         }
     }
 }
+
+/**
+ * Controls-free trainer view for the session screen. Falls back to the written steps when the
+ * demonstration is unavailable.
+ */
+@Composable
+fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val clipsRepo = remember { (context.applicationContext as MotionForgeApplication).container.clips }
+    val availability by produceState<DemoAvailability>(DemoAvailability.Checking, exercise.id) {
+        value = clipsRepo.trainer().fold(
+            onSuccess = { m ->
+                val seq = DemoSequence.resolve(exercise.demoAnimation, m.names)
+                if (seq.isEmpty()) DemoAvailability.NotReady else DemoAvailability.Ready(m, seq)
+            },
+            onFailure = { DemoAvailability.NotReady },
+        )
+    }
+    val ready = availability as? DemoAvailability.Ready
+    val playback = remember(exercise.id) { GlbPlayback() }
+    LaunchedEffect(playback, ready?.sequence) { ready?.let { playback.playSequence(it.sequence) } }
+    LaunchedEffect(playback, playing) { playback.playing = playing }
+
+    Box(modifier.clip(RoundedCornerShape(18.dp))) {
+        val failed = playback.loadState is GlbLoadState.Failed
+        if (ready != null && !failed) {
+            GlbModelView(
+                assetPath = ready.manifest.assetPath,
+                playback = playback,
+                modifier = Modifier.matchParentSize(),
+                contentDescription = "3D trainer demonstrating ${exercise.name}",
+            )
+        } else if (availability != DemoAvailability.Checking) {
+            Panel(Modifier.align(Alignment.Center)) {
+                Eyebrow("Steps")
+                exercise.instructions.forEachIndexed { i, step ->
+                    Text("${i + 1}. $step", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+    }
+}

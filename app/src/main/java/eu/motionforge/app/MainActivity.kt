@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MotionForgeRoot() {
     val container = (LocalContext.current.applicationContext as MotionForgeApplication).container
-    val appViewModel: AppViewModel = viewModel { AppViewModel(container.preferences) }
+    val appViewModel: AppViewModel = viewModel { AppViewModel(container.preferences, container.sessions) }
     val state by appViewModel.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {

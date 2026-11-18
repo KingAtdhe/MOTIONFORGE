@@ -16,7 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.motionforge.app.core.design.ChoiceButton
 import eu.motionforge.app.core.design.Eyebrow
-import eu.motionforge.app.core.design.FactChip
+import eu.motionforge.app.core.design.LessonCard
+import eu.motionforge.app.core.design.accent
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.ScreenColumn
@@ -81,12 +82,11 @@ fun TrainScreen(
 
 @Composable
 private fun LessonRow(exercise: Exercise, onOpenLesson: (String) -> Unit) {
-    Panel(onClick = { onOpenLesson(exercise.id) }) {
-        Text(exercise.name, style = MaterialTheme.typography.titleMedium)
-        Text(exercise.purpose, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FactChip(exercise.category.displayName)
-            FactChip("${exercise.durationSeconds} s")
-        }
-    }
+    LessonCard(
+        title = exercise.name,
+        subtitle = exercise.purpose,
+        facts = listOf(exercise.category.displayName, "${exercise.durationSeconds} s"),
+        accent = exercise.category.accent,
+        onClick = { onOpenLesson(exercise.id) },
+    )
 }

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -15,8 +16,8 @@ android {
         applicationId = "eu.motionforge.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.0-phase2"
+        versionCode = 4
+        versionName = "0.3.0"
     }
 
     buildTypes {
@@ -132,6 +133,9 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
 }

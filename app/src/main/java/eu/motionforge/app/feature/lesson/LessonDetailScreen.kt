@@ -21,6 +21,8 @@ import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.FactChip
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
+import eu.motionforge.app.core.design.PrimaryButton
+import eu.motionforge.app.feature.session.SessionPlanner
 import eu.motionforge.app.core.design.ScreenColumn
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.model.ReviewStatus
@@ -32,6 +34,7 @@ fun LessonDetailScreen(
     catalog: CatalogUiState,
     onBack: () -> Unit,
     onViewed: (String) -> Unit,
+    onStartPractice: (String) -> Unit,
     onRetry: () -> Unit,
 ) {
     when (catalog) {
@@ -57,7 +60,7 @@ fun LessonDetailScreen(
                 }
             } else {
                 LaunchedEffect(exercise.id) { onViewed(exercise.id) }
-                LessonDetail(exercise, onBack)
+                LessonDetail(exercise, onBack, onStartPractice)
             }
         }
     }
@@ -65,7 +68,7 @@ fun LessonDetailScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LessonDetail(exercise: Exercise, onBack: () -> Unit) {
+private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice: (String) -> Unit) {
     ScreenColumn(title = exercise.name, onBack = onBack) {
         Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -100,6 +103,8 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit) {
 
         TrainerDemo(exercise)
 
+        PrimaryButton("Start practice · ${exercise.durationSeconds} s", onClick = { onStartPractice(exercise.id) })
+
         SectionTitle("How to do it")
         exercise.instructions.forEachIndexed { i, step ->
             Row {
@@ -129,7 +134,11 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit) {
             Text(exercise.analysisMode.displayName, style = MaterialTheme.typography.titleMedium)
             Text(exercise.limitations, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                "Camera-guided practice is not available in this build yet.",
+                if (exercise.id == SessionPlanner.SQUAT_ID) {
+                    "In practice with the camera on, repetitions are counted automatically. This is experimental and only counts the movement cycle — it does not judge technique."
+                } else {
+                    "In practice, the camera works as a mirror with a tracking skeleton. It does not assess this movement yet."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

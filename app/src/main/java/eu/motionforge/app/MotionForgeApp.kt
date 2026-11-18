@@ -27,7 +27,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import eu.motionforge.app.data.UserPreferences
+import eu.motionforge.app.core.design.ScreenColumn
+import eu.motionforge.app.feature.catalog.CatalogUiState
 import eu.motionforge.app.feature.catalog.CatalogViewModel
+import eu.motionforge.app.feature.progress.ProgressStats
+import eu.motionforge.app.feature.session.SessionPlanner
+import eu.motionforge.app.feature.session.SessionScreen
+import eu.motionforge.app.feature.session.SessionViewModel
+import java.time.LocalDate
+import java.time.ZoneId
 import eu.motionforge.app.feature.catalog.TrainScreen
 import eu.motionforge.app.feature.home.HomeScreen
 import eu.motionforge.app.feature.lesson.LessonDetailScreen
@@ -43,11 +51,14 @@ object Routes {
     const val PROGRESS = "progress"
     const val PROFILE = "profile"
     const val LESSON = "lesson/{id}"
+    const val SESSION = "session/{plan}"
     const val SPIKES = "spikes"
     const val SPIKE_CAMERA_POSE = "spikes/camera-pose"
     const val SPIKE_GLB = "spikes/glb"
 
     fun lesson(id: String) = "lesson/$id"
+    fun quickSession() = "session/quick"
+    fun lessonSession(id: String) = "session/lesson-$id"
 }
 
 private data class TopLevelDestination(val route: String, val label: String, val icon: ImageVector)
@@ -78,6 +89,9 @@ fun MotionForgeApp(
     }
     val catalog by catalogViewModel.catalog.collectAsStateWithLifecycle()
     val filter by catalogViewModel.filter.collectAsStateWithLifecycle()
+
+    val history by container.sessions.history.collectAsStateWithLifecycle(initialValue = null)
+    val sessionsThisWeek = history?.let { ProgressStats.summarize(it, LocalDate.now(), ZoneId.systemDefault()).sessionsThisWeek }
 
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
@@ -114,6 +128,8 @@ fun MotionForgeApp(
                         catalogViewModel.setCategory(category)
                         navController.navigateTopLevel(Routes.TRAIN)
                     },
+                    onStartQuickSession = { navController.navigate(Routes.quickSession()) },
+                    sessionsThisWeek = sessionsThisWeek,
                     onRetry = catalogViewModel::load,
                 )
             }
@@ -128,7 +144,9 @@ fun MotionForgeApp(
                     onRetry = catalogViewModel::load,
                 )
             }
-            composable(Routes.PROGRESS) { ProgressScreen() }
+            composable(Routes.PROGRESS) {
+                ProgressScreen(history = history, onStartSession = { navController.navigate(Routes.quickSession()) })
+            }
             composable(Routes.PROFILE) {
                 ProfileScreen(
                     preferences = preferences,
@@ -145,8 +163,39 @@ fun MotionForgeApp(
                     catalog = catalog,
                     onBack = { navController.popBackStack() },
                     onViewed = catalogViewModel::markViewed,
+                    onStartPractice = { navController.navigate(Routes.lessonSession(it)) },
                     onRetry = catalogViewModel::load,
                 )
+            }
+            composable(
+                Routes.SESSION,
+                arguments = listOf(navArgument("plan") { type = NavType.StringType }),
+            ) { entry ->
+                val planArg = entry.arguments?.getString("plan").orEmpty()
+                val ready = catalog as? CatalogUiState.Ready
+                val plan = ready?.let { c ->
+                    if (planArg == "quick") {
+                        SessionPlanner.quick(c.exercises, preferences.focus)
+                    } else {
+                        c.exercises.firstOrNull { it.id == planArg.removePrefix("lesson-") }?.let(SessionPlanner::single)
+                    }
+                }
+                if (ready == null || plan == null) {
+                    ScreenColumn(title = "Session", onBack = { navController.popBackStack() }) {
+                        Text(if (catalog is CatalogUiState.Loading) "Loading…" else "This session isn't available.")
+                    }
+                } else {
+                    val sessionViewModel: SessionViewModel = viewModel(key = "session-$planArg") { SessionViewModel(plan, container.sessions) }
+                    SessionScreen(
+                        viewModel = sessionViewModel,
+                        exercisesById = ready.exercises.associateBy { it.id },
+                        onClose = { navController.popBackStack() },
+                        onOpenProgress = {
+                            navController.popBackStack()
+                            navController.navigateTopLevel(Routes.PROGRESS)
+                        },
+                    )
+                }
             }
             composable(Routes.SPIKES) {
                 SpikesScreen(
