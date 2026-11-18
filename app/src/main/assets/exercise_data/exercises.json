@@ -1,0 +1,115 @@
+[
+  {
+    "id": "bodyweight_squat",
+    "name": "Bodyweight Squat",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "squat_down",
+    "safety": "Use a comfortable range of motion and a clear, stable floor. Stop if you feel pain or dizziness.",
+    "instructions": [
+      "Stand with feet in a comfortable position.",
+      "Keep your whole foot supported.",
+      "Bend your hips and knees in a controlled way.",
+      "Return to standing without rushing."
+    ],
+    "commonCues": [
+      "Move at a controlled pace.",
+      "Keep your feet supported.",
+      "Use a comfortable depth."
+    ],
+    "limitations": "Camera feedback is educational and may be unavailable for some body shapes, clothing, lighting, and camera angles."
+  },
+  {
+    "id": "push_up",
+    "name": "Push-up",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "pushup_down",
+    "safety": "Choose a variation appropriate to your ability. Stop if you feel pain or unusual discomfort.",
+    "instructions": [
+      "Set up with hands in a comfortable position.",
+      "Keep your body supported.",
+      "Lower under control only as far as comfortable.",
+      "Push back to the starting position."
+    ],
+    "commonCues": [
+      "Use a controlled range.",
+      "Keep the camera view clear."
+    ],
+    "limitations": "Do not enable automated quality scoring until side-view tracking is validated."
+  },
+  {
+    "id": "boxing_stance",
+    "name": "Boxing Stance",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_limited_feedback",
+    "demoAnimation": "boxing_stance",
+    "safety": "Practise without contact. Keep enough clear space around you. Learn martial arts technique from a qualified instructor.",
+    "instructions": [
+      "Stand in a comfortable staggered stance.",
+      "Keep knees relaxed rather than locked.",
+      "Bring hands to a comfortable guard position.",
+      "Practise returning to a balanced neutral position."
+    ],
+    "commonCues": [
+      "Keep your balance comfortable.",
+      "Avoid excessive tension.",
+      "Make sure your full body is visible."
+    ],
+    "limitations": "This is a beginner educational guide, not a certification of boxing technique."
+  },
+  {
+    "id": "boxing_jab",
+    "name": "Jab",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "movement_phase_cues_only",
+    "demoAnimation": "boxing_jab",
+    "safety": "Practise slowly in open space without hitting people or objects. Stop if uncomfortable.",
+    "instructions": [
+      "Begin from a comfortable boxing stance.",
+      "Practise a slow, controlled lead-hand extension.",
+      "Return the hand to guard.",
+      "Reset your balance before repeating."
+    ],
+    "commonCues": [
+      "Keep the movement controlled.",
+      "Return to a comfortable guard.",
+      "Do not chase speed or power."
+    ],
+    "limitations": "Do not estimate impact, force, combat effectiveness, or injury risk."
+  },
+  {
+    "id": "boxing_cross",
+    "name": "Cross",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_cross",
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Begin from a comfortable stance.",
+      "Watch the 3D demonstration from more than one angle.",
+      "Practise a slow, controlled movement.",
+      "Return to a balanced stance."
+    ],
+    "commonCues": [
+      "Prioritize balance and control.",
+      "Avoid forcing range of motion."
+    ],
+    "limitations": "No automatic power, impact, or advanced technique scoring."
+  }
+]

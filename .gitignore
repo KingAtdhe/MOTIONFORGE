@@ -1,0 +1,19 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+# Downloaded at build time (Apache-2.0 MediaPipe model); see docs/DEPENDENCY_DECISIONS.md
+/app/src/main/assets/models/pose_landmarker_lite.task
+/app/src/main/assets/models/*.part
+# Never commit secrets
+.env
+*.keystore
+*.jks
