@@ -1,3 +1,4 @@
+import java.net.URI
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -85,7 +86,7 @@ val downloadPoseModel by tasks.registering {
         out.parentFile.mkdirs()
         val part = File(out.parentFile, out.name + ".part")
         try {
-            java.net.URI(url).toURL().openStream().use { input ->
+            URI(url).toURL().openStream().use { input ->
                 part.outputStream().use { output -> input.copyTo(output) }
             }
             check(part.length() > 1_000_000L) { "Downloaded pose model is unexpectedly small (${part.length()} bytes)" }
