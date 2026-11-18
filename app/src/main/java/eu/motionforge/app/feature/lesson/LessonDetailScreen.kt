@@ -98,18 +98,7 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit) {
             )
         }
 
-        Panel {
-            Eyebrow("3D demonstration")
-            Text(
-                if (exercise.demoAnimation != null) {
-                    "The 3D trainer demonstration for this lesson arrives with the trainer model. " +
-                        "Until then, follow the written steps below."
-                } else {
-                    "This lesson is taught with written steps only."
-                },
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
+        TrainerDemo(exercise)
 
         SectionTitle("How to do it")
         exercise.instructions.forEachIndexed { i, step ->

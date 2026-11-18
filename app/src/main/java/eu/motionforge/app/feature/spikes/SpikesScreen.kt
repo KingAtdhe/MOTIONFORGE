@@ -29,7 +29,7 @@ fun SpikesScreen(onBack: () -> Unit, onOpenCameraPose: () -> Unit, onOpenGlb: ()
             Eyebrow("Spike 3")
             Text("3D model & animation", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Loads a test GLB with Filament and plays its named clips with pause, replay and slow motion.",
+                "Plays every trainer clip with orbit, view angles, pause, replay and slow motion.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +26,11 @@ import eu.motionforge.app.core.design.ScreenHeader
 import eu.motionforge.app.core.render3d.GlbLoadState
 import eu.motionforge.app.core.render3d.GlbModelView
 import eu.motionforge.app.core.render3d.GlbPlayback
+import eu.motionforge.app.core.render3d.ViewAngle
 
 /**
- * Phase 0 spike: loads a generated test GLB (a jointed stand-in figure, NOT the trainer
- * avatar) to prove the Filament pipeline, named clips and playback controls.
- * The real trainer comes from Blender in Phase 2.
+ * Developer screen: loads the trainer GLB and lets you play every clip with orbit, pause,
+ * replay, slow motion and view angles. Used to check new Blender exports on real devices.
  */
 @Composable
 fun GlbSpikeScreen(onBack: () -> Unit) {
@@ -44,6 +45,8 @@ fun GlbSpikeScreen(onBack: () -> Unit) {
                 assetPath = SPIKE_ASSET,
                 playback = playback,
                 modifier = Modifier.fillMaxSize(),
+                allowOrbit = true,
+                contentDescription = "3D trainer clip preview",
             )
             when (val s = playback.loadState) {
                 GlbLoadState.Loading -> Text("Loading 3D model…", Modifier.align(Alignment.Center))
@@ -61,14 +64,18 @@ fun GlbSpikeScreen(onBack: () -> Unit) {
                 } else {
                     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         loaded.clips.forEach { clip ->
-                            if (clip.index == playback.clipIndex) {
-                                Button(onClick = { playback.selectClip(clip.index) }) { Text(clip.name) }
+                            val selected = playback.sequence == listOf(clip.name)
+                            if (selected) {
+                                Button(onClick = { playback.playSequence(listOf(clip.name)) }) { Text(clip.name) }
                             } else {
-                                OutlinedButton(onClick = { playback.selectClip(clip.index) }) { Text(clip.name) }
+                                OutlinedButton(onClick = { playback.playSequence(listOf(clip.name)) }) { Text(clip.name) }
                             }
                         }
                     }
-                    val current = loaded.clips.getOrNull(playback.clipIndex)
+                    LaunchedEffect(loaded) {
+                        if (playback.sequence.isEmpty()) playback.playSequence(listOf(loaded.clips.first().name))
+                    }
+                    val current = loaded.clips.firstOrNull { listOf(it.name) == playback.sequence }
                     if (current != null) {
                         Text(
                             "${current.name} · ${"%.2f".format(current.durationSeconds)} s · drag to orbit",
@@ -81,6 +88,15 @@ fun GlbSpikeScreen(onBack: () -> Unit) {
                             Text(if (playback.playing) "Pause" else "Play")
                         }
                         OutlinedButton(onClick = { playback.replay() }) { Text("Replay") }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ViewAngle.entries.forEach { a ->
+                            if (playback.viewAngle == a) {
+                                Button(onClick = { playback.viewAngle = a }) { Text(a.label) }
+                            } else {
+                                OutlinedButton(onClick = { playback.viewAngle = a }) { Text(a.label) }
+                            }
+                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         speeds.forEach { speed ->
@@ -112,4 +128,4 @@ private fun StaticFallback(reason: String, modifier: Modifier = Modifier) {
     }
 }
 
-private const val SPIKE_ASSET = "models/spike_stick_figure.glb"
+private const val SPIKE_ASSET = "models/trainer_avatar.glb"

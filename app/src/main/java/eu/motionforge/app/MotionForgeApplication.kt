@@ -2,6 +2,7 @@ package eu.motionforge.app
 
 import android.app.Application
 import android.content.Context
+import eu.motionforge.app.data.ClipManifestRepository
 import eu.motionforge.app.data.ExerciseRepository
 import eu.motionforge.app.data.UserPreferencesRepository
 
@@ -9,6 +10,7 @@ import eu.motionforge.app.data.UserPreferencesRepository
 class AppContainer(context: Context) {
     val exercises: ExerciseRepository by lazy { ExerciseRepository(context) }
     val preferences: UserPreferencesRepository by lazy { UserPreferencesRepository(context) }
+    val clips: ClipManifestRepository by lazy { ClipManifestRepository(context) }
 }
 
 class MotionForgeApplication : Application() {
