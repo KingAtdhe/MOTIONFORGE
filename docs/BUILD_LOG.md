@@ -57,6 +57,11 @@ Claude must append to this file after each implementation phase.
     compiled with Kotlin 2.0.21 and `-Werror`: **success**.
 - **Tests run and result:** 27 JVM unit tests (synthetic landmark fixtures + bundled catalogue),
   run with JUnit 4.13.2 outside Gradle: **27/27 passed**. Same tests run in CI via `testDebugUnitTest`.
+- **CI result (GitHub Actions, run 44284030901, commit 229e57f):** first run failed in the Gradle
+  script (`java.net` resolved to Gradle's `java` extension; fixed with an import). Second run:
+  unit tests ✅, `assembleDebug` ✅, APK content check ✅ (pose model 5.8 MB stored uncompressed,
+  test GLB, catalogue), `lintDebug` ✅. Debug APK ≈57 MB, published as release `debug-latest`.
+  All Android code (CameraX, MediaPipe, Filament, Compose) now compiles.
 - **Device/emulator tested:** none yet. Requires a real Android phone (camera + GPU).
 - **Known issues / unverified:**
   - Android-dependent code (CameraX, MediaPipe, Filament, Compose UI) has not been compiled yet —
