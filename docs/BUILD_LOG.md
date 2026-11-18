@@ -117,3 +117,40 @@ Claude must append to this file after each implementation phase.
 - **Decisions made:** DataStore 1.1.7 for preferences; age answer not persisted; under-18 users are
   stopped with a neutral message; lesson-detail practice button deferred to avoid a non-working control.
 - **Next phase:** Phase 2 — 3D coach (Blender trainer avatar + GLB pipeline into lesson detail).
+
+---
+
+### 2026-11-18 / Phase 2 — 3D coach
+- **Implemented:**
+  - **Trainer avatar built from scratch** with `tools/blender/build_trainer.py` (Blender 5.3, headless):
+    body from a hand-authored joint graph (Skin + Subdivision modifiers), procedurally sculpted head,
+    mitten hands, trainers; clothing seams cut with plane bisects (short-sleeve shirt, shorts).
+    No base mesh / MakeHuman / purchased or scanned asset (see `assets/blender/licenses/ASSET_ORIGIN.md`).
+  - 21-bone humanoid rig (stable names, A-pose rest, root non-deforming, hips carry translation),
+    heat-weighted body + rigid head/hands/shoes, ≤4 influences per vertex.
+  - 9 **draft** clips: idle_neutral, squat_down, squat_up, boxing_stance, boxing_jab, boxing_cross,
+    boxing_guard_return, footwork_forward, footwork_backward. Push-up clips not made yet.
+  - Exports: `assets/blender/source/trainer_avatar.blend`, `assets/blender/exports/trainer_avatar.glb`,
+    app copy + generated `trainer_avatar.clips.json`; preview renders in `assets/blender/previews/`.
+    glTF-Validator: 0 errors, 1 benign warning. 3.9k verts / 7.4k tris / 6 materials / 368 KB.
+  - Renderer (`core/render3d`): TextureView-based Filament `ModelViewer` (scrolls inside Compose),
+    GLB read on `Dispatchers.IO`, studio lighting (SH ambient + key light), looping clip sequences,
+    front/side/back angles via model yaw, failure → text fallback.
+  - Lesson detail: `TrainerDemo` — plays the lesson clip (squat plays down→up), phase label (live
+    region), play/pause, replay, 1×/0.5×/0.25×, Front/Side/Back, starts paused when the system
+    "remove animations" setting is on, draft-review label; written-only / not-ready states.
+  - Developer 3D screen now previews every trainer clip with orbit. Phase 0 stick figure removed from the APK.
+- **Build command and result:** GitHub Actions run 44290288806: unit tests ✅, `assembleDebug` ✅,
+  APK content check ✅ (trainer GLB + clip manifest present, GLB and pose model stored uncompressed),
+  `lintDebug` ✅. APK ≈59 MB. Published to `debug-latest`.
+- **Tests run and result:** 59 JVM tests (adds clip-manifest parsing, manifest ⇄ GLB animation names,
+  lesson clips present or known-pending, demo sequencing/looping, phase labels): 59/59 locally and in CI.
+- **Device/emulator tested:** none. Lighting intensities, framing and frame rate need checking on a phone.
+- **Known issues:** stylised mannequin look (not photoreal); hands are mittens; footwork has foot sliding;
+  no push-up clips; lighting values are first estimates; the Blender build is not run in CI (needs the
+  `bpy` package) — rebuild locally with `python tools/blender/build_trainer.py --previews`.
+- **Decisions made:** generate the avatar procedurally so it is reproducible and provably original;
+  clip manifest generated alongside the GLB and tested against it; model-yaw angle presets instead of
+  free orbit on lesson screens; all clips labelled draft until a qualified coach reviews them.
+- **Next phase:** Phase 3 — camera & pose tracking in the product flow (setup guide, permission rationale,
+  framing guidance, tracking status) built on the Phase 0 spikes.
