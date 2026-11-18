@@ -16,16 +16,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import eu.motionforge.app.data.UserPreferences
+import eu.motionforge.app.feature.catalog.CatalogViewModel
+import eu.motionforge.app.feature.catalog.TrainScreen
 import eu.motionforge.app.feature.home.HomeScreen
+import eu.motionforge.app.feature.lesson.LessonDetailScreen
 import eu.motionforge.app.feature.progress.ProgressScreen
 import eu.motionforge.app.feature.settings.ProfileScreen
-import eu.motionforge.app.feature.catalog.TrainScreen
 import eu.motionforge.app.feature.spikes.CameraPoseSpikeScreen
 import eu.motionforge.app.feature.spikes.GlbSpikeScreen
 import eu.motionforge.app.feature.spikes.SpikesScreen
@@ -35,9 +42,12 @@ object Routes {
     const val TRAIN = "train"
     const val PROGRESS = "progress"
     const val PROFILE = "profile"
+    const val LESSON = "lesson/{id}"
     const val SPIKES = "spikes"
     const val SPIKE_CAMERA_POSE = "spikes/camera-pose"
     const val SPIKE_GLB = "spikes/glb"
+
+    fun lesson(id: String) = "lesson/$id"
 }
 
 private data class TopLevelDestination(val route: String, val label: String, val icon: ImageVector)
@@ -49,8 +59,26 @@ private val topLevel = listOf(
     TopLevelDestination(Routes.PROFILE, "Profile", Icons.Filled.Person),
 )
 
+private fun NavHostController.navigateTopLevel(route: String) = navigate(route) {
+    popUpTo(graph.findStartDestination().id) { saveState = true }
+    launchSingleTop = true
+    restoreState = true
+}
+
 @Composable
-fun MotionForgeApp(navController: NavHostController = rememberNavController()) {
+fun MotionForgeApp(
+    preferences: UserPreferences,
+    session: Int,
+    container: AppContainer,
+    onResetData: () -> Unit,
+    navController: NavHostController = rememberNavController(),
+) {
+    val catalogViewModel: CatalogViewModel = viewModel(key = "catalog-$session") {
+        CatalogViewModel(container.exercises, container.preferences)
+    }
+    val catalog by catalogViewModel.catalog.collectAsStateWithLifecycle()
+    val filter by catalogViewModel.filter.collectAsStateWithLifecycle()
+
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
     val showBottomBar = topLevel.any { it.route == currentRoute }
@@ -63,13 +91,7 @@ fun MotionForgeApp(navController: NavHostController = rememberNavController()) {
                     topLevel.forEach { dest ->
                         NavigationBarItem(
                             selected = currentRoute == dest.route,
-                            onClick = {
-                                navController.navigate(dest.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            onClick = { navController.navigateTopLevel(dest.route) },
                             icon = { Icon(dest.icon, contentDescription = null) },
                             label = { Text(dest.label) },
                         )
@@ -83,10 +105,49 @@ fun MotionForgeApp(navController: NavHostController = rememberNavController()) {
             startDestination = Routes.HOME,
             modifier = Modifier.padding(padding),
         ) {
-            composable(Routes.HOME) { HomeScreen(onOpenSpikes = { navController.navigate(Routes.SPIKES) }) }
-            composable(Routes.TRAIN) { TrainScreen() }
+            composable(Routes.HOME) {
+                HomeScreen(
+                    preferences = preferences,
+                    catalog = catalog,
+                    onOpenLesson = { navController.navigate(Routes.lesson(it)) },
+                    onOpenCategory = { category ->
+                        catalogViewModel.setCategory(category)
+                        navController.navigateTopLevel(Routes.TRAIN)
+                    },
+                    onRetry = catalogViewModel::load,
+                )
+            }
+            composable(Routes.TRAIN) {
+                TrainScreen(
+                    catalog = catalog,
+                    filter = filter,
+                    onCategory = catalogViewModel::setCategory,
+                    onDuration = catalogViewModel::setDuration,
+                    onClearFilters = catalogViewModel::clearFilters,
+                    onOpenLesson = { navController.navigate(Routes.lesson(it)) },
+                    onRetry = catalogViewModel::load,
+                )
+            }
             composable(Routes.PROGRESS) { ProgressScreen() }
-            composable(Routes.PROFILE) { ProfileScreen() }
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    preferences = preferences,
+                    onOpenTechnicalChecks = { navController.navigate(Routes.SPIKES) },
+                    onResetData = onResetData,
+                )
+            }
+            composable(
+                Routes.LESSON,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { entry ->
+                LessonDetailScreen(
+                    lessonId = entry.arguments?.getString("id").orEmpty(),
+                    catalog = catalog,
+                    onBack = { navController.popBackStack() },
+                    onViewed = catalogViewModel::markViewed,
+                    onRetry = catalogViewModel::load,
+                )
+            }
             composable(Routes.SPIKES) {
                 SpikesScreen(
                     onBack = { navController.popBackStack() },

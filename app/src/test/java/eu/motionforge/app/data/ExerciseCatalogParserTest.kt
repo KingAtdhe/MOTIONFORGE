@@ -1,6 +1,7 @@
 package eu.motionforge.app.data
 
 import eu.motionforge.app.core.model.AnalysisMode
+import eu.motionforge.app.core.model.ReviewStatus
 import eu.motionforge.app.core.model.TrainingCategory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,7 +17,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun bundledCatalogParses() {
         val exercises = ExerciseCatalogParser.parse(bundled)
-        assertEquals(5, exercises.size)
+        assertEquals(9, exercises.size)
         assertTrue(exercises.any { it.category == TrainingCategory.FITNESS })
         assertTrue(exercises.any { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS })
     }
@@ -27,7 +28,53 @@ class ExerciseCatalogParserTest {
             assertTrue("${it.id} safety", it.safety.isNotBlank())
             assertTrue("${it.id} limitations", it.limitations.isNotBlank())
             assertTrue("${it.id} instructions", it.instructions.isNotEmpty())
+            assertTrue("${it.id} purpose", it.purpose.isNotBlank())
+            assertTrue("${it.id} space", it.space.isNotBlank())
+            assertTrue("${it.id} common mistakes", it.commonMistakes.isNotEmpty())
         }
+    }
+
+    @Test
+    fun mvpMovementSetIsPresent() {
+        val ids = ExerciseCatalogParser.parse(bundled).map { it.id }.toSet()
+        listOf(
+            "bodyweight_squat", "hip_hinge", "push_up", "boxing_stance", "boxing_jab", "boxing_cross",
+            "boxing_guard_return", "footwork_forward_backward",
+        ).forEach { assertTrue("missing $it", it in ids) }
+    }
+
+    @Test
+    fun allDraftContentIsMarkedAsDraft() {
+        // Until a qualified coach signs off, nothing may claim to be reviewed.
+        ExerciseCatalogParser.parse(bundled).forEach {
+            assertEquals(it.id, ReviewStatus.DRAFT_PENDING_COACH_REVIEW, it.reviewStatus)
+        }
+    }
+
+    @Test
+    fun hipHingeAndFootworkNeverAllowLiveCues() {
+        val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
+        assertFalse(byId.getValue("hip_hinge").analysisMode.allowsLiveCues)
+        assertFalse(byId.getValue("footwork_forward_backward").analysisMode.allowsLiveCues)
+        assertFalse(byId.getValue("standing_mobility_warmup").analysisMode.allowsLiveCues)
+    }
+
+    @Test
+    fun noForbiddenClaimsInContent() {
+        val forbidden = listOf("prevent injury", "prevents injury", "perfect", "medically", "diagnos", "guarantee", "knockout", "power punch")
+        val lower = bundled.lowercase()
+        forbidden.forEach { assertFalse("content contains '$it'", it in lower) }
+    }
+
+    @Test
+    fun dataCopyMatchesBundledAsset() {
+        // data/exercises.json (spec package) and the app asset must not drift apart.
+        assertEquals(File("../data/exercises.json").readText(), bundled)
+    }
+
+    @Test(expected = CatalogException::class)
+    fun missingDemoAnimationKeyIsRejected() {
+        ExerciseCatalogParser.parse(bundled.replaceFirst(Regex("\"demoAnimation\": [^,]*,"), ""))
     }
 
     @Test
@@ -45,7 +92,8 @@ class ExerciseCatalogParserTest {
             "boxing_jab", "boxing_cross", "boxing_guard_return", "footwork_forward", "footwork_backward",
         )
         ExerciseCatalogParser.parse(bundled).forEach {
-            assertTrue("${it.id} uses unknown clip ${it.demoAnimation}", it.demoAnimation in manifestClips)
+            val clip = it.demoAnimation ?: return@forEach
+            assertTrue("${it.id} uses unknown clip $clip", clip in manifestClips)
         }
     }
 

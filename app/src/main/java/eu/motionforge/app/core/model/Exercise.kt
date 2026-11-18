@@ -9,12 +9,34 @@ data class Exercise(
     val durationSeconds: Int,
     val recommendedView: CameraView,
     val analysisMode: AnalysisMode,
-    val demoAnimation: String,
+    /** Animation clip name from assets/blender/ASSET_MANIFEST.md, or null if no clip is planned. */
+    val demoAnimation: String?,
+    val purpose: String,
+    val space: String,
+    val equipment: List<String>,
     val safety: String,
     val instructions: List<String>,
     val commonCues: List<String>,
+    val commonMistakes: List<CommonMistake>,
     val limitations: String,
+    val reviewStatus: ReviewStatus,
 )
+
+/** A frequent mistake and a safer, gentler adjustment. Never a diagnosis. */
+data class CommonMistake(val mistake: String, val adjustment: String)
+
+enum class ReviewStatus(val wireName: String) {
+    /** Written for the prototype; must be reviewed by a qualified coach before public release. */
+    DRAFT_PENDING_COACH_REVIEW("draft_pending_coach_review"),
+    COACH_REVIEWED("coach_reviewed"),
+}
+
+/** The user's beginner goal, chosen during onboarding. Used only to order suggestions. */
+enum class TrainingGoal(val displayName: String, val description: String) {
+    BUILD_ROUTINE("Build a short routine", "A few minutes of guided movement, a few times a week."),
+    LEARN_BASICS("Learn the basics", "Understand how each movement should look before speeding up."),
+    MOVE_WITH_CONTROL("Move with more control", "Slow, balanced practice with clear setup cues."),
+}
 
 enum class TrainingCategory(val wireName: String, val displayName: String) {
     FITNESS("fitness", "Fitness"),

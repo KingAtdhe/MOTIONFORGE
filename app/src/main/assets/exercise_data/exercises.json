@@ -1,5 +1,41 @@
 [
   {
+    "id": "standing_mobility_warmup",
+    "name": "Standing Warm-up",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 120,
+    "recommendedView": "full_body",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": null,
+    "purpose": "Gently prepare your body before a short session.",
+    "space": "About 2 × 2 m of clear floor.",
+    "equipment": [],
+    "safety": "Move gently and within a comfortable range. Stop if you feel pain, dizziness or unusual discomfort.",
+    "instructions": [
+      "March gently on the spot for about 30 seconds.",
+      "Roll your shoulders slowly forwards and backwards.",
+      "Make small, slow arm circles and gradually let them grow if comfortable.",
+      "Shift your weight gently from foot to foot."
+    ],
+    "commonCues": [
+      "Keep every movement smooth.",
+      "Breathe steadily."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Moving too quickly",
+        "adjustment": "Slow down; a warm-up should feel easy."
+      },
+      {
+        "mistake": "Forcing a stretch",
+        "adjustment": "Stay in a range that feels comfortable and never bounce."
+      }
+    ],
+    "limitations": "Guided only. The camera does not score warm-up movements.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
     "id": "bodyweight_squat",
     "name": "Bodyweight Squat",
     "category": "fitness",
@@ -8,6 +44,9 @@
     "recommendedView": "front_or_side",
     "analysisMode": "limited_rule_based",
     "demoAnimation": "squat_down",
+    "purpose": "Practise a controlled lower-body movement similar to sitting down and standing up.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
     "safety": "Use a comfortable range of motion and a clear, stable floor. Stop if you feel pain or dizziness.",
     "instructions": [
       "Stand with feet in a comfortable position.",
@@ -20,7 +59,58 @@
       "Keep your feet supported.",
       "Use a comfortable depth."
     ],
-    "limitations": "Camera feedback is educational and may be unavailable for some body shapes, clothing, lighting, and camera angles."
+    "commonMistakes": [
+      {
+        "mistake": "Rushing the repetition",
+        "adjustment": "Slow down so the way down and the way up are both controlled."
+      },
+      {
+        "mistake": "Heels lifting off the floor",
+        "adjustment": "Try a slightly wider stance or a smaller depth that keeps your feet supported."
+      },
+      {
+        "mistake": "Knees drifting inward",
+        "adjustment": "Check your alignment and try a comfortable stance where your knees travel in line with your toes."
+      }
+    ],
+    "limitations": "Camera feedback is educational and may be unavailable for some body shapes, clothing, lighting, and camera angles.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "hip_hinge",
+    "name": "Hip Hinge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": null,
+    "purpose": "Learn to bend forward from the hips while keeping your back long.",
+    "space": "About 2 × 2 m of clear floor, with space behind you.",
+    "equipment": [],
+    "safety": "Move slowly within a comfortable range. Stop if you feel pain in your back or legs.",
+    "instructions": [
+      "Stand with feet about hip-width apart and knees softly bent.",
+      "Slide your hips backwards as your chest tips forward.",
+      "Keep your back long and your neck relaxed.",
+      "Bring your hips forward to return to standing."
+    ],
+    "commonCues": [
+      "Hips travel back, not down.",
+      "Move only as far as feels comfortable."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rounding the back",
+        "adjustment": "Use a smaller range and keep your chest open."
+      },
+      {
+        "mistake": "Turning it into a squat",
+        "adjustment": "Keep the knee bend small and let your hips travel backwards."
+      }
+    ],
+    "limitations": "Instructional only until camera rules are validated. No automated feedback.",
+    "reviewStatus": "draft_pending_coach_review"
   },
   {
     "id": "push_up",
@@ -31,6 +121,11 @@
     "recommendedView": "side",
     "analysisMode": "demo_guided_initially",
     "demoAnimation": "pushup_down",
+    "purpose": "Practise a controlled upper-body pushing movement using your own body weight.",
+    "space": "Floor space for your full body length. A sturdy wall or table works for the easier variation.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
     "safety": "Choose a variation appropriate to your ability. Stop if you feel pain or unusual discomfort.",
     "instructions": [
       "Set up with hands in a comfortable position.",
@@ -42,7 +137,22 @@
       "Use a controlled range.",
       "Keep the camera view clear."
     ],
-    "limitations": "Do not enable automated quality scoring until side-view tracking is validated."
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging or piking",
+        "adjustment": "Try an easier incline variation with hands on a wall or sturdy table, or lower your knees to the floor."
+      },
+      {
+        "mistake": "Dropping too fast",
+        "adjustment": "Lower slowly and only as far as feels comfortable."
+      },
+      {
+        "mistake": "Holding your breath",
+        "adjustment": "Breathe steadily throughout the movement."
+      }
+    ],
+    "limitations": "Do not enable automated quality scoring until side-view tracking is validated.",
+    "reviewStatus": "draft_pending_coach_review"
   },
   {
     "id": "boxing_stance",
@@ -53,6 +163,9 @@
     "recommendedView": "front_or_diagonal",
     "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_stance",
+    "purpose": "Learn a balanced, relaxed starting position used in beginner boxing practice.",
+    "space": "About 2 × 2 m of clear floor. Wear supportive footwear or train on a non-slip surface.",
+    "equipment": [],
     "safety": "Practise without contact. Keep enough clear space around you. Learn martial arts technique from a qualified instructor.",
     "instructions": [
       "Stand in a comfortable staggered stance.",
@@ -65,7 +178,22 @@
       "Avoid excessive tension.",
       "Make sure your full body is visible."
     ],
-    "limitations": "This is a beginner educational guide, not a certification of boxing technique."
+    "commonMistakes": [
+      {
+        "mistake": "Feet in one straight line",
+        "adjustment": "Step the feet roughly hip-width apart so you feel stable when shifting your weight."
+      },
+      {
+        "mistake": "Locked knees",
+        "adjustment": "Keep a slight, relaxed bend in both knees."
+      },
+      {
+        "mistake": "Hands dropping or very tense",
+        "adjustment": "Hold the hands near the face in a relaxed guard without squeezing."
+      }
+    ],
+    "limitations": "This is a beginner educational guide, not a certification of boxing technique.",
+    "reviewStatus": "draft_pending_coach_review"
   },
   {
     "id": "boxing_jab",
@@ -76,6 +204,9 @@
     "recommendedView": "front_or_diagonal",
     "analysisMode": "movement_phase_cues_only",
     "demoAnimation": "boxing_jab",
+    "purpose": "Practise the lead-hand extension slowly, focusing on balance and returning to guard.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
     "safety": "Practise slowly in open space without hitting people or objects. Stop if uncomfortable.",
     "instructions": [
       "Begin from a comfortable boxing stance.",
@@ -88,7 +219,22 @@
       "Return to a comfortable guard.",
       "Do not chase speed or power."
     ],
-    "limitations": "Do not estimate impact, force, combat effectiveness, or injury risk."
+    "commonMistakes": [
+      {
+        "mistake": "Rear hand dropping",
+        "adjustment": "Keep the rear hand near your face while the lead hand extends."
+      },
+      {
+        "mistake": "Snapping the elbow straight",
+        "adjustment": "Extend smoothly and stop just short of a fully locked elbow."
+      },
+      {
+        "mistake": "Leaning forward to reach",
+        "adjustment": "Stay balanced over your feet; it is fine if the hand does not travel far."
+      }
+    ],
+    "limitations": "Do not estimate impact, force, combat effectiveness, or injury risk.",
+    "reviewStatus": "draft_pending_coach_review"
   },
   {
     "id": "boxing_cross",
@@ -99,6 +245,9 @@
     "recommendedView": "front_or_diagonal",
     "analysisMode": "demo_guided_initially",
     "demoAnimation": "boxing_cross",
+    "purpose": "Practise the rear-hand extension slowly with a controlled turn of the body.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
     "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
     "instructions": [
       "Begin from a comfortable stance.",
@@ -110,6 +259,95 @@
       "Prioritize balance and control.",
       "Avoid forcing range of motion."
     ],
-    "limitations": "No automatic power, impact, or advanced technique scoring."
+    "commonMistakes": [
+      {
+        "mistake": "Losing balance while turning",
+        "adjustment": "Make the movement smaller and slower until you feel stable."
+      },
+      {
+        "mistake": "Forgetting to return to guard",
+        "adjustment": "Bring the hand straight back to your face before the next repetition."
+      },
+      {
+        "mistake": "Forcing the rotation",
+        "adjustment": "Turn only as far as feels comfortable for your hips and back."
+      }
+    ],
+    "limitations": "No automatic power, impact, or advanced technique scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_guard_return",
+    "name": "Guard Return",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_guard_return",
+    "purpose": "Build the habit of bringing your hands back to a relaxed guard after each movement.",
+    "space": "About 2 × 2 m of clear floor. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise without contact and at a slow pace. Stop if uncomfortable.",
+    "instructions": [
+      "Start in a comfortable boxing stance with hands in guard.",
+      "Let one hand move slightly away from the face.",
+      "Bring it straight back to guard.",
+      "Pause, check your balance, then repeat with the other hand."
+    ],
+    "commonCues": [
+      "Return to the same guard position each time.",
+      "Stay relaxed."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hand returns low",
+        "adjustment": "Bring the hand back up near the face before moving again."
+      },
+      {
+        "mistake": "Tensing the shoulders",
+        "adjustment": "Breathe out and let the shoulders relax."
+      }
+    ],
+    "limitations": "Guided practice. Return-to-guard cues will only be enabled after validation.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_forward_backward",
+    "name": "Forward & Backward Footwork",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "full_body",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_forward",
+    "purpose": "Practise small, balanced steps forwards and backwards from your stance.",
+    "space": "At least 3 m of clear, non-slip floor in front of and behind you.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Use a clear, non-slip floor and small steps. Stop if you feel unsteady or uncomfortable.",
+    "instructions": [
+      "Start in a comfortable boxing stance.",
+      "Step the front foot forward a short distance, then let the back foot follow.",
+      "Step the back foot backward a short distance, then let the front foot follow.",
+      "Keep the same stance width after each step."
+    ],
+    "commonCues": [
+      "Small steps.",
+      "Stay balanced between steps."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Crossing the feet",
+        "adjustment": "Keep the feet roughly hip-width apart and let the lead foot move first."
+      },
+      {
+        "mistake": "Big lunging steps",
+        "adjustment": "Shorten the step so you stay balanced."
+      }
+    ],
+    "limitations": "Timer and instructions only. Footwork is not automatically scored.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

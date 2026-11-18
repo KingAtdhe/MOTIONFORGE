@@ -2,12 +2,15 @@ package eu.motionforge.app.data
 
 import eu.motionforge.app.core.model.AnalysisMode
 import eu.motionforge.app.core.model.CameraView
+import eu.motionforge.app.core.model.CommonMistake
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.model.Level
+import eu.motionforge.app.core.model.ReviewStatus
 import eu.motionforge.app.core.model.TrainingCategory
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
@@ -26,7 +29,8 @@ object ExerciseCatalogParser {
 
     private val knownKeys = setOf(
         "id", "name", "category", "level", "durationSeconds", "recommendedView", "analysisMode",
-        "demoAnimation", "safety", "instructions", "commonCues", "limitations",
+        "demoAnimation", "purpose", "space", "equipment", "safety", "instructions", "commonCues",
+        "commonMistakes", "limitations", "reviewStatus",
     )
 
     fun parse(text: String): List<Exercise> {
@@ -69,11 +73,18 @@ object ExerciseCatalogParser {
             durationSeconds = duration,
             recommendedView = enumByWire(CameraView.entries, obj.string("recommendedView", index), { it.wireName }, "recommendedView", id),
             analysisMode = enumByWire(AnalysisMode.entries, obj.string("analysisMode", index), { it.wireName }, "analysisMode", id),
-            demoAnimation = obj.string("demoAnimation", index),
+            demoAnimation = obj.optionalString("demoAnimation", index),
+            purpose = obj.string("purpose", index).also {
+                if (it.isBlank()) throw CatalogException("Exercise '$id' has no purpose")
+            },
+            space = obj.string("space", index),
+            equipment = obj.stringList("equipment", index),
             safety = safety,
             instructions = instructions,
             commonCues = obj.stringList("commonCues", index),
+            commonMistakes = obj.mistakes(index),
             limitations = limitations,
+            reviewStatus = enumByWire(ReviewStatus.entries, obj.string("reviewStatus", index), { it.wireName }, "reviewStatus", id),
         )
     }
 
@@ -81,6 +92,24 @@ object ExerciseCatalogParser {
         val p = this[key] as? JsonPrimitive
         if (p == null || !p.isString) throw CatalogException("Entry $index: '$key' must be a string")
         return p.content
+    }
+
+    private fun JsonObject.optionalString(key: String, index: Int): String? {
+        val el = this[key] ?: throw CatalogException("Entry $index: '$key' is missing (use null for none)")
+        if (el is JsonNull) return null
+        val p = el as? JsonPrimitive
+        if (p == null || !p.isString || p.content.isBlank()) throw CatalogException("Entry $index: '$key' must be a string or null")
+        return p.content
+    }
+
+    private fun JsonObject.mistakes(index: Int): List<CommonMistake> {
+        val arr = this["commonMistakes"] as? JsonArray
+            ?: throw CatalogException("Entry $index: 'commonMistakes' must be an array")
+        return arr.map { el ->
+            val o = el as? JsonObject ?: throw CatalogException("Entry $index: each common mistake must be an object")
+            if (o.keys != setOf("mistake", "adjustment")) throw CatalogException("Entry $index: common mistake needs exactly 'mistake' and 'adjustment'")
+            CommonMistake(o.string("mistake", index), o.string("adjustment", index))
+        }
     }
 
     private fun JsonObject.stringList(key: String, index: Int): List<String> {
