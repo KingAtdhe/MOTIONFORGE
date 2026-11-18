@@ -154,3 +154,30 @@ Claude must append to this file after each implementation phase.
   free orbit on lesson screens; all clips labelled draft until a qualified coach reviews them.
 - **Next phase:** Phase 3 — camera & pose tracking in the product flow (setup guide, permission rationale,
   framing guidance, tracking status) built on the Phase 0 spikes.
+
+---
+
+### 2026-11-18 / Phases 3–5 slice — real training, history, redesign, trainer v2
+Triggered by owner feedback after the first device look ("can't actually train, design plain, trainer looks bad").
+- **Implemented:**
+  - **Sessions:** pure `SessionEngine` (timer, exercise sequence, rests, pause/resume/skip/stop, per-exercise
+    results), `SessionPlanner` (single lesson, or short session = warm-up + focus lessons with 15 s rests).
+  - **Session screen:** setup (plan, safety, camera explanation before the system prompt, with/without camera)
+    → live (big timer, cue rotation, trainer demo or camera with skeleton + tracking chip, flip camera,
+    pause/skip/end, screen kept awake) → summary (active time, exercises, reps, optional effort 1–10, save/discard).
+  - **Squat repetition counter** (`core/movement/SquatRepCounter`): knee-angle cycle FSM with smoothing,
+    minimum cycle time, reset on tracking loss/pause/step change. Labelled *experimental*; counts cycles only,
+    never judges technique. Reps are discarded when tracking was mostly unavailable. Thresholds are hypotheses.
+  - **History:** Room (`sessions`, `session_exercises`, mirroring `database/schema.sql`), `SessionRepository`;
+    Progress screen (sessions/minutes this week, 4-week bars, history list, empty state). Reset wipes history.
+  - **Redesign:** bundled Barlow / Barlow Condensed (SIL OFL), new colour system (volt = fitness,
+    ember = fighting), hero session card on Home, accent lesson cards, stat tiles, larger actions.
+  - **Trainer v2:** athletic proportions, sculpted head (nose, brow, sockets, ears) with separate hair shell,
+    closed hands that read as fists in guard; 5.5k verts / 10.5k tris; validator 0 errors.
+- **Build/tests:** 82 JVM tests pass locally and in CI (run for commit "Real training sessions…": tests ✅,
+  assembleDebug ✅, lint ✅; Room/KSP 2.2.0-2.0.2 resolved). Trainer v2 commit: see CI.
+- **Not verified on a device:** all new screens were written without an emulator — layout, fonts, camera
+  session and rep counting need a real-phone pass. Spec gate still open: squat cue/demo not coach-reviewed,
+  no device accuracy testing.
+- **Known gaps:** a session does not survive process death; no boxing-stance evaluator yet; no push-up clips;
+  the trainer is a stylised figure — a realistic human needs a hand-sculpted or licensed character.

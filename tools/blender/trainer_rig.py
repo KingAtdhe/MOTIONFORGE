@@ -57,7 +57,7 @@ def skin(body, parts, arm):
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.parent_set(type="ARMATURE_AUTO")
 
-    rigid = {"trainer_head": "head"}
+    rigid = {"trainer_head": "head", "trainer_hair": "head"}
     for s in ("L", "R"):
         rigid[f"trainer_hand_{s}"] = f"hand_{s}"
         rigid[f"trainer_shoe_{s}"] = f"foot_{s}"

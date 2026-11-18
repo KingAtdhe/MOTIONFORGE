@@ -21,12 +21,12 @@ J = {
     "spine": Vector((0, 0.0, 1.08)),
     "chest": Vector((0, 0.0, 1.27)),
     "neck": Vector((0, 0.0, 1.47)),
-    "head": Vector((0, -0.005, 1.56)),
-    "head_top": Vector((0, -0.005, 1.76)),
+    "head": Vector((0, -0.005, 1.57)),
+    "head_top": Vector((0, -0.005, 1.79)),
 }
 ARM_DROP = math.radians(45)
 for side, s in (("L", 1), ("R", -1)):
-    sh = Vector((0.185 * s, 0.0, 1.425))
+    sh = Vector((0.198 * s, 0.0, 1.43))
     J[f"shoulder_{side}"] = Vector((0.06 * s, -0.005, 1.43))
     J[f"upper_arm_{side}"] = sh
     el = sh + Vector((0.285 * math.cos(ARM_DROP) * s, 0.0, -0.285 * math.sin(ARM_DROP)))
@@ -34,7 +34,7 @@ for side, s in (("L", 1), ("R", -1)):
     wr = el + Vector((0.255 * math.cos(ARM_DROP) * s, -0.01, -0.255 * math.sin(ARM_DROP)))
     J[f"hand_{side}"] = wr
     J[f"hand_tip_{side}"] = wr + Vector((0.17 * math.cos(ARM_DROP) * s, -0.01, -0.17 * math.sin(ARM_DROP)))
-    J[f"thigh_{side}"] = Vector((0.092 * s, 0.0, HIP_Z))
+    J[f"thigh_{side}"] = Vector((0.088 * s, 0.0, HIP_Z))
     J[f"shin_{side}"] = Vector((0.095 * s, -0.01, 0.515))
     J[f"foot_{side}"] = Vector((0.097 * s, 0.015, 0.09))
     J[f"toe_{side}"] = Vector((0.10 * s, -0.135, 0.03))
@@ -58,43 +58,43 @@ def build_body_graph():
 
     # torso (x radius = width, y radius = depth)
     crotch = v((0, 0.0, 0.87), 0.07, 0.07, T)
-    pelvis = v(J["pelvis"], 0.158, 0.112, T)
-    waist = v((0, 0.0, 1.06), 0.135, 0.098, T)
-    ribs = v((0, -0.005, 1.18), 0.148, 0.106, T)
-    chest = v((0, -0.012, 1.29), 0.165, 0.112, T)
-    upper = v((0, -0.005, 1.385), 0.15, 0.098, T)
-    neck0 = v((0, 0.0, 1.46), 0.05, 0.052)
-    neck1 = v((0, 0.0, 1.55), 0.045, 0.048)
+    pelvis = v(J["pelvis"], 0.142, 0.104, T)
+    waist = v((0, 0.0, 1.07), 0.122, 0.092, T)
+    ribs = v((0, -0.005, 1.19), 0.143, 0.104, T)
+    chest = v((0, -0.016, 1.30), 0.168, 0.116, T)
+    upper = v((0, -0.004, 1.39), 0.158, 0.096, T)
+    neck0 = v((0, 0.004, 1.475), 0.05, 0.054)
+    neck1 = v((0, 0.0, 1.575), 0.052, 0.056)
     edges += [(crotch, pelvis), (pelvis, waist), (waist, ribs), (ribs, chest), (chest, upper), (upper, neck0), (neck0, neck1)]
 
     for side, s in (("L", 1), ("R", -1)):
         # shoulder cap and arm
-        cap = v((0.125 * s, 0.0, 1.405), 0.058, 0.055)
-        sh = v(J[f"upper_arm_{side}"], 0.058, 0.058)
+        cap = v((0.14 * s, 0.0, 1.415), 0.056, 0.054)
+        sh = v(J[f"upper_arm_{side}"], 0.054, 0.054)
         edges += [(upper, cap), (cap, sh)]
         prev = sh
-        for t, r in ((0.35, 0.054), (0.7, 0.047)):
+        for t, r in ((0.35, 0.052), (0.7, 0.044)):
             n = v(_lerp(J[f"upper_arm_{side}"], J[f"forearm_{side}"], t), r)
             edges.append((prev, n)); prev = n
-        el = v(J[f"forearm_{side}"], 0.041)
+        el = v(J[f"forearm_{side}"], 0.038)
         edges.append((prev, el)); prev = el
-        for t, r in ((0.3, 0.043), (0.7, 0.034)):
+        for t, r in ((0.3, 0.042), (0.7, 0.032)):
             n = v(_lerp(J[f"forearm_{side}"], J[f"hand_{side}"], t), r)
             edges.append((prev, n)); prev = n
-        wr = v(J[f"hand_{side}"], 0.029, 0.024)
+        wr = v(J[f"hand_{side}"], 0.026, 0.022)
         edges.append((prev, wr))
 
         # leg: from pelvis through hip joint
-        hip = v(J[f"thigh_{side}"] + Vector((0.008 * s, 0, -0.03)), 0.072, 0.074)
+        hip = v(J[f"thigh_{side}"] + Vector((0.006 * s, 0, -0.03)), 0.072, 0.076)
         edges += [(pelvis, hip)]
         prev = hip
-        for t, r in ((0.3, 0.083), (0.65, 0.068)):
+        for t, r in ((0.3, 0.078), (0.65, 0.064)):
             n = v(_lerp(J[f"thigh_{side}"], J[f"shin_{side}"], t), r, r * 1.05)
             edges.append((prev, n)); prev = n
-        kn = v(J[f"shin_{side}"], 0.045, 0.048)
+        kn = v(J[f"shin_{side}"], 0.046, 0.048)
         edges.append((prev, kn)); prev = kn
         # calf sits behind the shin bone (+Y), then the leg tapers to the ankle
-        for t, r, ry, back in ((0.28, 0.046, 0.05, 0.012), (0.62, 0.034, 0.036, 0.004)):
+        for t, r, ry, back in ((0.28, 0.048, 0.054, 0.014), (0.62, 0.034, 0.036, 0.004)):
             n = v(_lerp(J[f"shin_{side}"], J[f"foot_{side}"], t) + Vector((0, back, 0)), r, ry)
             edges.append((prev, n)); prev = n
         an = v(J[f"foot_{side}"] + Vector((0, 0, 0.02)), 0.026, 0.028)
@@ -127,39 +127,65 @@ def apply_modifiers(obj):
         bpy.ops.object.modifier_apply(modifier=m.name)
 
 
+HEAD_CENTRE = Vector((0, -0.012, 1.66))
+
+
+def _head_point(p, grow=1.0):
+    """Maps a unit-sphere point to the sculpted head surface."""
+    sx, sy, sz = 0.088 * grow, 0.104 * grow, 0.122 * grow
+    if p.z < 0:  # jaw narrows toward the chin
+        sx *= 1.0 - 0.17 * (-p.z) ** 1.6
+        sy *= 1.0 - 0.10 * (-p.z)
+    q = Vector((p.x * sx, p.y * sy, p.z * sz))
+    face = max(0.0, -p.y)
+    nose = math.exp(-((p.x / 0.13) ** 2) - (((p.z + 0.08) / 0.17) ** 2)) * face ** 3
+    q.y -= 0.022 * nose
+    brow = math.exp(-((p.z - 0.2) / 0.1) ** 2) * face ** 2 * math.exp(-(p.x / 0.55) ** 2)
+    q.y -= 0.007 * brow
+    for ex in (-0.33, 0.33):  # shallow eye sockets
+        socket = math.exp(-(((p.x - ex) / 0.15) ** 2) - (((p.z - 0.06) / 0.09) ** 2)) * face ** 2
+        q.y += 0.010 * socket
+    chin = math.exp(-((p.x / 0.25) ** 2) - (((p.z + 0.82) / 0.2) ** 2)) * face
+    q.y -= 0.008 * chin
+    ear = math.exp(-((abs(p.x) - 1.0) / 0.1) ** 2 - ((p.y - 0.1) / 0.16) ** 2 - ((p.z - 0.0) / 0.2) ** 2)
+    q.x += 0.014 * ear * (1 if p.x > 0 else -1)
+    return q + HEAD_CENTRE
+
+
 def make_head():
-    """Egg-shaped head with a gentle jaw, brow and nose — sculpted by vertex displacement."""
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=28, ring_count=18, radius=1.0)
+    """Egg-shaped head with jaw, brow, nose, eye sockets and ears — sculpted by vertex displacement."""
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=40, ring_count=26, radius=1.0)
     head = bpy.context.active_object
     head.name = "trainer_head"
-    centre = Vector((0, -0.012, 1.655))
     for vert in head.data.vertices:
-        p = vert.co.copy()
-        sx, sy, sz = 0.083, 0.098, 0.115
-        # narrow the jaw / chin
-        if p.z < 0:
-            k = 1.0 - 0.28 * (-p.z) ** 1.4
-            sx *= k
-            sy *= 1.0 - 0.12 * (-p.z)
-        q = Vector((p.x * sx, p.y * sy, p.z * sz))
-        # nose: small forward bump on the face (-Y) centre line
-        face = max(0.0, -p.y)
-        nose = math.exp(-((p.x / 0.16) ** 2) - (((p.z + 0.05) / 0.2) ** 2)) * face ** 3
-        q.y -= 0.018 * nose
-        # brow ridge
-        brow = math.exp(-((p.z - 0.25) / 0.12) ** 2) * face ** 2 * math.exp(-(p.x / 0.6) ** 2)
-        q.y -= 0.006 * brow
-        # ears: small side bumps
-        ear = math.exp(-((abs(p.x) - 1.0) / 0.12) ** 2 - (p.y / 0.18) ** 2 - ((p.z - 0.02) / 0.22) ** 2)
-        q.x += 0.012 * ear * (1 if p.x > 0 else -1)
-        vert.co = q + centre
+        vert.co = _head_point(vert.co.copy())
     bpy.ops.object.shade_smooth()
     return head
 
 
+def make_hair():
+    """Short hair as its own shell: a slightly larger skull, cut along a hairline plane."""
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=40, ring_count=26, radius=1.0)
+    hair = bpy.context.active_object
+    hair.name = "trainer_hair"
+    for vert in hair.data.vertices:
+        p = vert.co.copy()
+        q = _head_point(p, grow=1.045) - HEAD_CENTRE
+        q.z *= 1.03
+        vert.co = q + HEAD_CENTRE + Vector((0, 0.004, 0.002))
+    bm = bmesh.new()
+    bm.from_mesh(hair.data)
+    # hairline: high on the forehead, sweeping down behind the ears to the nape
+    geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    bmesh.ops.bisect_plane(bm, geom=geom, plane_co=HEAD_CENTRE + Vector((0, -0.07, 0.075)), plane_no=Vector((0, 0.42, 0.9)), clear_inner=True)
+    bm.to_mesh(hair.data)
+    bm.free()
+    bpy.ops.object.shade_smooth()
+    return hair
+
+
 def make_hand(side):
-    """Simple relaxed hand: palm block + thumb, built from a skin graph."""
-    s = 1 if side == "L" else -1
+    """Compact, loosely closed hand (reads as a relaxed hand at rest and as a fist in guard)."""
     wr, tip = J[f"hand_{side}"], J[f"hand_tip_{side}"]
     d = (tip - wr).normalized()
     verts, edges, radii = [], [], []
@@ -167,16 +193,15 @@ def make_hand(side):
     def v(p, rx, ry=None):
         verts.append(Vector(p)); radii.append((rx, ry if ry is not None else rx)); return len(verts) - 1
 
-    a = v(wr, 0.026, 0.02)
-    b = v(wr + d * 0.05, 0.042, 0.018)
-    c = v(wr + d * 0.095, 0.044, 0.016)
-    e = v(wr + d * 0.15, 0.036, 0.013)
-    f = v(wr + d * 0.175, 0.028, 0.011)
-    edges += [(a, b), (b, c), (c, e), (e, f)]
-    th0 = v(wr + d * 0.03 + Vector((0, -0.022, 0)), 0.014)
-    th1 = v(wr + d * 0.075 + Vector((0, -0.045, 0)), 0.011)
+    a = v(wr, 0.027, 0.022)
+    b = v(wr + d * 0.04, 0.04, 0.026)
+    c = v(wr + d * 0.08, 0.043, 0.03)
+    e = v(wr + d * 0.108, 0.036, 0.028)
+    edges += [(a, b), (b, c), (c, e)]
+    th0 = v(wr + d * 0.035 + Vector((0, -0.026, 0)), 0.015)
+    th1 = v(wr + d * 0.075 + Vector((0, -0.036, 0)), 0.013)
     edges += [(b, th0), (th0, th1)]
-    return make_skin_object(f"trainer_hand_{side}", verts, edges, radii, subdiv=1)
+    return make_skin_object(f"trainer_hand_{side}", verts, edges, radii, subdiv=2)
 
 
 def make_shoe(side):
@@ -225,9 +250,9 @@ MAT = {}
 
 
 def build_materials():
-    MAT["skin"] = material("trainer_skin", srgb("B07E5E"), 0.6)
-    MAT["shirt"] = material("trainer_shirt", srgb("2C4A52"), 0.85)
-    MAT["shorts"] = material("trainer_shorts", srgb("23272C"), 0.85)
+    MAT["skin"] = material("trainer_skin", srgb("B98A6A"), 0.55)
+    MAT["shirt"] = material("trainer_shirt", srgb("A9D626"), 0.8)
+    MAT["shorts"] = material("trainer_shorts", srgb("1B1F24"), 0.8)
     MAT["shoe"] = material("trainer_shoe", srgb("E6E2DA"), 0.7)
     MAT["sole"] = material("trainer_sole", srgb("4A4F55"), 0.9)
     MAT["hair"] = material("trainer_hair", srgb("2A211C"), 0.9)
@@ -281,13 +306,6 @@ def assign_body_materials(body):
 
 def assign_head_materials(head):
     head.data.materials.append(MAT["skin"])
-    head.data.materials.append(MAT["hair"])
-    centre = Vector((0, -0.012, 1.655))
-    for poly in head.data.polygons:
-        p = poly.center - centre
-        # short hair: top and back of the head
-        if p.z > 0.045 - 0.06 * max(0.0, p.y / 0.1) or (p.y > 0.03 and p.z > -0.04):
-            poly.material_index = 1
 
 
 def assign_shoe_materials(shoe):
@@ -305,7 +323,9 @@ def build_body():
     assign_body_materials(body)
     head = make_head()
     assign_head_materials(head)
-    parts = [head]
+    hair = make_hair()
+    hair.data.materials.append(MAT["hair"])
+    parts = [head, hair]
     for side in ("L", "R"):
         h = make_hand(side)
         h.data.materials.append(MAT["skin"])
