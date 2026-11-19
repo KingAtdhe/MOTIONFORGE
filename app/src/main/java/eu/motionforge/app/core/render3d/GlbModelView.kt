@@ -19,7 +19,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.filament.ColorGrading
 import com.google.android.filament.EntityManager
+import com.google.android.filament.ToneMapper
+import com.google.android.filament.View as FilamentView
 import com.google.android.filament.IndirectLight
 import com.google.android.filament.LightManager
 import com.google.android.filament.utils.ModelViewer
@@ -98,6 +101,30 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
             clearColor = floatArrayOf(background[0], background[1], background[2], 1f)
         }
         if (lit) addStudioLighting()
+        configureQuality()
+    }
+
+    /**
+     * Image quality for a single character on a phone: 4× MSAA + FXAA against jagged edges, no dynamic
+     * resolution (it blurs the textures), ambient occlusion for depth in folds, AgX tone mapping so the
+     * bright rig doesn't flatten skin and black clothes.
+     */
+    private fun configureQuality() {
+        val view = viewer.view
+        view.antiAliasing = FilamentView.AntiAliasing.FXAA
+        view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply {
+            enabled = true
+            sampleCount = 4
+        }
+        view.dynamicResolutionOptions = view.dynamicResolutionOptions.apply { enabled = false }
+        view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply {
+            enabled = true
+            radius = 0.25f
+            intensity = 0.8f
+        }
+        view.colorGrading = ColorGrading.Builder()
+            .toneMapper(ToneMapper.Agx(ToneMapper.Agx.AgxLook.PUNCHY))
+            .build(viewer.engine)
     }
 
     /**
@@ -111,8 +138,14 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         // previous low key light. ModelViewer's own overhead sun stays on.
         val ambient = IndirectLight.Builder()
             .irradiance(1, floatArrayOf(0.95f, 0.95f, 1.0f))
-            .intensity(34_000f)
+            .intensity(24_000f)
             .build(engine)
+        // ModelViewer's own sun points straight down at 100 klx and lit only heads and shoulders; tone it down
+        // and tilt it to come from above the camera.
+        val lm = engine.lightManager
+        val sun = lm.getInstance(viewer.light)
+        lm.setIntensity(sun, 45_000f)
+        lm.setDirection(sun, 0.15f, -1.0f, -0.55f)
         viewer.scene.indirectLight = ambient
         fun dir(r: Float, g: Float, b: Float, lux: Float, x: Float, y: Float, z: Float) {
             val e = EntityManager.get().create()
@@ -120,10 +153,10 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
                 .color(r, g, b).intensity(lux).direction(x, y, z).castShadows(false).build(engine, e)
             viewer.scene.addEntity(e)
         }
-        dir(1.0f, 0.97f, 0.93f, 95_000f, 0.40f, -0.45f, -1.0f)    // key: front-left, slightly above
-        dir(0.85f, 0.90f, 1.0f, 38_000f, -0.80f, -0.20f, -0.60f)  // fill: front-right, cooler
-        dir(1.0f, 0.95f, 0.92f, 70_000f, -0.55f, -0.30f, 1.0f)    // rim left-back: silhouette
-        dir(0.80f, 0.88f, 1.0f, 55_000f, 0.60f, -0.25f, 1.0f)     // rim right-back
+        dir(1.0f, 0.97f, 0.93f, 110_000f, 0.45f, -0.50f, -1.0f)  // key: front-left, above — gives the form
+        dir(0.85f, 0.90f, 1.0f, 28_000f, -0.80f, -0.20f, -0.60f)  // fill: front-right, cooler
+        dir(1.0f, 0.95f, 0.92f, 38_000f, -0.55f, -0.30f, 1.0f)    // rim left-back: silhouette
+        dir(0.80f, 0.88f, 1.0f, 30_000f, 0.60f, -0.25f, 1.0f)     // rim right-back
     }
 
     /** Must run on the main thread. */
@@ -132,12 +165,26 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         viewer.transformToUnitCube()
         val asset = viewer.asset ?: error("GLB parsed but produced no asset")
         val tm = viewer.engine.transformManager
-        tm.getTransform(tm.getInstance(asset.root), baseTransform)
+        val unitCube = FloatArray(16)
+        tm.getTransform(tm.getInstance(asset.root), unitCube)
+        // The unit cube only fills ~58 % of the view height with ModelViewer's 28 mm lens; scale about the
+        // cube centre (0, 0, -4) so the coach fills ~80 % and still fits lying down (push-up) in a portrait box.
+        val zoom = FloatArray(16)
+        android.opengl.Matrix.setIdentityM(zoom, 0)
+        android.opengl.Matrix.translateM(zoom, 0, 0f, 0f, -4f)
+        android.opengl.Matrix.scaleM(zoom, 0, MODEL_ZOOM, MODEL_ZOOM, MODEL_ZOOM)
+        android.opengl.Matrix.translateM(zoom, 0, 0f, 0f, 4f)
+        android.opengl.Matrix.multiplyMM(baseTransform, 0, zoom, 0, unitCube, 0)
+        tm.setTransform(tm.getInstance(asset.root), baseTransform)
         appliedYaw = Float.NaN
         val animator = viewer.animator
         clips = if (animator == null) emptyList() else (0 until animator.animationCount).map { i ->
             AnimationClip(i, animator.getAnimationName(i), animator.getAnimationDuration(i))
         }
+    }
+
+    private companion object {
+        const val MODEL_ZOOM = 1.38f
     }
 
     fun applyYaw(yawDegrees: Float) {

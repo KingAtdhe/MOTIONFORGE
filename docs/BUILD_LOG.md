@@ -377,3 +377,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Summary: coach banner, effort picker as 48 dp round 1–10 chips (radio semantics).
 - Progress: "This week" Mon–Sun ticks (deliberately no streak counter, in line with the no-pressure rule),
   history cards with the coach picture of the first exercise. `ProgressSummary.trainedDaysThisWeek` + test.
+
+## On-device look fix (2026-11-19, from owner's phone screenshots)
+- Owner: coach "looks like a disaster" on the lesson page. Causes found: model filled only ~1/3 of the viewer,
+  no anti-aliasing (jagged), near-mirror baked roughness (median 0.11 → oily plastic), short bake rays leaving dark
+  speckled seam lines on muscles, and no exported tangents (Filament's own tangents disagree with Blender's
+  MikkTSpace bake → visible normal-map seams).
+- Fixes: model scaled ×1.38 about the unit-cube centre; 4× MSAA + FXAA, dynamic resolution off, SSAO, AgX (punchy)
+  tone mapping; ModelViewer's overhead 100 klx sun reduced to 45 klx and tilted to the front; ambient lowered so
+  the key light shapes the body; roughness remapped to 0.45–0.95; bake cage 2 cm / rays 6 cm; tangents exported
+  (degenerate ones patched in `fix_tangents`). Validator: 0 errors. Needs a device check.

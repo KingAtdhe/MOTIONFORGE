@@ -158,8 +158,8 @@ sc.render.engine = "CYCLES"
 sc.cycles.device = "CPU"
 sc.cycles.samples = 1
 sc.render.bake.use_selected_to_active = True
-sc.render.bake.cage_extrusion = 0.008
-sc.render.bake.max_ray_distance = 0.02
+sc.render.bake.cage_extrusion = 0.02   # decimation moves the surface >1 cm on muscles; short rays missed and left dark lines
+sc.render.bake.max_ray_distance = 0.06
 sc.render.bake.margin = 8
 hmat = hi.data.materials[0]
 hbs = next(n for n in hmat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -222,7 +222,9 @@ if SKIN and "--no-grade" not in args:
 r = np.array(out["rough.png"].pixels[:], np.float32).reshape(RES, RES, 4)
 mr = np.zeros_like(r)
 mr[..., 0] = 1.0
-mr[..., 1] = r[..., 0]
+# the source scans bake a near-mirror roughness (median ~0.1) that reads as oily plastic under real-time lights;
+# remap to a skin/fabric range (0.45 .. 0.95) keeping the relative detail
+mr[..., 1] = 0.45 + 0.50 * np.clip(r[..., 0], 0.0, 1.0)
 mr[..., 3] = 1.0
 mrimg = bpy.data.images.new("mr.png", RES, RES)
 mrimg.colorspace_settings.name = "Non-Color"
@@ -761,9 +763,48 @@ bpy.ops.object.select_all(action="DESELECT")
 lo.select_set(True)
 arm.select_set(True)
 bpy.ops.export_scene.gltf(filepath=exp, export_format="GLB", use_selection=True, export_yup=True, export_apply=False, export_texcoords=True,
-                          export_normals=True, export_materials="EXPORT", export_image_format="JPEG", export_jpeg_quality=88,
+                          export_normals=True, export_tangents=True, export_materials="EXPORT", export_image_format="JPEG", export_jpeg_quality=88,
                           export_skins=True, export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
                           export_frame_range=False, export_anim_single_armature=True, export_reset_pose_bones=True)
+
+
+def fix_tangents(path):
+    """Faces with zero UV area get a zero TANGENT from the exporter (invalid glTF); give them any unit vector
+    perpendicular to the normal, w = 1. Patched in place, same byte layout."""
+    import json as _json, struct as _struct
+    data = bytearray(open(path, "rb").read())
+    jlen = _struct.unpack_from("<I", data, 12)[0]
+    gj = _json.loads(bytes(data[20:20 + jlen]))
+    bin0 = 20 + jlen + 8
+    fixed = 0
+    for mesh in gj["meshes"]:
+        for prim in mesh["primitives"]:
+            at = prim["attributes"]
+            if "TANGENT" not in at:
+                continue
+
+            def view(acc_i, comps):
+                acc = gj["accessors"][acc_i]
+                bv = gj["bufferViews"][acc["bufferView"]]
+                off = bin0 + bv.get("byteOffset", 0) + acc.get("byteOffset", 0)
+                return np.frombuffer(data, np.float32, acc["count"] * comps, off).reshape(-1, comps), off
+            t, toff = view(at["TANGENT"], 4)
+            n, _ = view(at["NORMAL"], 3)
+            t = t.copy()
+            bad = np.linalg.norm(t[:, :3], axis=1) < 0.5
+            for i in np.nonzero(bad)[0]:
+                nn = n[i] / max(np.linalg.norm(n[i]), 1e-9)
+                a = np.array([1.0, 0, 0]) if abs(nn[0]) < 0.9 else np.array([0, 1.0, 0])
+                tt = np.cross(nn, a)
+                tt /= np.linalg.norm(tt)
+                t[i] = (*tt, 1.0)
+            fixed += int(bad.sum())
+            data[toff:toff + t.nbytes] = t.astype(np.float32).tobytes()
+    open(path, "wb").write(bytes(data))
+    print("fixed tangents", fixed)
+
+
+fix_tangents(exp)
 print("EXPORTED", exp, os.path.getsize(exp))
 ORDER = [n for n, _, _ in ta.clip_specs()] + ["pushup_down", "pushup_up"]
 manifest = {"asset": f"models/{NAME}.glb", "generator": "tools/blender/build_coach_mesh.py", "fps": ta.FPS,
