@@ -26,7 +26,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import eu.motionforge.app.BuildConfig
 import eu.motionforge.app.MotionForgeApplication
-import eu.motionforge.app.core.design.ChoiceButton
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import eu.motionforge.app.core.design.CoachArt
 import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.MfColors
@@ -61,11 +70,24 @@ fun ProfileScreen(
             Text("Who demonstrates the moves in lessons and sessions.", style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Coach.entries.forEach { c ->
-                    ChoiceButton(
-                        label = c.displayName,
-                        selected = preferences.coach == c,
-                        onClick = { scope.launch { prefsRepo.setCoach(c) } },
-                    )
+                    val selected = preferences.coach == c
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .selectable(selected = selected, onClick = { scope.launch { prefsRepo.setCoach(c) } }, role = Role.RadioButton),
+                        shape = RoundedCornerShape(18.dp),
+                        color = if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CoachArt(c.heroArt, Modifier.fillMaxWidth().height(170.dp).padding(top = 8.dp))
+                            Text(
+                                (if (selected) "✓ " else "") + c.displayName,
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(10.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
