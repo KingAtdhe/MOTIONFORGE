@@ -50,6 +50,7 @@ def ym(col):  # side-image column -> metres (+Y = behind)
     return -(col - cy) * PX
 
 
+SIDE = {}
 back_ref = max(ym(side_main(r)[0] - 0.5) for r in range(armpit, armpit + int(0.10 / PX)))
 for i, r in enumerate(rows):
     fiv = intervals(F[r])
@@ -80,6 +81,7 @@ for i, r in enumerate(rows):
                         P[key][i] = ((edge + inner) / 2, axr, (yf + yb2) / 2, min(axr * 0.88, (yb2 - yf) / 2), 2.0)
             else:
                 P["torso"][i] = (xc, xr, (yf + yb) / 2, (yb - yf) / 2, 2.3 if zf > 0.45 else 2.1)
+                SIDE[i] = (yf, yb, xr)
         elif below and (a, b) in legs:
             key = "legL" if xc > 0 else "legR"
             # both legs share the side outline; split it so each leg is no deeper than it is wide x 1.35
@@ -148,6 +150,31 @@ for i, r in enumerate(rows):
         k = np.sqrt(max(0.0, 1 - ((0.075 - h) / 0.075) ** 2))
         P["torso"][i][1] *= max(k, 0.05)
         P["torso"][i][3] *= max(k, 0.05)
+# anatomy lobes: the side outline's forward bulge at the chest is two breasts (not a wider ribcage), and its
+# backward bulge at the hips is two glutes; carve the torso back to a smooth line and add paired lobes there
+BUST = {}; GLUTE = {}
+zs_side = sorted((Z(rows[i]), i) for i in SIDE)
+def _line(z0, z1, k):
+    i0 = min(SIDE, key=lambda i: abs(Z(rows[i]) - z0)); i1 = min(SIDE, key=lambda i: abs(Z(rows[i]) - z1))
+    a, b = SIDE[i0][k], SIDE[i1][k]
+    return lambda z: a + (b - a) * (z - z0) / (z1 - z0)
+back_line = _line(0.80, 1.06, 1)
+# bust: measured on the side outline (underbust ~1.18 m, apex ~1.25 m, upper chest falls back above 1.32 m)
+ap_i = max((i for i in SIDE if 1.19 < Z(rows[i]) < 1.31), key=lambda i: -SIDE[i][0])
+APEX_Z, APEX_Y = 1.245, SIDE[ap_i][0]
+ub_i = min(SIDE, key=lambda i: abs(Z(rows[i]) - 1.175))
+rib = lambda z: SIDE[ub_i][0] + (z - 1.175) * 0.16          # ribcage front line under the bust
+for i, (yf, yb, xr) in SIDE.items():
+    z = Z(rows[i])
+    if 1.18 < z < 1.31 and yf < rib(z):
+        cut = rib(z) - yf
+        P["torso"][i][2] += cut / 2; P["torso"][i][3] -= cut / 2
+    if 0.80 < z < 1.06:
+        bump = yb - back_line(z)
+        if bump > 0.004:
+            P["torso"][i][2] -= bump / 2; P["torso"][i][3] -= bump / 2
+            GLUTE[i] = (yb, bump, xr)
+print("bust apex z %.3f y %.3f" % (APEX_Z, APEX_Y), "glute rows", len(GLUTE))
 VOX = 0.004
 xs = np.arange(-0.40, 0.40, VOX)
 ys = np.arange(-0.26, 0.26, VOX)
@@ -160,6 +187,16 @@ for kz, z in enumerate(zs):
     if abs(zrow[i] - z) > PX:
         continue
     f = np.full(X.shape, -1.0, np.float32)
+    dz = (z - APEX_Z) / 0.074
+    if abs(dz) < 1:
+        ry = 0.058
+        for sx in (-1, 1):
+            f = np.maximum(f, 1.0 - np.sqrt(((X - sx * 0.058) / 0.064) ** 2 + ((Y - (APEX_Y + ry)) / ry) ** 2 + dz ** 2))
+    if i in GLUTE:
+        yb_, bump, xr_ = GLUTE[i]
+        lr = 0.06 + bump * 0.6
+        for sx in (-1, 1):
+            f = np.maximum(f, 1.0 - np.sqrt(((X - sx * xr_ * 0.48) / (xr_ * 0.55)) ** 2 + ((Y - (yb_ - lr)) / lr) ** 2))
     for k, arr in P.items():
         xc, xr, yc, yr, n = arr[i]
         if np.isnan(xc) or xr <= 0 or yr <= 0:

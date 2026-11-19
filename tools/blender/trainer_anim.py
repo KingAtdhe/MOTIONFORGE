@@ -99,7 +99,7 @@ def hip_offset(thigh_x, shin_abs_x):
 def hinge(side, flex, twist=0.0):
     """Elbow / wrist flex about the arm's own hinge axis. The arm's rest pose is a 45° A-pose, so the
     rotation is done in a frame where the arm hangs vertically: negative flex bends forward."""
-    g = 45 if side == "L" else -45
+    g = REST_ARM if side == "L" else -REST_ARM
     rots = [("Y", g), ("X", flex)]
     if twist:
         rots.append(("Z", twist))
@@ -122,12 +122,15 @@ def grip(side, amount):
 
 
 RELAXED = 0.55
+# angle (degrees from vertical) of the upper arm in the rig's rest pose; 45 = the classic A-pose.
+# Characters built in their reference pose (arms near the body) set this so clips need no rest re-pose.
+REST_ARM = 45.0
 
 
 # ----------------------------------------------------------------------------- base poses
 def arms_down(bend=12):
     return {**grip("L", RELAXED), **grip("R", RELAXED),
-        "upper_arm_L": [("Y", 40), ("X", -4)], "upper_arm_R": [("Y", -40), ("X", -4)],
+        "upper_arm_L": [("Y", REST_ARM - 5), ("X", -4)], "upper_arm_R": [("Y", -(REST_ARM - 5)), ("X", -4)],
         "forearm_L": hinge("L", -bend), "forearm_R": hinge("R", -bend),
         "hand_L": hinge("L", 0, 8), "hand_R": hinge("R", 0, -8),
     }
@@ -149,8 +152,8 @@ def squat(depth):
     # arms rise forward for balance (relative to the leaning chest)
     lean = 32 * depth
     pose = merge(pose, {
-        "upper_arm_L": [("Y", 40 + 5 * depth), ("X", -4 - (86 + lean) * depth)],
-        "upper_arm_R": [("Y", -40 - 5 * depth), ("X", -4 - (86 + lean) * depth)],
+        "upper_arm_L": [("Y", REST_ARM - 5 + 5 * depth), ("X", -4 - (86 + lean) * depth)],
+        "upper_arm_R": [("Y", -(REST_ARM - 5) - 5 * depth), ("X", -4 - (86 + lean) * depth)],
         "forearm_L": hinge("L", -12 + 8 * depth), "forearm_R": hinge("R", -12 + 8 * depth),
         "hand_L": hinge("L", 0, 8), "hand_R": hinge("R", 0, -8),
         **grip("L", RELAXED + 0.25 * depth), **grip("R", RELAXED + 0.25 * depth),
@@ -166,7 +169,7 @@ def arm(side, forward, flex, tuck=0.0, aim=TORSO_TURN, out=0.0):
     body midline, then rotate about Z so the arm points at the target despite the torso turn."""
     s = 1 if side == "L" else -1
     return {
-        f"upper_arm_{side}": [("Y", 45 * s - out * s), ("X", -forward), ("Z", -tuck * s), ("Z", aim)],
+        f"upper_arm_{side}": [("Y", REST_ARM * s - out * s), ("X", -forward), ("Z", -tuck * s), ("Z", aim)],
         f"forearm_{side}": hinge(side, -flex),
         f"hand_{side}": hinge(side, 8),
         **grip(side, 1.0),
@@ -287,7 +290,7 @@ def clip_specs():
 
     def idle(t):
         b = math.sin(2 * math.pi * t / 3.0)
-        return merge(NEUTRAL, {"chest": [("X", 1.2 * b)], "spine": [("X", 0.6 * b)], "head": [("X", -0.6 * b)]})
+        return merge(arms_down(), {"chest": [("X", 1.2 * b)], "spine": [("X", 0.6 * b)], "head": [("X", -0.6 * b)]})
 
     def squat_down(t):
         return squat(ease(t / 1.6))

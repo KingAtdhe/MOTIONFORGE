@@ -156,7 +156,8 @@ for name, dirv, rows, cols in views:
     w = facing ** 3 * vis * inm * (1.0 if name != "side" else 0.8)
     if name == "side":
         # bare arms: never take dark fabric from where the painted arm and our arm disagree
-        w = w * ~(is_arm & (P[:, 2] > 0.97) & (col.max(1) < 0.38))
+        redish = (col[:, 0] > 0.45) & (col[:, 1] < 0.30) & ((col[:, 0] - col[:, 1]) > 0.30)
+        w = w * ~(is_arm & (P[:, 2] > 0.97) & ((col.max(1) < 0.38) | redish))
         is_tail = (P[:, 2] > 1.05) & (np.abs(P[:, 0]) < 0.08) & (P[:, 1] > np.nan_to_num(PARTS["torso"][ri_all, 2] + PARTS["torso"][ri_all, 3], nan=9) - 0.005)
         hairlike = (col.max(1) < 0.62) & ((col[:, 0] - col[:, 2]) > 0.06)
         w = w * ~(is_tail & ~hairlike)

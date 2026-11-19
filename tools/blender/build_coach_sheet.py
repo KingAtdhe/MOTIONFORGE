@@ -200,8 +200,11 @@ def swing(bone, target_dir):
     bpy.context.view_layer.update()
 
 
+# arms stay in the sheet's pose (no rest re-pose = no stretched shoulders); the clips are told the rest angle
+_ua = (J["forearm_L"] - J["upper_arm_L"])
+ta.REST_ARM = math.degrees(math.atan2(math.hypot(_ua.x, 0.0), -_ua.z))
+print("rest arm angle", round(ta.REST_ARM, 1))
 for side, s in (("L", 1), ("R", -1)):
-    swing(f"upper_arm_{side}", (s * math.cos(math.radians(45)), -0.03, -math.sin(math.radians(45))))
     d = (J[f"shin_{side}"] - J[f"thigh_{side}"]).normalized()
     swing(f"thigh_{side}", (d.x * 0.45, d.y, d.z))
 bpy.ops.object.mode_set(mode="OBJECT")

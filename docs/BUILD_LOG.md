@@ -238,3 +238,11 @@ painting onto it.
   the side painting (ear, hair) is used. 28,814 tris, GLB 1.8 MB, validator 0 errors.
 - Still open: soft blending on the sides of the head and waist, fingers read as one shape at rest, not tested
   on a phone, clips pending qualified-coach review.
+
+### 2026-11-19 / Coach v5.3 — no re-pose, real bust and glute forms
+- Rest pose now keeps the sheet's arm angle (15.6 deg); `trainer_anim.REST_ARM` tells every clip the rest angle
+  (default 45 keeps the older coach builds working). Removes the shoulder/chest stretching that the 45-degree
+  re-pose caused. Fixed idle using a pose cached before REST_ARM was set.
+- Body shape: the side outline's chest bulge becomes two breast ellipsoids on a ribcage line, and the hip bulge two
+  glute lobes, instead of one wide oval. Outline overlap now front 0.93 / side 0.91 IoU.
+- Arms reject dark and red paint from the side painting. 28,860 tris, validator 0 errors, 9 clips.
