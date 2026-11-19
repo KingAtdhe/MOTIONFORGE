@@ -322,3 +322,11 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   never advises; low visibility and tracking off → paused; jabs counted once per extension; rear-hand drop and slow
   return flagged) — run locally with the bundled Kotlin compiler + JUnit 4: 9/9; planner test for the form drills.
 - Thresholds are hypotheses for coach review and device testing; nothing measured on a phone yet.
+
+### 2026-11-19 / Recorded motion for idle, stance, jab, cross
+- CMU motion-capture takes (free for all uses; see assets/mocap/README.md) extracted to joint positions and
+  retargeted onto both coaches (`tools/blender/mocap_retarget.py`: direction matching per bone, full orientation
+  for hips and chest, scaled to the coach's leg length, facing -Y, loops blended, floor-contact pass after).
+  idle_neutral ← 111_28, boxing_stance ← 13_18 f114–186, boxing_jab ← 13_18 f88–118, boxing_cross ← 13_18 f20–50.
+- Squat stays hand-keyed (the recorded squats are deep crouches, not the lesson's bodyweight squat); push-up,
+  guard return and footwork stay hand-keyed. Manifest durations now read from the actions.

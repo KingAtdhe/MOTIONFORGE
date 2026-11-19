@@ -339,6 +339,22 @@ ta.G_LEAD_FWD, ta.G_LEAD_FLEX, ta.G_LEAD_TUCK = 52, 112, 4
 ta.G_REAR_FWD, ta.G_REAR_FLEX, ta.G_REAR_TUCK = 50, 120, 6
 ta.build_clips(arm)
 
+# ---- recorded motion (CMU mocap, assets/mocap) replaces the hand-keyed clips where a clean take exists
+import mocap_retarget as mr  # noqa: E402
+MOCAP = {  # clip: (take, first frame, last frame, loops)
+    "idle_neutral": ("111_28", 10, 100, True),
+    "boxing_stance": ("13_18", 114, 186, True),
+    "boxing_jab": ("13_18", 88, 118, False),
+    "boxing_cross": ("13_18", 20, 50, False),
+}
+for clip, (take, f0, f1, loops) in MOCAP.items():
+    old_act = bpy.data.actions.get(clip)
+    if old_act:
+        bpy.data.actions.remove(old_act)
+    act_, _ = mr.retarget(arm, np.load(os.path.join(ROOT, "assets/mocap", take + ".npz")), f0, f1, clip, loop=loops)
+    act_.name = clip
+    print("mocap", clip, take, f0, f1)
+
 
 # ---- push-up (prone) clips: whole body pivots about the toes as a straight plank, hands planted on the floor
 #      under the shoulders (two-bone IK baked to keys), elbows track back at ~45 degrees from the body.
@@ -476,10 +492,10 @@ bpy.ops.export_scene.gltf(filepath=exp, export_format="GLB", use_selection=True,
                           export_skins=True, export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
                           export_frame_range=False, export_anim_single_armature=True, export_reset_pose_bones=True)
 print("EXPORTED", exp, os.path.getsize(exp))
+ORDER = [n for n, _, _ in ta.clip_specs()] + ["pushup_down", "pushup_up"]
 manifest = {"asset": f"models/{NAME}.glb", "generator": "tools/blender/build_coach_mesh.py", "fps": ta.FPS,
-            "clips": [{"name": n, "durationSeconds": round(dd, 3), "reviewStatus": "draft_pending_coach_review"} for n, dd, _ in ta.clip_specs()]
-                     + [{"name": "pushup_down", "durationSeconds": 1.4, "reviewStatus": "draft_pending_coach_review"},
-                        {"name": "pushup_up", "durationSeconds": 1.2, "reviewStatus": "draft_pending_coach_review"}]}
+            "clips": [{"name": n, "durationSeconds": round((bpy.data.actions[n].frame_range[1] - bpy.data.actions[n].frame_range[0]) / ta.FPS, 3),
+                       "reviewStatus": "draft_pending_coach_review"} for n in ORDER]}
 if "--app" in args:
     shutil.copyfile(exp, os.path.join(ROOT, "app/src/main/assets/models", NAME + ".glb"))
     with open(os.path.join(ROOT, "app/src/main/assets/models", NAME + ".clips.json"), "w") as fh:
