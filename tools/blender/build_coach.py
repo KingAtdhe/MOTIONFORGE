@@ -138,7 +138,7 @@ def sculpt_body():
         c.seg(K, A + Vector((0, 0, 0.02)), 0.046, 0.030)
         c.ell(lerp(K, A, 0.30) + Vector((0, 0.024, 0)), (0.044, 0.047, 0.100), axis=g)            # calf
         c.ell(A + Vector((0, 0.0, 0.0)), (0.034, 0.040, 0.040))                                   # ankle
-    return c.build("coach_body", voxel=0.0055, smooth=6, tris=13000)
+    return c.build("coach_body", voxel=0.0055, smooth=6, tris=11000)
 
 
 def sculpt_head():
@@ -391,10 +391,10 @@ scene = bpy.context.scene
 scene.render.fps = ta.FPS
 
 M = {
-    "skin": vcol_material("coach_skin", srgb("B06F42"), 0.38),
-    "black": vcol_material("coach_black", srgb("1B1C21"), 0.62),
+    "skin": vcol_material("coach_skin", srgb("D08A58"), 0.38),
+    "black": vcol_material("coach_black", srgb("2A2B33"), 0.62),
     "accent": material("coach_accent", srgb("E0263A"), 0.55),
-    "hair": vcol_material("coach_hair", srgb("3B2418"), 0.55),
+    "hair": vcol_material("coach_hair", srgb("4A2A1A"), 0.55),
     "eye": material("coach_eye", srgb("F4F0EA"), 0.3),
     "iris": material("coach_iris", srgb("7A4A26"), 0.3),
     "dark": material("coach_dark", srgb("140E0C"), 0.5),
@@ -484,6 +484,49 @@ if not any(m.type == "ARMATURE" for m in body.modifiers):
     mod = body.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
 body.parent = arm
+# ---- cel shading baked into vertex colours (two bands, cool tinted shadow) + cavity as ink
+_L = Vector((-0.45, -0.62, 0.64)).normalized()
+_TINT = (0.60, 0.50, 0.64)
+_col = body.data.color_attributes["Col"]
+for _i, _v in enumerate(body.data.vertices):
+    _f = max(0.0, min(1.0, (_v.normal.dot(_L) + 0.10) / 0.10))
+    _c = _col.data[_i].color
+    _ink = min(1.0, _c[0]) ** 1.8
+    _col.data[_i].color = tuple(_ink * (_TINT[k] * (1 - _f) + _f) for k in range(3)) + (1.0,)
+
+# ---- outline: inverted hull from a lighter copy (flipped normals, black, back faces culled by the engine)
+M["outline"] = material("coach_outline", (0.02, 0.02, 0.03), 1.0)
+hull = body.copy()
+hull.data = body.data.copy()
+hull.name = "coach_outline"
+bpy.context.collection.objects.link(hull)
+for _m in list(hull.modifiers):
+    hull.modifiers.remove(_m)
+bpy.ops.object.select_all(action="DESELECT")
+hull.select_set(True)
+bpy.context.view_layer.objects.active = hull
+_d = hull.modifiers.new("dec", "DECIMATE")
+_d.ratio = 0.38
+bpy.ops.object.modifier_apply(modifier=_d.name)
+_p = hull.modifiers.new("push", "DISPLACE")
+_p.strength = 0.0042
+_p.mid_level = 0.0
+bpy.ops.object.modifier_apply(modifier=_p.name)
+_hb = bmesh.new()
+_hb.from_mesh(hull.data)
+bmesh.ops.reverse_faces(_hb, faces=_hb.faces[:])
+_hb.to_mesh(hull.data)
+_hb.free()
+hull.data.materials.clear()
+hull.data.materials.append(M["outline"])
+for _pl in hull.data.polygons:
+    _pl.material_index = 0
+bpy.ops.object.select_all(action="DESELECT")
+hull.select_set(True)
+body.select_set(True)
+bpy.context.view_layer.objects.active = body
+bpy.ops.object.join()
+
 body.data.validate()
 tri_count = sum(len(p.vertices) - 2 for p in body.data.polygons)
 print("TRIS", tri_count, "VERTS", len(body.data.vertices))
@@ -507,6 +550,21 @@ try:
     bpy.ops.export_scene.gltf(export_vertex_color="ACTIVE", export_all_vertex_colors=False, **kw)
 except TypeError:
     bpy.ops.export_scene.gltf(**kw)
+import struct  # noqa: E402
+
+with open(exp, "rb") as fh:
+    _raw = fh.read()
+_jl = struct.unpack("<I", _raw[12:16])[0]
+_g = json.loads(_raw[20:20 + _jl])
+_rest = _raw[20 + _jl:]
+for _mt in _g["materials"]:
+    _mt.setdefault("extensions", {})["KHR_materials_unlit"] = {}
+    _mt["doubleSided"] = False
+_g["extensionsUsed"] = sorted(set(_g.get("extensionsUsed", []) + ["KHR_materials_unlit"]))
+_js = json.dumps(_g, separators=(",", ":")).encode()
+_js += b" " * ((4 - len(_js) % 4) % 4)
+with open(exp, "wb") as fh:
+    fh.write(struct.pack("<III", 0x46546C67, 2, 12 + 8 + len(_js) + len(_rest)) + struct.pack("<II", len(_js), 0x4E4F534A) + _js + _rest)
 shutil.copyfile(exp, app_copy)
 print("EXPORTED", os.path.getsize(exp))
 
@@ -541,7 +599,7 @@ if "--previews" in sys.argv:
     scene.world = world
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs[0].default_value = (0.70, 0.71, 0.75, 1)
-    world.node_tree.nodes["Background"].inputs[1].default_value = 0.30
+    world.node_tree.nodes["Background"].inputs[1].default_value = 0.85
 
     def area(name, loc, energy, size, color=(1, 1, 1)):
         l = bpy.data.lights.new(name, "AREA")
@@ -555,7 +613,7 @@ if "--previews" in sys.argv:
                   area("rim_l", (-2.2, 2.6, 2.6), 380, 1.4), area("rim_r", (2.4, 2.4, 2.4), 320, 1.4, (1.0, 0.9, 0.9)), area("top", (0, 0.4, 4.2), 70, 2.0)]
     bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, 0))
     floor = bpy.context.active_object
-    fm = material("studio_floor", (0.30, 0.31, 0.34), 0.6)
+    fm = material("studio_floor", (0.55, 0.56, 0.60), 0.6)
     floor.data.materials.append(fm)
     skin_bsdf = M["skin"].node_tree.nodes["Principled BSDF"]
     for key, val in (("Subsurface Weight", 0.12), ("Subsurface Radius", (1.0, 0.35, 0.2)), ("Subsurface Scale", 0.02)):
@@ -563,6 +621,39 @@ if "--previews" in sys.argv:
             skin_bsdf.inputs[key].default_value = val
         except Exception:
             pass
+    scene.view_settings.view_transform = "Standard"
+    try:
+        scene.view_settings.look = "None"
+    except Exception:
+        pass
+    for _m in list(body.data.materials):
+        nt = _m.node_tree
+        bs = nt.nodes.get("Principled BSDF")
+        mixn = next((n for n in nt.nodes if n.type == "MIX"), None)
+        rgb = tuple(mixn.inputs[6].default_value) if mixn else tuple(bs.inputs["Base Color"].default_value)
+        nt.nodes.clear()
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        em = nt.nodes.new("ShaderNodeEmission")
+        if _m.name == "coach_outline":
+            em.inputs[0].default_value = (0.02, 0.02, 0.03, 1)
+            geo = nt.nodes.new("ShaderNodeNewGeometry")
+            tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+            mx = nt.nodes.new("ShaderNodeMixShader")
+            nt.links.new(geo.outputs["Backfacing"], mx.inputs[0])
+            nt.links.new(em.outputs[0], mx.inputs[1])
+            nt.links.new(tr.outputs[0], mx.inputs[2])
+            nt.links.new(mx.outputs[0], out.inputs[0])
+        else:
+            vc = nt.nodes.new("ShaderNodeVertexColor")
+            vc.layer_name = "Col"
+            mul = nt.nodes.new("ShaderNodeMix")
+            mul.data_type = "RGBA"
+            mul.blend_type = "MULTIPLY"
+            mul.inputs[0].default_value = 1.0
+            mul.inputs[6].default_value = rgb
+            nt.links.new(vc.outputs["Color"], mul.inputs[7])
+            nt.links.new(mul.outputs[2], em.inputs[0])
+            nt.links.new(em.outputs[0], out.inputs[0])
     cam_data = bpy.data.cameras.new("cam")
     cam = bpy.data.objects.new("cam", cam_data)
     bpy.context.collection.objects.link(cam)
