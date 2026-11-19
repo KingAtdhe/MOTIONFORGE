@@ -10,6 +10,21 @@ bpy.ops.object.mode_set(mode="EDIT")
 bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.006, area_weight=0.0, scale_to_bounds=False)
 bpy.ops.object.mode_set(mode="OBJECT")
+# more texture space for the head and face (the part people look at): scale those islands up, then repack
+import bmesh
+bm = bmesh.new(); bm.from_mesh(ob.data)
+uvl = bm.loops.layers.uv.active
+for f in bm.faces:
+    k = 2.3 if f.calc_center_median().z > 1.43 else 1.0
+    if k != 1.0:
+        for l in f.loops:
+            l[uvl].uv = l[uvl].uv * k
+bm.to_mesh(ob.data); bm.free()
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.uv.select_all(action="SELECT")
+bpy.ops.uv.pack_islands(margin=0.004, rotate=True)
+bpy.ops.object.mode_set(mode="OBJECT")
 sc = bpy.context.scene
 sc.render.engine = "CYCLES"
 sc.cycles.device = "CPU"

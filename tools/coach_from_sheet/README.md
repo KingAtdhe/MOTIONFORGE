@@ -13,11 +13,15 @@ python  $REPO/tools/coach_from_sheet/masks.py          # silhouettes + hair mask
 python  $REPO/tools/coach_from_sheet/hull.py           # cross-section volume -> hull.npz, parts.npy
 bpy     $REPO/tools/coach_from_sheet/blend_hull.py     # mesh, loose crumbs removed, ~24k tris -> hull.blend
 bpy     $REPO/tools/coach_from_sheet/bake.py hull.blend hull_uv.blend 2048   # UVs + texel position/normal
+# sharper source: 4x detail restoration of the female half of the sheet (Real-ESRGAN anime 6B weights,
+# github.com/xinntao/Real-ESRGAN releases; runs on onnxruntime, no torch). Optional: project.py falls back to the sheet.
+python  -c "from PIL import Image; Image.open('$REPO/assets/blender/references/workout_coach_owner_sheet.png').crop((440,0,860,440)).save('f_region.png')"
+python  $REPO/tools/coach_from_sheet/esrgan.py RealESRGAN_x4plus_anime_6B.pth f_region.png sheet_f_x4.png
 python  $REPO/tools/coach_from_sheet/project.py        # painting -> coach_albedo.png (logo removed)
 bpy     $REPO/tools/blender/build_coach_sheet.py $WORK # rig, fist hands, A-pose rest, clips, GLB + manifest
 bpy     $REPO/tools/coach_from_sheet/preview_unlit.py $REPO/assets/blender/source/trainer_avatar.blend $REPO/assets/blender/previews
 ```
 Checks: `ortho.py` + `overlay.py` (outline overlap with the sheet), `clay.py`, `texview.py`, `animview.py`.
 
-Limits: the sheet's figures are ~420 px tall, so the painted detail is soft up close; the sides of the head and
+Limits: the sheet's figures are ~420 px tall (4x-restored copy kept at `assets/blender/references/workout_coach_owner_sheet_f_x4.png`); the sides of the head and
 torso are blended between views; hands are sculpted (painted hands cannot make fists).

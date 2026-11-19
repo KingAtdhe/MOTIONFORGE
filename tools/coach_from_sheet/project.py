@@ -16,6 +16,13 @@ sheet = np.asarray(Image.open(REPO + '/assets/blender/references/workout_coach_o
 VIEWS = {"front": (445, 4), "side": (606, 4), "back": (705, 4)}
 M = {k: np.load(f"mask_{k}.npy") for k in VIEWS}
 img = {k: sheet[oy:oy + M[k].shape[0], ox:ox + M[k].shape[1]].copy() for k, (ox, oy) in VIEWS.items()}
+# 4x detail-restored copy of the female half of the sheet (esrgan.py, Real-ESRGAN anime model) if present
+import os
+HI = None
+if os.path.exists("sheet_f_x4.png"):
+    HI = np.asarray(Image.open("sheet_f_x4.png").convert("RGB")).astype(np.float32) / 255
+    HI_OX, HI_OY, HI_S = 440, 0, 4.0
+    print("using 4x source", HI.shape)
 
 # --- remove the chest logo from the front view (bright marks on the bra), fill from surrounding fabric
 f = img["front"]
@@ -28,6 +35,17 @@ idx = ndi.distance_transform_edt(logo, return_distances=False, return_indices=Tr
 f[logo] = f[idx[0][logo], idx[1][logo]]
 f[logo] = ndi.uniform_filter(f, size=(5, 5, 1))[logo]
 print("logo px", logo.sum())
+if HI is not None:
+    ox, oy = VIEWS["front"]
+    big = np.zeros(HI.shape[:2], bool)
+    rr2, cc2 = np.nonzero(logo)
+    for dy in range(4):
+        for dx in range(4):
+            big[np.clip((rr2 + oy - HI_OY) * 4 + dy, 0, HI.shape[0] - 1), np.clip((cc2 + ox - HI_OX) * 4 + dx, 0, HI.shape[1] - 1)] = True
+    big = ndi.binary_dilation(big, iterations=6)
+    idx2 = ndi.distance_transform_edt(big, return_distances=False, return_indices=True)
+    HI[big] = HI[idx2[0][big], idx2[1][big]]
+    HI[big] = ndi.uniform_filter(HI, size=(9, 9, 1))[big]
 
 # --- back view: per-row piecewise-linear warp so its outline matches the (mirrored) front outline
 def intervals(row):
@@ -49,6 +67,13 @@ for r in range(Fm.shape[0]):
     cols = np.arange(Fm.shape[1], dtype=np.float32)
     mir = 2 * cx - cols                       # mirrored front col for each front col
     back_map[r] = np.interp(mir, src, dst, left=np.nan, right=np.nan)
+
+# smooth the warp vertically so rows with a different interval count don't jump
+bm_ok = ~np.isnan(back_map)
+bm_f = np.where(bm_ok, back_map, 0.0)
+num = ndi.gaussian_filter1d(bm_f, 3.0, axis=0); den = ndi.gaussian_filter1d(bm_ok.astype(np.float32), 3.0, axis=0)
+back_map = np.where(bm_ok & (den > 0.3), num / np.maximum(den, 1e-6), np.nan).astype(np.float32)
+
 
 def sample(im, rows, cols):
     out = np.zeros((len(rows), 3), np.float32)
@@ -102,8 +127,9 @@ has_arm = ~np.isnan(arm_xc) & ~np.isnan(arm_yc)
 is_arm = has_arm & (np.abs(P[:, 0] - np.nan_to_num(arm_xc)) < np.nan_to_num(arm_xr) * 1.0 + 0.004)
 # side-image column band covered by the arm at this row
 side_col = cy - P[:, 1] / PX
-band_lo = cy - (np.nan_to_num(arm_yc) + np.nan_to_num(arm_yr) * 1.3 + 0.008) / PX
-band_hi = cy - (np.nan_to_num(arm_yc) - np.nan_to_num(arm_yr) * 1.3 - 0.008) / PX
+half_band = np.maximum(np.nan_to_num(arm_yr) * 1.3, np.where(P[:, 2] < 1.0, 0.04, 0.0)) + 0.008
+band_lo = cy - (np.nan_to_num(arm_yc) + half_band) / PX
+band_hi = cy - (np.nan_to_num(arm_yc) - half_band) / PX
 in_band = has_arm & (side_col >= band_lo) & (side_col <= band_hi)
 side_block = in_band & ~is_arm
 # head: the side painting holds the face profile; on the head use it only for the back/side hair
@@ -117,13 +143,21 @@ acc = np.zeros((len(P), 3), np.float32); wsum = np.zeros(len(P), np.float32)
 acc2 = np.zeros((len(P), 3), np.float32); w2 = np.zeros(len(P), np.float32)
 for name, dirv, rows, cols in views:
     col, ok = sample(img[name], rows, cols)
-    msk = ndi.binary_erosion(M[name], iterations=2)
+    if HI is not None:
+        ox, oy = VIEWS[name]
+        col2, ok2 = sample(HI, (rows + oy - HI_OY + 0.5) * HI_S - 0.5, (cols + ox - HI_OX + 0.5) * HI_S - 0.5)
+        col = np.where(ok2[:, None], col2, col)
+    msk = ndi.binary_erosion(M[name], iterations=2 if name == "side" else 4)
     inm = np.zeros(len(P), bool)
     ii = np.clip(np.round(rows).astype(int), 0, msk.shape[0] - 1); jj = np.clip(np.round(np.nan_to_num(cols, nan=-1)).astype(int), 0, msk.shape[1] - 1)
     inm = ok & msk[ii, jj]
     facing = np.clip(N @ dirv, 0, 1)
     vis = visibility(dirv, rows, cols)
     w = facing ** 3 * vis * inm * (1.0 if name != "side" else 0.8)
+    if name == "side":
+        is_tail = (P[:, 2] > 1.05) & (np.abs(P[:, 0]) < 0.08) & (P[:, 1] > np.nan_to_num(PARTS["torso"][ri_all, 2] + PARTS["torso"][ri_all, 3], nan=9) - 0.005)
+        hairlike = (col.max(1) < 0.62) & ((col[:, 0] - col[:, 2]) > 0.06)
+        w = w * ~(is_tail & ~hairlike)
     # never paint with background showing through loose hair strands
     cmx, cmn = col.max(1), col.min(1)
     w = w * ~((cmx > 0.70) & ((cmx - cmn) / np.maximum(cmx, 1e-6) < 0.16))

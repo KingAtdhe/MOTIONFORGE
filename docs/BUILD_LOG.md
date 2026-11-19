@@ -222,3 +222,10 @@ painting onto it.
   (skinned mesh not at root), 9 animations, 26,726 tris, one 2048 JPEG. Android build/tests: see CI.
 - **Not verified on a device.** Known issues: soft painted detail (low-res sheet), smudged areas between views,
   plain hands, simple ponytail, male coach not built, clips still drafts pending coach review.
+
+### 2026-11-19 / Coach v5.1 — sharper paint, cleaner sides
+- 4x detail restoration of the sheet (Real-ESRGAN anime 6B run through onnxruntime, `esrgan.py`) used as the
+  projection source; head/face UV islands get 2.3x texture space; back-view warp smoothed along the height (no
+  more horizontal streaks); front/back paint not taken from the outline's anti-aliased rim (pink/white smears on
+  the leggings' sides gone); wider guard band for the hand in the side painting; ponytail shortened to what the
+  back view shows and only takes hair-coloured paint. 26,694 tris, GLB 1.74 MB, validator 0 errors.

@@ -93,7 +93,7 @@ for i, r in enumerate(rows):
             ref = P["torso"][i][2] if not np.isnan(P["torso"][i][2]) else (yf + yb) / 2
             P[key][i] = (xc, xr, ref if not below else (yf + yb) / 2 - 0.0, xr * 0.92, 2.0)
     # ponytail / hair behind the head and upper back
-    if zf > 0.62:
+    if zf > 0.74:
         cols = np.nonzero(S[r] & (HAIR_S[r] | (np.arange(S.shape[1]) < sm[0])))[0]
         yc_ = ym(cols)
         lim = head_back if r < chin else yb
