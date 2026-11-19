@@ -28,6 +28,8 @@ data class ProgressSummary(
     val totalSessions: Int,
     /** Oldest first, always [weeks] long, ending with the current week. */
     val recentWeeks: List<WeekBucket>,
+    /** Days of the current week (Mon–Sun) with at least one saved session. */
+    val trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
 )
 
 /** Simple consistency numbers. No streaks, no pressure mechanics. */
@@ -43,7 +45,10 @@ object ProgressStats {
             val list = byWeek[start].orEmpty()
             WeekBucket(start, list.size, minutes(list))
         }
-        return ProgressSummary(buckets.last().sessions, buckets.last().minutes, records.size, buckets)
+        val days = byWeek[thisWeek].orEmpty()
+            .map { Instant.ofEpochMilli(it.startedAtMillis).atZone(zone).dayOfWeek }
+            .toSet()
+        return ProgressSummary(buckets.last().sessions, buckets.last().minutes, records.size, buckets, days)
     }
 
     /** Rounded to the nearest minute, but any non-empty training shows at least 1. */

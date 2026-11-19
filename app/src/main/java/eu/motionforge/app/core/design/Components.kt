@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -341,5 +343,64 @@ fun SectionHeader(title: String, trailing: String? = null) {
             modifier = Modifier.weight(1f).semantics { heading() },
         )
         if (trailing != null) Text(trailing.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** Ring that empties as a step counts down, with the time in the middle. [fraction] = time left / step length. */
+@Composable
+fun CountdownRing(
+    fraction: Float,
+    label: String,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    caption: String? = null,
+    dimmed: Boolean = false,
+) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+            val stroke = size.minDimension * 0.07f
+            val inset = stroke / 2
+            val arcSize = androidx.compose.ui.geometry.Size(size.minDimension - stroke, size.minDimension - stroke)
+            val topLeft = androidx.compose.ui.geometry.Offset((size.width - arcSize.width) / 2, inset)
+            val style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            drawArc(MfColors.Line, -90f, 360f, false, topLeft, arcSize, style = style)
+            drawArc(if (dimmed) MfColors.Muted else accent, -90f, 360f * fraction.coerceIn(0f, 1f), false, topLeft, arcSize, style = style)
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label, style = MaterialTheme.typography.displaySmall, color = if (dimmed) MfColors.Muted else MfColors.Chalk)
+            if (caption != null) Text(caption.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+/** Large round action (pause / resume) with a text label underneath for clarity. */
+@Composable
+fun RoundAction(
+    symbol: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    container: Color = MaterialTheme.colorScheme.surface,
+    content: Color = MfColors.Chalk,
+    size: androidx.compose.ui.unit.Dp = 56.dp,
+) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.width(size).height(size).semantics { contentDescription = label; role = Role.Button },
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = container,
+            border = if (container == MaterialTheme.colorScheme.surface) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(symbol, style = MaterialTheme.typography.titleLarge, color = content, modifier = Modifier.clearAndSetSemantics {})
+            }
+        }
+        Text(
+            label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }

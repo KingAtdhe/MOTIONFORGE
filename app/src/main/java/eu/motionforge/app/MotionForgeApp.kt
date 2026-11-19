@@ -146,7 +146,7 @@ fun MotionForgeApp(
                 )
             }
             composable(Routes.PROGRESS) {
-                ProgressScreen(history = history, onStartSession = { navController.navigate(Routes.quickSession()) })
+                ProgressScreen(history = history, coach = preferences.coach, onStartSession = { navController.navigate(Routes.quickSession()) })
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -190,6 +190,7 @@ fun MotionForgeApp(
                     SessionScreen(
                         viewModel = sessionViewModel,
                         exercisesById = ready.exercises.associateBy { it.id },
+                        coach = preferences.coach,
                         onClose = { navController.popBackStack() },
                         onOpenProgress = {
                             navController.popBackStack()

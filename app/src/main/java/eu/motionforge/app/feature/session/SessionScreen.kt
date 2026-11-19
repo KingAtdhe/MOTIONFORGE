@@ -6,7 +6,24 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
+import eu.motionforge.app.core.design.CoachArt
+import eu.motionforge.app.core.design.CountdownRing
+import eu.motionforge.app.core.design.RoundAction
+import eu.motionforge.app.core.design.SegmentedPill
+import eu.motionforge.app.core.model.Coach
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.motionforge.app.core.camera.PoseCameraPane
-import eu.motionforge.app.core.design.ChoiceButton
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
@@ -62,6 +78,7 @@ import eu.motionforge.app.feature.lesson.TrainerDemoCompact
 fun SessionScreen(
     viewModel: SessionViewModel,
     exercisesById: Map<String, Exercise>,
+    coach: Coach,
     onClose: () -> Unit,
     onOpenProgress: () -> Unit,
 ) {
@@ -79,18 +96,18 @@ fun SessionScreen(
     }
 
     when (state.phase) {
-        SessionPhase.READY -> SetupStage(state.plan, onStart = { camera -> viewModel.onEvent(SessionEvent.Start(camera)) }, onClose = onClose)
+        SessionPhase.READY -> SetupStage(state.plan, coach, onStart = { camera -> viewModel.onEvent(SessionEvent.Start(camera)) }, onClose = onClose)
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
             RunningStage(state, tracking, form, exercisesById, viewModel)
         }
-        SessionPhase.FINISHED -> SummaryStage(state, save, onSave = viewModel::saveSession, onClose = onClose, onOpenProgress = onOpenProgress)
+        SessionPhase.FINISHED -> SummaryStage(state, save, coach, onSave = viewModel::saveSession, onClose = onClose, onOpenProgress = onOpenProgress)
     }
 }
 
 // ----------------------------------------------------------------------------- setup
 @Composable
-private fun SetupStage(plan: SessionPlan, onStart: (camera: Boolean) -> Unit, onClose: () -> Unit) {
+private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolean) -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
     var denied by rememberSaveable { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -103,12 +120,21 @@ private fun SetupStage(plan: SessionPlan, onStart: (camera: Boolean) -> Unit, on
             StatTile(formatClock(plan.totalSeconds), "Total time", Modifier.weight(1f), accent = plan.type.accent)
             StatTile("${plan.workCount}", if (plan.workCount == 1) "Exercise" else "Exercises", Modifier.weight(1f))
         }
-        Panel {
-            Eyebrow("Plan")
+        Eyebrow("Plan")
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             plan.steps.forEach { step ->
                 when (step) {
-                    is SessionStep.Work -> Text("${step.name} · ${step.durationSeconds} s", style = MaterialTheme.typography.bodyLarge)
-                    is SessionStep.Rest -> Text("Rest · ${step.durationSeconds} s", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    is SessionStep.Work -> PlanStepCard(step, coach, plan.type.accent)
+                    is SessionStep.Rest -> Text(
+                        "${step.durationSeconds}s\nrest",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -193,17 +219,26 @@ private fun RunningStage(
             }
         }
 
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(
-                formatClock(state.remainingInStep),
-                style = MaterialTheme.typography.displayLarge,
-                color = if (paused) MfColors.Muted else MfColors.Chalk,
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            CountdownRing(
+                fraction = state.remainingInStep.toFloat() / step.durationSeconds.coerceAtLeast(1),
+                label = formatClock(state.remainingInStep),
+                accent = if (step is SessionStep.Rest) MfColors.Signal else accent,
+                caption = if (paused) "Paused" else if (step is SessionStep.Rest) "Rest" else "Left",
+                dimmed = paused,
+                modifier = Modifier.size(128.dp),
             )
-            Column(Modifier.padding(bottom = 14.dp)) {
-                if (paused) Eyebrow("Paused", color = MfColors.Caution)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (step is SessionStep.Work && step.countsReps && state.cameraUsed) {
                     Text("${state.stepReps}", style = MaterialTheme.typography.displaySmall, color = accent)
                     Eyebrow(if (tracking.allowsFeedback && !showDemo) "Reps (experimental)" else "Reps — counting paused")
+                }
+                val upNext = state.plan.steps.drop(state.stepIndex + 1).firstOrNull { it is SessionStep.Work } as? SessionStep.Work
+                if (upNext != null && step is SessionStep.Work) {
+                    Eyebrow("Up next")
+                    Text(upNext.name, style = MaterialTheme.typography.titleMedium)
+                } else if (step is SessionStep.Work) {
+                    Eyebrow("Last exercise", color = accent)
                 }
             }
         }
@@ -223,24 +258,31 @@ private fun RunningStage(
         if (cue != null) Text(cue, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         if (state.cameraUsed && step is SessionStep.Work) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ChoiceButton("Camera", !showDemo, { showDemo = false })
-                ChoiceButton("Trainer demo", showDemo, { showDemo = true })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SegmentedPill(
+                    options = listOf("Camera", "Coach demo"),
+                    selectedIndex = if (showDemo) 1 else 0,
+                    onSelect = { showDemo = it == 1 },
+                    accent = accent,
+                )
                 if (!showDemo) {
-                    OutlinedButton(onClick = {
+                    TextButton(onClick = {
                         lensFacing = if (lensFacing == CameraSelector.LENS_FACING_FRONT) CameraSelector.LENS_FACING_BACK else CameraSelector.LENS_FACING_FRONT
-                    }) { Text("Flip camera") }
+                    }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Flip camera") }
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PrimaryButton(
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
+            RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = MfColors.Halt)
+            RoundAction(
+                if (paused) "▶" else "❚❚",
                 if (paused) "Resume" else "Pause",
                 onClick = { viewModel.onEvent(if (paused) SessionEvent.Resume else SessionEvent.Pause) },
-                modifier = Modifier.weight(1.4f),
+                container = accent,
+                content = MfColors.Ink,
+                size = 76.dp,
             )
-            OutlinedButton(onClick = { viewModel.onEvent(SessionEvent.Skip) }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) { Text("Skip") }
-            OutlinedButton(onClick = { viewModel.onEvent(SessionEvent.Stop) }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) { Text("End", color = MfColors.Halt) }
+            RoundAction("⏭", if (step is SessionStep.Rest) "Skip rest" else "Skip", onClick = { viewModel.onEvent(SessionEvent.Skip) })
         }
     }
 }
@@ -250,6 +292,7 @@ private fun RunningStage(
 private fun SummaryStage(
     state: SessionState,
     save: SaveState,
+    coach: Coach,
     onSave: (Int?) -> Unit,
     onClose: () -> Unit,
     onOpenProgress: () -> Unit,
@@ -259,6 +302,22 @@ private fun SummaryStage(
     BackHandler(onBack = onClose)
 
     ScreenColumn(title = if (state.endedEarly) "Session ended" else "Session complete") {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Brush.verticalGradient(listOf(state.plan.type.accent.copy(alpha = 0.05f), state.plan.type.accent.copy(alpha = 0.32f)))),
+        ) {
+            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().padding(top = 8.dp, end = 12.dp))
+            Column(Modifier.align(Alignment.CenterStart).padding(20.dp).fillMaxWidth(0.6f)) {
+                Eyebrow(state.plan.title, color = state.plan.type.accent)
+                Text(
+                    if (state.endedEarly) "EVERY MINUTE COUNTS." else "NICE WORK.",
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile(formatClock(state.workSeconds), "Active time", Modifier.weight(1f), accent = state.plan.type.accent)
             StatTile("${state.results.size}", "Exercises", Modifier.weight(1f))
@@ -290,7 +349,7 @@ private fun SummaryStage(
             else -> {
                 Eyebrow("How hard did it feel? (optional)")
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    (1..10).forEach { n -> ChoiceButton("$n", effort == n, { effort = if (effort == n) 0 else n }) }
+                    (1..10).forEach { n -> EffortChip(n, effort == n) { effort = if (effort == n) 0 else n } }
                 }
                 Text("1 = very easy · 10 = maximum effort", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (save == SaveState.FAILED) Text("Saving failed. Please try again.", color = MfColors.Halt)
@@ -318,6 +377,41 @@ private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifi
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
             Eyebrow(if (drill == BoxingDrill.JAB) "Form check (experimental) · jabs ${form.jabs}" else "Form check (experimental)", color = color)
             Text(text, style = MaterialTheme.typography.bodyMedium, color = MfColors.Chalk)
+        }
+    }
+}
+
+@Composable
+private fun PlanStepCard(step: SessionStep.Work, coach: Coach, accent: Color) {
+    Column(
+        Modifier
+            .width(112.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
+        Box(Modifier.fillMaxWidth().height(132.dp).background(Brush.verticalGradient(listOf(Color.Transparent, accent.copy(alpha = 0.28f))))) {
+            CoachArt(coach.lessonArt(step.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp))
+        }
+        Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Text(step.name, style = MaterialTheme.typography.labelLarge, maxLines = 2)
+            Text("${step.durationSeconds} s", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
+    androidx.compose.material3.Surface(
+        modifier = Modifier
+            .size(48.dp)
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+            .semantics { contentDescription = "Effort $n of 10" },
+        shape = CircleShape,
+        color = if (selected) MfColors.Volt else MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) MfColors.Volt else MaterialTheme.colorScheme.outline),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text("$n", style = MaterialTheme.typography.titleMedium, color = if (selected) MfColors.Ink else MfColors.Chalk)
         }
     }
 }

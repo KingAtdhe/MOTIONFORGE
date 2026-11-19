@@ -42,4 +42,14 @@ class ProgressStatsTest {
         val s = ProgressStats.summarize(listOf(rec("2026-08-01T10:00:00", 600)), today, zone)
         assertEquals(0, s.recentWeeks.sumOf { it.sessions }); assertEquals(1, s.totalSessions)
     }
+
+    @Test
+    fun trainedDaysOnlyCoverThisWeek() {
+        val s = ProgressStats.summarize(
+            listOf(rec("2026-11-16T07:00:00", 300), rec("2026-11-16T19:00:00", 300), rec("2026-11-18T10:00:00", 280), rec("2026-11-15T23:50:00", 600)),
+            today,
+            zone,
+        )
+        assertEquals(setOf(java.time.DayOfWeek.MONDAY, java.time.DayOfWeek.WEDNESDAY), s.trainedDaysThisWeek)
+    }
 }

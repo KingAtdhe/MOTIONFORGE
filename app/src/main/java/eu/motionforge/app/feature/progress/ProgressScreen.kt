@@ -1,6 +1,23 @@
 package eu.motionforge.app.feature.progress
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import eu.motionforge.app.core.design.CoachArt
+import eu.motionforge.app.core.model.Coach
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +50,7 @@ import java.time.format.DateTimeFormatter
 
 /** [history] is null while loading. */
 @Composable
-fun ProgressScreen(history: List<SessionRecord>?, onStartSession: () -> Unit) {
+fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: () -> Unit) {
     ScreenColumn(title = "Progress") {
         if (history == null) {
             Text("Loading your history…")
@@ -46,6 +63,8 @@ fun ProgressScreen(history: List<SessionRecord>?, onStartSession: () -> Unit) {
             StatTile("${summary.sessionsThisWeek}", "Sessions this week", Modifier.weight(1f), accent = MfColors.Volt)
             StatTile("${summary.minutesThisWeek}", "Minutes this week", Modifier.weight(1f))
         }
+
+        WeekDots(summary.trainedDaysThisWeek, LocalDate.now(zone).dayOfWeek)
 
         if (history.isEmpty()) {
             Panel {
@@ -89,19 +108,68 @@ fun ProgressScreen(history: List<SessionRecord>?, onStartSession: () -> Unit) {
         Eyebrow("History")
         val dateFormat = remember { DateTimeFormatter.ofPattern("EEE d MMM · HH:mm") }
         history.forEach { r ->
-            Panel {
-                Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), color = r.type.accent)
-                Text(r.title.uppercase(), style = MaterialTheme.typography.titleLarge)
-                val reps = r.exercises.mapNotNull { it.repetitions }
-                val parts = buildList {
-                    add(formatClock(r.durationSeconds))
-                    add("${r.exercises.size} exercise${if (r.exercises.size == 1) "" else "s"}")
-                    if (reps.isNotEmpty()) add("${reps.sum()} reps")
-                    r.perceivedEffort?.let { add("effort $it/10") }
-                    if (!r.completed) add("ended early")
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    Box(
+                        Modifier
+                            .width(84.dp)
+                            .fillMaxHeight()
+                            .background(Brush.verticalGradient(listOf(Color.Transparent, r.type.accent.copy(alpha = 0.3f)))),
+                    ) {
+                        r.exercises.firstOrNull()?.let { CoachArt(coach.lessonArt(it.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp)) }
+                    }
+                    Column(Modifier.padding(14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), color = r.type.accent)
+                        Text(r.title.uppercase(), style = MaterialTheme.typography.titleLarge)
+                        val reps = r.exercises.mapNotNull { it.repetitions }
+                        val parts = buildList {
+                            add(formatClock(r.durationSeconds))
+                            add("${r.exercises.size} exercise${if (r.exercises.size == 1) "" else "s"}")
+                            if (reps.isNotEmpty()) add("${reps.sum()} reps")
+                            r.perceivedEffort?.let { add("effort $it/10") }
+                            if (!r.completed) add("ended early")
+                        }
+                        Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(r.exercises.joinToString(", ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
-                Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(r.exercises.joinToString(", ") { it.name }, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+/** Mon–Sun row: filled when a session was saved that day. Text label per day, so it's not colour-only. */
+@Composable
+private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
+    Panel {
+        Eyebrow("This week")
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            DayOfWeek.values().forEach { d ->
+                val done = d in trained
+                val name = d.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = "$name: " + if (done) "trained" else "no session"
+                    },
+                ) {
+                    Box(
+                        Modifier
+                            .size(34.dp)
+                            .clip(CircleShape)
+                            .background(if (done) MfColors.Volt else MfColors.PanelRaised)
+                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Volt, CircleShape) else Modifier),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (done) Text("✓", color = MfColors.Ink, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Chalk else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }

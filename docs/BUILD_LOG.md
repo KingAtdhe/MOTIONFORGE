@@ -369,3 +369,11 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   grid with pill filters; lesson page opens on the 3D demo with round play/replay buttons and pill speed/angle
   pickers, numbered step badges, ✕/✓ mistakes; onboarding shows both coaches and dims the one not chosen.
 - Tests: every lesson has a still for both coaches (DemoClipsTest). Not run on a device yet.
+
+## Session + Progress redesign (2026-11-19)
+- Session setup: the plan is a swipeable strip of coach pictures with rest gaps between them.
+- Running: countdown ring (empties as the step runs, greys out when paused), "Up next", camera/coach toggle as a
+  pill, round End / Pause-Resume / Skip buttons with text labels and content descriptions.
+- Summary: coach banner, effort picker as 48 dp round 1–10 chips (radio semantics).
+- Progress: "This week" Mon–Sun ticks (deliberately no streak counter, in line with the no-pressure rule),
+  history cards with the coach picture of the first exercise. `ProgressSummary.trainedDaysThisWeek` + test.
