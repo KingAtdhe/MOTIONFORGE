@@ -20,20 +20,17 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 - 82 JVM unit tests.
 
 ## Trainer / coach model
-- Current in-app model: female coach built by `tools/blender/build_coach.py` (run with `--previews`), following
-  the owner's "Workout Coach" reference sheet (no "W" logo). Muscle-form clay blockout → voxel remesh →
-  cavity paint → auto weights → garments cut from body → head/face parts, hair, hands, gloves, trainers →
-  cel shading baked into vertex colours (COLOR_0), all materials `KHR_materials_unlit`, inverted-hull outline.
-  ~35k tris (was 64k). Rig/clips: `trainer_rig.py` (25 bones incl. `fingers_*`/`fingertips_*`), `trainer_anim.py`
-  (9 clips, no push-up; fists in all boxing clips, relaxed hands otherwise; footwork uses two-bone leg IK so the
-  standing foot stays planted). Clothing is painted on the body faces along bisect loops (clean hems), abs are
-  painted lines on a flat rectus plate. Fast iteration: `build_coach.py --previews --quick` (5 small renders, ~1 min).
-- Sheet of renders: `python tools/blender/compose_coach_sheet.py` → `assets/blender/references/coach_f_3d_concept_sheet.jpg`.
-- Fixed 19 Nov: ragged hems, lumpy abs, heavy lips/nose, no fists, foot sliding, polycount.
-- Known weak spots: still a stylised procedural figure, not her painted sheet's level; boxy shoulders; outline
-  hull streaks at sharply bent elbows; no facial expressions; male coach not built.
-- Older scripts kept: `build_trainer.py` (mannequin), `tools/art/trainer_model_sheet.py` (vector sheets, rejected).
-- Owner's reference image was sent in chat only; it is NOT in the repo — ask her to re-attach it.
+- **Current in-app model (v5, 19 Nov):** female coach built from the owner's sheet
+  `assets/blender/references/workout_coach_owner_sheet.png` (now in the repo). Pipeline in
+  `tools/coach_from_sheet/` (see its README) + `tools/blender/build_coach_sheet.py`: body shape from the
+  sheet's front + side outlines (outline overlap ~0.95 IoU), the owner's painting projected onto it
+  (front/back/both sides, chest logo removed, 2048 JPEG texture), sculpted fist-capable hands, rig with finger
+  bones, A-pose rest, the 9 clips. ~26.7k tris, GLB 1.7 MB, unlit materials. Side-by-side check:
+  `assets/blender/references/coach_f_v5_vs_sheet.jpg`.
+- Weak spots: painted detail is soft (sheet figures are ~420 px tall — a bigger sheet would sharpen it);
+  smudges on the sides of the head/torso and inner thighs where no view saw the surface cleanly; hands are
+  plain sculpted pieces next to the painted arms; ponytail is a simple lock; male coach not built.
+- `build_coach.py` (procedural cel coach, v4) is kept for reference but **running it overwrites the in-app GLB**.
 
 ## Environment tricks that worked
 - No Android SDK in the workspace; GitHub Actions is the compile check. Poll runs through

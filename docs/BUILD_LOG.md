@@ -205,3 +205,20 @@ Triggered by owner feedback after the first device look ("can't actually train, 
 - **Not verified on a device:** framing, frame rate and the look of the new hands/hems in Filament on a phone.
 - **Known issues:** boxy shoulders, outline streaks at sharply bent elbows, no expressions, male coach not built,
   no push-up clips. All clips remain drafts pending qualified-coach review.
+
+---
+
+### 2026-11-19 / Coach v5 — built from the owner's Workout Coach sheet
+Owner rejected the procedural coach ("terrible"). New approach: model the body from her sheet and project her
+painting onto it.
+- **Implemented:** `tools/coach_from_sheet/` — silhouettes (masks.py), cross-section body volume from the front +
+  side outlines with torso/shoulder/arm/leg/ponytail parts smoothed along the height (hull.py), Blender mesh +
+  UV + texel position/normal bake (blend_hull.py, bake.py), projection of the front/side/back paintings with
+  z-buffer visibility, arm-occlusion handling and texture-space fill (project.py), checks (ortho/overlay, clay,
+  texview, animview, preview_unlit, compare_sheet). `tools/blender/build_coach_sheet.py` rigs it (auto weights,
+  finger bones), replaces the painted hands with sculpted fist-capable hands (`build_coach_parts.py`), moves the
+  rest to the clips' 45-degree A-pose, bakes the 9 clips, exports an unlit textured GLB + manifest.
+- **Checks:** outline overlap with the sheet: front 0.95, side 0.96 IoU. glTF-Validator: 0 errors, 1 warning
+  (skinned mesh not at root), 9 animations, 26,726 tris, one 2048 JPEG. Android build/tests: see CI.
+- **Not verified on a device.** Known issues: soft painted detail (low-res sheet), smudged areas between views,
+  plain hands, simple ponytail, male coach not built, clips still drafts pending coach review.
