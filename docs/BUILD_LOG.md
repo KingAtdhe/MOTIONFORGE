@@ -229,3 +229,12 @@ painting onto it.
   more horizontal streaks); front/back paint not taken from the outline's anti-aliased rim (pink/white smears on
   the leggings' sides gone); wider guard band for the hand in the side painting; ponytail shortened to what the
   back view shows and only takes hair-coloured paint. 26,694 tris, GLB 1.74 MB, validator 0 errors.
+
+### 2026-11-19 / Coach v5.2 — finishing pass on the female coach
+- Gloves now follow the sheet's detail panel: black glove and wrist strap, glove covers the first finger row,
+  red outlined panel on the back of the hand and red knuckle dots (painted per vertex), bare fingertips.
+- Relaxed hand curl 0.32 -> 0.55 in idle/squat; painted arms no longer pick up dark fabric where the side
+  painting's arm and the model's arm disagree; filled areas smoothed; face zone on the head narrowed so more of
+  the side painting (ear, hair) is used. 28,814 tris, GLB 1.8 MB, validator 0 errors.
+- Still open: soft blending on the sides of the head and waist, fingers read as one shape at rest, not tested
+  on a phone, clips pending qualified-coach review.

@@ -72,7 +72,7 @@ bm.to_mesh(body.data)
 bm.free()
 
 M = {"skin": material("coach_hand_skin", srgb("D9905F"), 0.5), "black": material("coach_glove", srgb("1E1D22"), 0.6),
-     "accent": material("coach_glove_accent", srgb("C7283A"), 0.55)}
+     "accent": material("coach_glove_accent", srgb("C7283A"), 0.55), "paint": material("coach_glove_paint", (1.0, 1.0, 1.0), 0.6)}
 for m in list(M.values()) + [mbody]:
     nt_ = m.node_tree
     b_ = nt_.nodes["Principled BSDF"]
@@ -122,11 +122,56 @@ def shade(o, white=False):
 
 
 shade(body, white=True)
+GLOVE = (0.055, 0.052, 0.062)
+RED = (0.78, 0.13, 0.20)
+
+
+def glove_details(side, objs):
+    """Glove as on the sheet's detail panel: black glove and wrist strap, the glove also covers the first finger
+    row, a red outlined panel on the back of the hand and red dots over the knuckles; bare fingertips.
+    Painted per vertex (white base x vertex colour) so the red edges come out soft rather than stair-stepped."""
+    from trainer_rig import KNUCKLE
+    s_ = 1 if side == "L" else -1
+    W_, T_ = J[f"hand_{side}"], J[f"hand_tip_{side}"]
+    d_ = (T_ - W_).normalized()
+    y_ = Vector((0, -1, 0))
+    x_ = d_.cross(y_).normalized()
+    y_ = x_.cross(d_).normalized()
+    back = -x_ * s_
+    for o in objs:
+        if not o.name.startswith(("coach_fingers_", "coach_strap_", "coach_glove_")):
+            continue
+        me = o.data
+        me.materials.clear()
+        me.materials.append(M["paint"])
+        a = me.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
+        for v in me.vertices:
+            c = v.co - W_
+            du, dy = c.dot(d_), c.dot(y_)
+            col = GLOVE
+            facing_back = v.normal.dot(back)
+            if o.name.startswith("coach_glove_") and facing_back > 0.45:
+                ring = max(abs(du - 0.049) / 0.023, abs(dy) / 0.024)
+                if 0.78 < ring < 1.0:
+                    col = RED
+            if o.name.startswith("coach_fingers_") and facing_back > 0.4 and abs(du - KNUCKLE - 0.006) < 0.007:
+                if min(abs(dy - (1.5 - i) * 0.0192) for i in range(4)) < 0.0055:
+                    col = RED
+            k = 0.62 + 0.55 * max(0.0, v.normal.dot(LIGHT)) + 0.08 * v.normal.z
+            a.data[v.index].color = (col[0] * k, col[1] * k, col[2] * k, 1.0)
+        me.color_attributes.active_color = a
+        me.color_attributes.render_color_index = 0
+        o["painted"] = True
+
+
 pieces = []
 for side in ("L", "R"):
-    for bone, objs in parts.sculpt_hand(side, M).items():
+    hp = parts.sculpt_hand(side, M)
+    glove_details(side, [o for objs in hp.values() for o in objs])
+    for bone, objs in hp.items():
         for o in objs:
-            shade(o)
+            if not o.get("painted"):
+                shade(o)
             g = o.vertex_groups.new(name=bone)
             g.add(range(len(o.data.vertices)), 1.0, "REPLACE")
             pieces.append(o)

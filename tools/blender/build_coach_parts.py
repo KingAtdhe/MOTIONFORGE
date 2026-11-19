@@ -95,7 +95,7 @@ def sculpt_hand(side, mats):
         p1.seg(k, m, r, r * 0.93)
         p2.seg(m, m + d * L * 0.55, r * 0.93, r * 0.86)
         p2.seg(m + d * L * 0.55, m + d * L, r * 0.86, r * 0.74)
-    prox = p1.build(f"coach_fingers_{side}", voxel=0.0024, smooth=2, tris=420, smooth_factor=0.4)
+    prox = p1.build(f"coach_fingers_{side}", voxel=0.0018, smooth=2, tris=800, smooth_factor=0.4)
     dist = p2.build(f"coach_fingertips_{side}", voxel=0.0022, smooth=2, tris=480, smooth_factor=0.4)
     for o in (hand, prox, dist):
         o.data.materials.append(mats["skin"])
@@ -103,7 +103,7 @@ def sculpt_hand(side, mats):
     g = Clay()
     g.ell(W + d * 0.044, (0.0190, 0.0450, 0.046), frame=frame)
     g.seg(W - d * 0.030, W + d * 0.012, 0.0305, 0.0315)
-    glove = g.build(f"coach_glove_{side}", voxel=0.003, smooth=2, tris=420)
+    glove = g.build(f"coach_glove_{side}", voxel=0.0022, smooth=2, tris=1100)
     glove.data.materials.append(mats["black"])
     strap = Clay()
     strap.seg(W - d * 0.020, W - d * 0.004, 0.0335, 0.0335)

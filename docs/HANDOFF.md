@@ -25,7 +25,8 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
   `tools/coach_from_sheet/` (see its README) + `tools/blender/build_coach_sheet.py`: body shape from the
   sheet's front + side outlines (outline overlap ~0.95 IoU), the owner's painting projected onto it
   (front/back/both sides, chest logo removed, 2048 JPEG texture), sculpted fist-capable hands, rig with finger
-  bones, A-pose rest, the 9 clips. ~26.7k tris, GLB 1.7 MB, unlit materials. Side-by-side check:
+  bones, A-pose rest, the 9 clips. ~28.8k tris, GLB 1.8 MB, unlit materials. Paint source is a 4x-restored copy
+  of the sheet (`esrgan.py`); gloves painted per vertex to match the sheet's glove detail. Side-by-side check:
   `assets/blender/references/coach_f_v5_vs_sheet.jpg`.
 - Weak spots: painted detail is soft (sheet figures are ~420 px tall — a bigger sheet would sharpen it);
   smudges on the sides of the head/torso and inner thighs where no view saw the surface cleanly; hands are

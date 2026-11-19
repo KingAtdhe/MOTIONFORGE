@@ -121,7 +121,7 @@ def grip(side, amount):
     return {f"fingers_{side}": [("A", (a, 92 * amount))], f"fingertips_{side}": [("A", (a, 105 * amount))]}
 
 
-RELAXED = 0.32
+RELAXED = 0.55
 
 
 # ----------------------------------------------------------------------------- base poses

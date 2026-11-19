@@ -135,7 +135,7 @@ side_block = in_band & ~is_arm
 # head: the side painting holds the face profile; on the head use it only for the back/side hair
 zf = P[:, 2] / 1.70
 head_front_y = PARTS["torso"][ri_all, 2] - PARTS["torso"][ri_all, 3]
-head_face = (zf > 0.845) & (P[:, 1] < head_front_y + 0.085)
+head_face = (zf > 0.845) & (P[:, 1] < head_front_y + 0.062)
 side_block |= head_face
 print("side-blocked texels", side_block.sum())
 
@@ -155,6 +155,8 @@ for name, dirv, rows, cols in views:
     vis = visibility(dirv, rows, cols)
     w = facing ** 3 * vis * inm * (1.0 if name != "side" else 0.8)
     if name == "side":
+        # bare arms: never take dark fabric from where the painted arm and our arm disagree
+        w = w * ~(is_arm & (P[:, 2] > 0.97) & (col.max(1) < 0.38))
         is_tail = (P[:, 2] > 1.05) & (np.abs(P[:, 0]) < 0.08) & (P[:, 1] > np.nan_to_num(PARTS["torso"][ri_all, 2] + PARTS["torso"][ri_all, 3], nan=9) - 0.005)
         hairlike = (col.max(1) < 0.62) & ((col[:, 0] - col[:, 2]) > 0.06)
         w = w * ~(is_tail & ~hairlike)
@@ -188,6 +190,9 @@ for sig in (2, 4, 8, 16, 32, 64):
     cur[newv] = tex[newv]; wv[newv] = 1.0
     if not (fill & (wv == 0)).any():
         break
+# soften the filled areas so they read as smooth shading rather than streaks (only filled texels change)
+sm = np.stack([ndi.gaussian_filter(tex[..., c] * cov, 3.0) for c in range(3)], -1) / np.maximum(ndi.gaussian_filter(cov.astype(np.float32), 3.0), 1e-6)[..., None]
+tex[fill] = sm[fill]
 # bleed colour past UV island borders (avoids dark seams after mip-mapping)
 idx = ndi.distance_transform_edt(~cov, return_distances=False, return_indices=True)
 tex = tex[idx[0], idx[1]]
