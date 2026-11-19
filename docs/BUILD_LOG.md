@@ -254,3 +254,9 @@ painting onto it.
   mouth 1.485, chin 1.445 m), blended with a local smoothing pass; neck cylinder joins it to the torso.
 - Bare-face width from the hair mask (not the hair strands) for jaw/cheeks; wider shoulder-band smoothing.
 - The painted face now turns naturally in three-quarter and side views. 28,907 tris, validator 0 errors.
+
+### 2026-11-19 / Coach v5.5 — neck, jaw and shoulders
+- Trapezius forms join the neck to each shoulder (no more square shoulder step).
+- The side painting's headset mic and the front painting's jaw ink line no longer land on the jaw/neck: the
+  jaw sides take the neck's own sampled skin tone with a soft shadow toward the jaw, edges blended.
+- Hair side locks end at cheek height. 28,905 tris, validator 0 errors.

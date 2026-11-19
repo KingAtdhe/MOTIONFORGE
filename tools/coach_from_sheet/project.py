@@ -135,7 +135,9 @@ side_block = in_band & ~is_arm
 # head: the side painting holds the face profile; on the head use it only for the back/side hair
 zf = P[:, 2] / 1.70
 head_face = (zf > 0.845) & (P[:, 1] < -0.062)           # face zone of the sculpted head (front paint only)
-side_block |= head_face
+# the side painting has a headset mic along the jaw: the lower side of the face takes front paint / fill instead
+mic_zone = (P[:, 2] > 1.43) & (P[:, 2] < 1.53) & (P[:, 1] < -0.015)
+side_block |= head_face | mic_zone
 print("side-blocked texels", side_block.sum())
 
 acc = np.zeros((len(P), 3), np.float32); wsum = np.zeros(len(P), np.float32)
@@ -165,6 +167,9 @@ for name, dirv, rows, cols in views:
     w = w * ~((cmx > 0.70) & ((cmx - cmn) / np.maximum(cmx, 1e-6) < 0.16))
     if name == "front":
         w = np.where(head_face, facing ** 0.8 * vis * inm, w)
+        # under the jaw the front painting only has the jaw's ink outline: leave it to the neck fill
+        w = w * ~(mic_zone & (facing < 0.6))     # jaw sides: the painting there is hair edge / jaw ink line
+        w = w * ~((P[:, 2] > 1.40) & (P[:, 2] < 1.47) & (N[:, 2] < -0.30) & (P[:, 1] > -0.072))
     if name == "side":
         w = w * ~side_block
 
@@ -173,6 +178,16 @@ for name, dirv, rows, cols in views:
     acc2 += col * w_[:, None]; w2 += w_
 good = wsum > 0.05
 color = acc / np.maximum(wsum, 1e-6)[:, None]
+# jaw sides and under the jaw: no view paints them cleanly (hair edge, jaw ink line, headset mic), so they get the
+# neck's own skin tone with a soft shadow toward the jaw instead of a fill from dark neighbours
+neck_ref = good & (P[:, 2] > 1.40) & (P[:, 2] < 1.43) & (P[:, 1] < -0.02) & (np.abs(P[:, 0]) < 0.025)
+skin_tone = np.median(color[neck_ref], axis=0) if neck_ref.sum() > 20 else np.array([0.80, 0.52, 0.36])
+jaw_zone = (P[:, 2] > 1.415) & (P[:, 2] < 1.50) & (np.abs(P[:, 0]) > 0.018) & (P[:, 1] > -0.085) & (P[:, 1] < 0.03)
+jaw_zone &= ~good | (color.max(1) < 0.50)          # only where there is no paint or the paint is ink / hair
+shade_k = np.clip(1.0 - 0.22 * np.clip((P[:, 2] - 1.415) / 0.05, 0, 1), 0.75, 1.0)
+color[jaw_zone] = skin_tone * shade_k[jaw_zone, None]
+good = good | jaw_zone
+print("jaw texels", jaw_zone.sum(), "skin", np.round(skin_tone, 2))
 tex = np.zeros((RES, RES, 3), np.float32)
 valid = np.zeros((RES, RES), bool)
 tex[cov] = color
@@ -193,6 +208,11 @@ for sig in (2, 4, 8, 16, 32, 64):
 # soften the filled areas so they read as smooth shading rather than streaks (only filled texels change)
 sm = np.stack([ndi.gaussian_filter(tex[..., c] * cov, 3.0) for c in range(3)], -1) / np.maximum(ndi.gaussian_filter(cov.astype(np.float32), 3.0), 1e-6)[..., None]
 tex[fill] = sm[fill]
+# soften the replaced jaw patch edges into their surroundings
+jz = np.zeros((RES, RES), bool); jj = np.zeros(len(P), bool); jj[:] = jaw_zone; jz[cov] = jj
+ring = ndi.binary_dilation(jz, iterations=6) & cov
+sm2 = np.stack([ndi.gaussian_filter(tex[..., c] * cov, 4.0) for c in range(3)], -1) / np.maximum(ndi.gaussian_filter(cov.astype(np.float32), 4.0), 1e-6)[..., None]
+tex[ring] = sm2[ring]
 # bleed colour past UV island borders (avoids dark seams after mip-mapping)
 idx = ndi.distance_transform_edt(~cov, return_distances=False, return_indices=True)
 tex = tex[idx[0], idx[1]]

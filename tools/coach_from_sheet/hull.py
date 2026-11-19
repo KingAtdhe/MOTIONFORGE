@@ -235,6 +235,12 @@ HEAD = [  # centre (x, y, z), radii (x, y, z)
     ((0, 0.020, 1.678), (0.034, 0.030, 0.024)),       # hair gathered at the crown
 ]
 NECK = ((0, -0.015), 0.043, 1.395, 1.52)
+TRAPS = [((s_ * 0.025, 0.005, 1.445), (s_ * 0.125, 0.000, 1.375), 0.034) for s_ in (-1, 1)]
+
+
+def capsule(a, b, r):
+    a, b = np.array(a), np.array(b)
+    return a, b, r
 for kz, z in enumerate(zs):
     if z < NECK[2] - 0.01:
         continue
@@ -247,6 +253,14 @@ for kz, z in enumerate(zs):
             f = np.maximum(f, 1.0 - (np.abs((X - xc) / xr) ** n + np.abs((Y - yc) / yr) ** n) ** (1 / n))
     if z < NECK[3]:
         f = np.maximum(f, 1.0 - np.sqrt((X - NECK[0][0]) ** 2 + (Y - NECK[0][1]) ** 2) / NECK[1])
+    for a, b, r in TRAPS:
+        a, b = np.array(a), np.array(b)
+        ab = b - a
+        # closest point on the segment for every (X, Y) at this z
+        t = ((X - a[0]) * ab[0] + (Y - a[1]) * ab[1] + (z - a[2]) * ab[2]) / ab.dot(ab)
+        t = np.clip(t, 0, 1)
+        dx, dy, dz_ = X - (a[0] + t * ab[0]), Y - (a[1] + t * ab[1]), z - (a[2] + t * ab[2])
+        f = np.maximum(f, 1.0 - np.sqrt(dx * dx + dy * dy + dz_ * dz_) / r)
     for (cx_, cy_, cz_), (rx, ry, rz) in HEAD:
         dz = (z - cz_) / rz
         if abs(dz) < 1:
@@ -255,7 +269,7 @@ for kz, z in enumerate(zs):
     dz = (z - 1.595) / 0.097
     if abs(dz) < 1:
         cap = 1.0 - np.sqrt((X / 0.081) ** 2 + ((Y + 0.022) / 0.101) ** 2 + dz ** 2)
-        keep = (Y > -0.062) | (z > 1.638) | ((np.abs(X) > 0.058) & (z > 1.47))
+        keep = (Y > -0.062) | (z > 1.638) | ((np.abs(X) > 0.058) & (z > 1.525))
         f = np.maximum(f, np.where(keep, cap, -1.0))
     vol[:, :, kz] = f
 vs = ndi.gaussian_filter(vol, sigma=(1.0, 1.0, 1.6))
