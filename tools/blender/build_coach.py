@@ -104,17 +104,17 @@ def sculpt_body():
     c.ell((0, 0.008, 0.955), (0.150, 0.100, 0.095))            # pelvis
     c.ell((0, 0.0, 1.085), (0.112, 0.082, 0.115))              # waist
     c.ell((0, 0.004, 1.255), (0.132, 0.098, 0.135))            # ribcage
-    c.ell((0, 0.004, 1.392), (0.176, 0.086, 0.066))            # shoulder girdle
-    c.seg((0, 0.008, 1.43), (0, -0.002, 1.555), 0.043, 0.039)  # neck
+    c.ell((0, 0.004, 1.385), (0.150, 0.084, 0.068))            # shoulder girdle
+    c.seg((0, 0.008, 1.43), (0, -0.002, 1.525), 0.045, 0.040)  # neck
     for s in (1, -1):
         c.ell((s * 0.078, 0.062, 0.925), (0.086, 0.088, 0.094))    # glute
         c.ell((s * 0.066, -0.082, 1.292), (0.062, 0.054, 0.058))   # chest
-        c.ell((s * 0.060, 0.026, 1.458), (0.060, 0.046, 0.036))    # trapezius
-        c.ell((s * 0.118, 0.010, 1.432), (0.070, 0.050, 0.030))    # shoulder slope
+        c.ell((s * 0.050, 0.028, 1.462), (0.058, 0.046, 0.044), axis=(s * 0.5, 0, 1))    # trapezius
+        c.ell((s * 0.110, 0.010, 1.428), (0.078, 0.052, 0.034), axis=(s * 0.28, 0, 1))    # shoulder slope
         c.ell((s * 0.122, 0.034, 1.275), (0.040, 0.058, 0.110))    # lat
-        c.ell((s * 0.090, -0.040, 1.085), (0.030, 0.038, 0.085))   # oblique
+        c.ell((s * 0.088, -0.036, 1.085), (0.026, 0.034, 0.080))   # oblique
         for i, zc in enumerate((1.045, 1.105, 1.165)):             # abdominals
-            c.ell((s * 0.033, -0.071 - 0.004 * i, zc), (0.030, 0.015, 0.025))
+            c.ell((s * 0.030, -0.074 - 0.003 * i, zc), (0.026, 0.010, 0.022))
         c.ell((s * 0.050, 0.066, 1.330), (0.044, 0.030, 0.070))    # scapular / upper back
         # arm
         S, E, W = J[f"upper_arm_{'L' if s > 0 else 'R'}"], J[f"forearm_{'L' if s > 0 else 'R'}"], J[f"hand_{'L' if s > 0 else 'R'}"]
@@ -138,12 +138,12 @@ def sculpt_body():
         c.seg(K, A + Vector((0, 0, 0.02)), 0.046, 0.030)
         c.ell(lerp(K, A, 0.30) + Vector((0, 0.024, 0)), (0.044, 0.047, 0.100), axis=g)            # calf
         c.ell(A + Vector((0, 0.0, 0.0)), (0.034, 0.040, 0.040))                                   # ankle
-    return c.build("coach_body", voxel=0.0055, smooth=8, tris=11500)
+    return c.build("coach_body", voxel=0.0055, smooth=6, tris=13000)
 
 
 def sculpt_head():
     c = Clay()
-    hz = 1.650
+    hz = 1.622
     c.ell((0, 0.012, hz + 0.018), (0.073, 0.090, 0.082))            # cranium
     c.ell((0, -0.020, hz - 0.030), (0.060, 0.072, 0.080))           # face mass
     c.ell((0, -0.050, hz - 0.090), (0.030, 0.026, 0.024))           # chin
@@ -275,7 +275,7 @@ def sculpt_shoe(side, mats):
     upper.data.materials.append(mats["accent"])
     for p in upper.data.polygons:  # side flash + heel
         cc = p.center
-        if (0.040 < cc.z < 0.075 and -0.11 < cc.y < 0.0 and (cc.x - x) * s > 0.028) or (cc.y > 0.060 and 0.05 < cc.z < 0.10):
+        if cc.y > 0.060 and 0.05 < cc.z < 0.10:
             p.material_index = 1
     so = Clay()
     so.ell((x + s * 0.002, -0.052, 0.012), (0.051, 0.150, 0.020))
@@ -291,7 +291,7 @@ def sculpt_shoe(side, mats):
 
 
 # ----------------------------------------------------------------------------- painting & clothing
-def paint_cavity(obj, strength=2.6, blur=3):
+def paint_cavity(obj, strength=3.0, blur=2):
     """Vertex-colour cavity shading: darkens creases between muscle forms, lifts the peaks slightly."""
     mesh = obj.data
     bm = bmesh.new()
@@ -391,7 +391,7 @@ scene = bpy.context.scene
 scene.render.fps = ta.FPS
 
 M = {
-    "skin": vcol_material("coach_skin", srgb("C98B62"), 0.48),
+    "skin": vcol_material("coach_skin", srgb("B06F42"), 0.38),
     "black": vcol_material("coach_black", srgb("1B1C21"), 0.62),
     "accent": material("coach_accent", srgb("E0263A"), 0.55),
     "hair": vcol_material("coach_hair", srgb("3B2418"), 0.55),
@@ -408,7 +408,7 @@ body.data.materials.append(M["skin"])
 _bm = bmesh.new()
 _bm.from_mesh(body.data)
 for co, no in (((0, 0, 1.212), (0, 0, 1)), ((0, 0, 1.345), (0, 0, 1)), ((0, 0, 0.300), (0, 0, 1)), ((0, 0, 1.008), (0, 0, 1)), ((0, 0, 0.985), (0, 0, 1)),
-               ((0.040, 0, 0), (1, 0, 0)), ((-0.040, 0, 0), (1, 0, 0)), ((0.105, 0, 0), (1, 0, 0)), ((-0.105, 0, 0), (1, 0, 0)), ((0, 0.02, 0), (0, 1, 0)), ((0, -0.012, 0), (0, 1, 0)), ((0, 0, 1.405), (0, 0, 1))):
+               ((0.040, 0, 0), (1, 0, 0)), ((-0.040, 0, 0), (1, 0, 0)), ((0.105, 0, 0), (1, 0, 0)), ((-0.105, 0, 0), (1, 0, 0)), ((0, 0.02, 0), (0, 1, 0)), ((0, -0.012, 0), (0, 1, 0)), ((0, 0, 1.352), (0.7071, 0, 0.7071)), ((0, 0, 1.352), (-0.7071, 0, 0.7071))):
     bmesh.ops.bisect_plane(_bm, geom=_bm.verts[:] + _bm.edges[:] + _bm.faces[:], plane_co=co, plane_no=no)
 _bm.to_mesh(body.data)
 _bm.free()
@@ -432,7 +432,7 @@ def bra_keep(c):
     if 1.212 < c.z < 1.345 and ax < 0.20:
         return True
     if 1.345 <= c.z < 1.475 and ax < 0.105:
-        return (c.y < 0.02 and (ax > 0.040 or c.z < 1.405)) or c.y >= 0.02   # scoop neck, straps, upper-back panel
+        return (c.y < 0.02 and (ax > 0.040 or c.z - ax < 1.352)) or c.y >= 0.02   # scoop neck, straps, upper-back panel
     return False
 
 
@@ -518,27 +518,91 @@ with open(os.path.join(ROOT, "app/src/main/assets/models/trainer_avatar.clips.js
 
 if "--previews" in sys.argv:
     import preview as pv
+    from mathutils import Vector as V
 
     prev = os.path.join(ROOT, "assets/blender/previews")
     os.makedirs(prev, exist_ok=True)
     for f in os.listdir(prev):
         if f.endswith(".png"):
             os.remove(os.path.join(prev, f))
-    cam = pv.setup_scene(resolution=(520, 760), samples=40)
-    scene.view_settings.view_transform = "Standard"
-    bpy.data.worlds[0].node_tree.nodes["Background"].inputs[0].default_value = (0.72, 0.73, 0.76, 1)
-    bpy.data.objects["preview_floor"].data.materials[0].node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.55, 0.56, 0.6, 1)
-    shots = [("01_front", "idle_neutral", 1, 0, None), ("02_side", "idle_neutral", 1, 90, None), ("03_back", "idle_neutral", 1, 180, None),
-             ("04_threeq", "idle_neutral", 1, 32, None), ("05_face", "idle_neutral", 1, 14, "face"), ("06_guard", "boxing_stance", 1, 25, None),
-             ("07_jab", "boxing_jab", 13, 60, None), ("08_squat", "squat_down", 49, 40, None)]
-    for name, clip, frame, yaw, mode in shots:
-        arm.animation_data.action = bpy.data.actions[clip]
-        scene.frame_set(frame)
-        if mode == "face":
-            pv.aim_camera(cam, yaw, distance=1.6, target=(0, 0, 1.60), height=1.64)
-            cam.data.lens = 85
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "CPU"
+    scene.cycles.samples = 72
+    try:
+        scene.cycles.use_denoising = True
+    except Exception:
+        pass
+    try:
+        scene.view_settings.view_transform = "AgX"
+        scene.view_settings.look = "AgX - Medium High Contrast"
+    except Exception:
+        pass
+    world = bpy.data.worlds.new("studio")
+    scene.world = world
+    world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs[0].default_value = (0.70, 0.71, 0.75, 1)
+    world.node_tree.nodes["Background"].inputs[1].default_value = 0.30
+
+    def area(name, loc, energy, size, color=(1, 1, 1)):
+        l = bpy.data.lights.new(name, "AREA")
+        l.energy, l.size, l.color = energy, size, color
+        o = bpy.data.objects.new(name, l)
+        bpy.context.collection.objects.link(o)
+        o.location = loc
+        return o
+
+    rig_lights = [area("key", (-2.4, -3.2, 3.0), 250, 2.6, (1.0, 0.96, 0.92)), area("fill", (2.8, -2.4, 1.6), 60, 3.0, (0.9, 0.94, 1.0)),
+                  area("rim_l", (-2.2, 2.6, 2.6), 380, 1.4), area("rim_r", (2.4, 2.4, 2.4), 320, 1.4, (1.0, 0.9, 0.9)), area("top", (0, 0.4, 4.2), 70, 2.0)]
+    bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, 0))
+    floor = bpy.context.active_object
+    fm = material("studio_floor", (0.30, 0.31, 0.34), 0.6)
+    floor.data.materials.append(fm)
+    skin_bsdf = M["skin"].node_tree.nodes["Principled BSDF"]
+    for key, val in (("Subsurface Weight", 0.12), ("Subsurface Radius", (1.0, 0.35, 0.2)), ("Subsurface Scale", 0.02)):
+        try:
+            skin_bsdf.inputs[key].default_value = val
+        except Exception:
+            pass
+    cam_data = bpy.data.cameras.new("cam")
+    cam = bpy.data.objects.new("cam", cam_data)
+    bpy.context.collection.objects.link(cam)
+    scene.camera = cam
+
+    def shot(name, clip, frame, yaw, target, dist, lens, res, light_yaw=None):
+        if clip is None:
+            arm.animation_data.action = None
+            for pb in arm.pose.bones:
+                pb.rotation_quaternion = (1, 0, 0, 0)
+                pb.location = (0, 0, 0)
         else:
-            cam.data.lens = 50
-            pv.aim_camera(cam, yaw, distance=3.6, target=(0, 0, 0.92), height=1.05)
-        pv.render_to(os.path.join(prev, name + ".png"))
+            arm.animation_data.action = bpy.data.actions[clip]
+        scene.frame_set(frame)
+        bpy.context.view_layer.update()
+        y = math.radians(yaw)
+        t = V(target)
+        cam.location = (t.x + dist * math.sin(y), t.y - dist * math.cos(y), t.z + dist * 0.06)
+        cam.rotation_euler = (t - V(cam.location)).to_track_quat("-Z", "Y").to_euler()
+        cam_data.lens = lens
+        # lights follow the camera so every view is lit like the hero shot
+        rot = Matrix.Rotation(y, 4, "Z")
+        for lo, base in zip(rig_lights, ((-2.4, -3.2, 3.0), (2.8, -2.4, 1.6), (-2.2, 2.6, 2.6), (2.4, 2.4, 2.4), (0, 0.4, 4.2))):
+            lo.location = rot @ V(base) + V((t.x, t.y, 0))
+            lo.rotation_euler = (V((t.x, t.y, 1.0)) - lo.location).to_track_quat("-Z", "Y").to_euler()
+        scene.render.resolution_x, scene.render.resolution_y = res
+        scene.render.filepath = os.path.join(prev, name + ".png")
+        bpy.ops.render.render(write_still=True)
+
+    full = dict(target=(0, 0, 0.90), dist=6.2, lens=85, res=(520, 1040))
+    shot("hero", "idle_neutral", 1, 24, (0.0, 0, 1.20), 2.7, 70, (900, 1300))
+    shot("turn_front", "idle_neutral", 1, 0, **full)
+    shot("turn_side", "idle_neutral", 1, 90, **full)
+    shot("turn_back", "idle_neutral", 1, 180, **full)
+    shot("pose_squat", "squat_down", 49, 38, (0, -0.15, 0.75), 4.2, 70, (640, 800))
+    shot("pose_jab", "boxing_jab", 13, 58, (0, -0.2, 0.95), 4.6, 70, (640, 800))
+    shot("pose_cross", "boxing_cross", 15, 70, (0, -0.2, 0.95), 4.6, 70, (640, 800))
+    shot("pose_step", "footwork_forward", 15, 100, (0, -0.1, 0.92), 4.8, 70, (640, 800))
+    shot("det_face", "idle_neutral", 1, 12, (0, 0, 1.60), 1.5, 105, (560, 560))
+    shot("det_core", "idle_neutral", 1, 16, (0, 0, 1.16), 1.6, 90, (560, 560))
+    shot("det_glove", None, 1, 20, tuple(J["hand_L"] + V((0.03, 0, -0.04))), 0.85, 90, (560, 560))
+    shot("det_shoe", "idle_neutral", 1, 52, (0.09, -0.04, 0.08), 0.95, 80, (560, 560))
     arm.animation_data.action = None
