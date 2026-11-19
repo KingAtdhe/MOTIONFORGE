@@ -4,6 +4,21 @@
   "fps": 30,
   "clips": [
     {
+      "name": "warmup_march",
+      "durationSeconds": 4.8,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "hip_hinge_down",
+      "durationSeconds": 1.6,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "hip_hinge_up",
+      "durationSeconds": 1.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "idle_neutral",
       "durationSeconds": 3.0,
       "reviewStatus": "draft_pending_coach_review"

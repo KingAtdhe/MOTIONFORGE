@@ -68,6 +68,9 @@ object DemoSequence {
 
     /** Short human label for the movement phase a clip shows. */
     fun phaseLabel(clip: String): String = when {
+        clip == "warmup_march" -> "March on the spot"
+        clip == "hip_hinge_down" -> "Hips back"
+        clip == "hip_hinge_up" -> "Return to standing"
         clip.endsWith("_down") -> "Lowering"
         clip.endsWith("_up") -> "Rising"
         clip == "boxing_stance" -> "Stance"

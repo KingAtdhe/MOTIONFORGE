@@ -353,7 +353,40 @@ def clip_specs():
         pose["hips_loc"] = (loc[0], loc[1] - hips, loc[2])
         return pose
 
+    def march(t):
+        """Gentle march on the spot with relaxed opposite arm swing (warm-up). 4 steps per 2.4 s."""
+        ph = 2 * math.pi * t / 2.4
+        lift_l = max(0.0, math.sin(ph)) ** 1.5
+        lift_r = max(0.0, -math.sin(ph)) ** 1.5
+        swing = 22 * math.sin(ph)
+        pose = merge(
+            arms_down(bend=24),
+            leg_pose("L", -62 * lift_l, -6 * lift_l), leg_pose("R", -62 * lift_r, -6 * lift_r),
+            {"upper_arm_L": [("X", swing)], "upper_arm_R": [("X", -swing)],
+             "chest": [("Z", 4 * math.sin(ph)), ("X", 2)], "hips": [("Z", -3 * math.sin(ph))],
+             "hips_loc": (0, 0, 0.012 * abs(math.sin(ph)))},
+        )
+        return pose
+
+    def hinge_pose(d):
+        """d 0..1: hips slide back, chest tips forward with a long back, knees stay soft."""
+        back, drop = 0.13 * d, 0.025 * d
+        thigh, shin = leg_ik(-back, LEG_THIGH + LEG_SHIN - 0.01 - drop)
+        tilt = 38 * d                    # pelvis pitch; the legs are children of the hips, so they are counter-rotated
+        return merge(
+            arms_down(bend=10),
+            leg_pose("L", thigh - tilt, shin - tilt), leg_pose("R", thigh - tilt, shin - tilt),
+            {"foot_L": [("X", -tilt)], "foot_R": [("X", -tilt)],
+             "hips": [("X", tilt)], "spine": [("X", 8 * d)], "chest": [("X", 4 * d)],
+             "neck": [("X", -16 * d)], "head": [("X", -10 * d)],
+             "upper_arm_L": [("X", -30 * d)], "upper_arm_R": [("X", -30 * d)],
+             "hips_loc": (0, back, -drop)},
+        )
+
     return [
+        ("warmup_march", 4.8, march),
+        ("hip_hinge_down", 1.6, lambda t: hinge_pose(ease(t / 1.6))),
+        ("hip_hinge_up", 1.4, lambda t: hinge_pose(1 - ease(t / 1.4))),
         ("idle_neutral", 3.0, idle),
         ("squat_down", 1.6, squat_down),
         ("squat_up", 1.6, squat_up),

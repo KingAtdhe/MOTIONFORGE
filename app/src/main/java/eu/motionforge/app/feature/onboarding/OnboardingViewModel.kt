@@ -26,7 +26,10 @@ class OnboardingViewModel(private val preferences: UserPreferencesRepository) : 
             _saving.value = true
             viewModelScope.launch {
                 // AppViewModel observes the stored flag and switches to the main app.
-                runCatching { preferences.completeOnboarding(focus, goal) }
+                runCatching {
+                    preferences.setCoach(transition.state.coach)
+                    preferences.completeOnboarding(focus, goal)
+                }
                 _saving.value = false
             }
         }

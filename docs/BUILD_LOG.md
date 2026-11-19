@@ -337,3 +337,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   middle+tip from 72 % of wrist→fingertip) into hand / fingers / fingertips weights, finger bones placed at those
   joints, and every frame of every clip is keyed: fist 0.85 in all boxing and footwork clips, relaxed 0.4 in
   idle/squat, open for the push-up. Known gap: the thumb is not rigged and stays where it was sculpted.
+
+### 2026-11-19 / Every lesson animated, thumb in the fist, coach from onboarding
+- New clips for both coaches: `warmup_march` (march on the spot, knee lift, opposite arm swing, 4.8 s loop) for the
+  mobility warm-up, `hip_hinge_down` / `hip_hinge_up` (pelvis pitches 38°, hips slide back 13 cm, legs counter-rotated
+  so the feet stay flat, soft knees, neck long). All 9 lessons now have a 3D demonstration.
+- Hands: fingertip position now measured where the hand stops reaching past the thigh (male hand was measured 5 cm
+  long before → finger joints in the palm); thumb vertices (palm side, front edge) follow the finger row so the thumb
+  wraps over the fist; fist grip 0.95.
+- Onboarding: final step "Are you a woman or a man?" (Woman / Man / Prefer not to say) selects the female or male
+  coach. Only the coach is stored, not the answer; changeable in Profile. Reducer tests updated + new test (9/9 locally).

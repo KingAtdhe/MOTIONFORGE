@@ -90,9 +90,22 @@ for side, sgn in (("L", 1), ("R", -1)):
     J[f"upper_arm_{side}"] = Vector((sh.x, sh.y * 0.5, shoulder_z))
     J[f"forearm_{side}"] = fit(0.625 * H)
     J[f"hand_{side}"] = fit(0.495 * H)
-    tip = band(lo, 0.01)
-    tip = tip[tip[:, 0] * sgn > abs(J[f"hand_{side}"].x) - 0.04]
+    # fingertips: the hand hangs beside the thigh; it ends at the lowest height where the body still reaches
+    # further out than the thigh does below the hand
+    wz = J[f"hand_{side}"].z
+    below = band(wz - 0.13 * H * 0.85 / 0.85 * 0.9, 0.006)
+    thigh_out = (below[:, 0] * sgn).max() if len(below) else abs(J[f"hand_{side}"].x) - 0.05
+    tip_z = wz - 0.02
+    for z in np.arange(wz - 0.02, wz - 0.16, -0.004):
+        b_ = band(z, 0.003)
+        b_ = b_[b_[:, 0] * sgn > thigh_out + 0.008]
+        if len(b_) < 4:
+            break
+        tip_z = z
+    tip = band(tip_z, 0.012)
+    tip = tip[tip[:, 0] * sgn > thigh_out + 0.004]
     J[f"hand_tip_{side}"] = Vector(tip.mean(0)) if len(tip) else fit(lo)
+    print("hand", side, "length", round(wz - tip_z, 3), "thigh_out", round(float(thigh_out), 3))
     J[f"shoulder_{side}"] = Vector((0.03 * sgn, 0.0, shoulder_z + 0.01 * H))
     # leg
     leg = lambda z: Vector(outer(z, sgn)[0]) if outer(z, sgn) else None
@@ -335,6 +348,7 @@ def _ss(a, b, x):
     return t * t * (3 - 2 * t)
 
 
+THUMB_W = {"L": [], "R": []}
 for side in ("L", "R"):
     W_, T_ = Vector(J[f"hand_{side}"]), Vector(J[f"hand_tip_{side}"])
     Lh = (T_ - W_).length
@@ -347,6 +361,16 @@ for side in ("L", "R"):
         t = (vv.co - W_).dot(d_) / Lh
         w2 = _ss(K2 - 0.05, K2 + 0.05, t)
         w1 = _ss(K1 - 0.06, K1 + 0.06, t) * (1 - w2)
+        sgn_ = 1 if side == "L" else -1
+        fwd_off = -(vv.co.y - (W_.y + d_.y * (vv.co - W_).dot(d_)))       # in front of the hand axis
+        in_off = (W_.x - vv.co.x) * sgn_                                    # toward the body (palm side)
+        TH = 0.055 * Lh / 0.08 if Lh < 0.08 else 0.055                      # hand-size scale
+        f0, i0 = 0.22 * TH, 0.14 * TH
+        if fwd_off > f0 and in_off > i0 and 0.05 < t < 0.95:               # thumb: palm side, front edge
+            k = _ss(f0, f0 + 0.01, fwd_off) * _ss(i0, i0 + 0.01, in_off)
+            gh.add([vv.index], hw * (1 - 0.8 * k), "REPLACE")
+            gf.add([vv.index], hw * 0.8 * k, "REPLACE")
+            continue
         if w1 + w2 < 0.01:
             continue
         rest_w = hw * (1 - w1 - w2)
@@ -478,7 +502,7 @@ def build_pushups():
 build_pushups()
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
-GRIP = {"boxing_": 0.85, "footwork_": 0.85, "pushup_": 0.0}
+GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}
 
 
 def key_grip(act, amount):

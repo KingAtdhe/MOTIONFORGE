@@ -79,6 +79,7 @@ private fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent: 
                 OnboardingStep.SAFETY -> SafetyStep(state.safetyAcknowledged, onEvent)
                 OnboardingStep.FOCUS -> FocusStep(state.focus, onEvent)
                 OnboardingStep.GOAL -> GoalStep(state.goal, onEvent)
+                OnboardingStep.COACH -> CoachStep(state.gender, onEvent)
             }
         }
 
@@ -209,6 +210,26 @@ private fun ColumnScope.GoalStep(selected: TrainingGoal?, onEvent: (OnboardingEv
             description = goal.description,
             selected = selected == goal,
             onSelect = { onEvent(OnboardingEvent.GoalChosen(goal)) },
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.CoachStep(selected: GenderAnswer?, onEvent: (OnboardingEvent) -> Unit) {
+    Heading(
+        "Are you a woman or a man?",
+        "We'll show you a matching 3D coach. Only the coach choice is saved on this phone — you can switch coach any time in Profile.",
+    )
+    GenderAnswer.entries.forEach { g ->
+        SelectableOption(
+            title = g.label,
+            description = when (g) {
+                GenderAnswer.WOMAN -> "Train with the female coach."
+                GenderAnswer.MAN -> "Train with the male coach."
+                GenderAnswer.NOT_SAID -> "We'll start you with the female coach."
+            },
+            selected = selected == g,
+            onSelect = { onEvent(OnboardingEvent.GenderChosen(g)) },
         )
     }
 }

@@ -88,7 +88,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun demoAnimationsUseManifestClipNames() {
         val manifestClips = setOf(
-            "idle_neutral", "squat_down", "squat_up", "pushup_down", "pushup_up", "boxing_stance",
+            "idle_neutral", "warmup_march", "hip_hinge_down", "hip_hinge_up", "squat_down", "squat_up", "pushup_down", "pushup_up", "boxing_stance",
             "boxing_jab", "boxing_cross", "boxing_guard_return", "footwork_forward", "footwork_backward",
         )
         ExerciseCatalogParser.parse(bundled).forEach {

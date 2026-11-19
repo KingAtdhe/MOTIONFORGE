@@ -23,8 +23,11 @@ class OnboardingReducerTest {
         assertEquals(OnboardingStep.FOCUS, s.step)
         s = s.on(OnboardingEvent.FocusChosen(TrainingCategory.FITNESS)).state.on(OnboardingEvent.Continue).state
         assertEquals(OnboardingStep.GOAL, s.step)
-        val t = s.on(OnboardingEvent.GoalChosen(TrainingGoal.LEARN_BASICS)).state.on(OnboardingEvent.Continue)
+        s = s.on(OnboardingEvent.GoalChosen(TrainingGoal.LEARN_BASICS)).state.on(OnboardingEvent.Continue).state
+        assertEquals(OnboardingStep.COACH, s.step)
+        val t = s.on(OnboardingEvent.GenderChosen(GenderAnswer.MAN)).state.on(OnboardingEvent.Continue)
         assertTrue(t.completed)
+        assertEquals(eu.motionforge.app.core.model.Coach.MALE, t.state.coach)
         assertEquals(TrainingCategory.FITNESS, t.state.focus)
         assertEquals(TrainingGoal.LEARN_BASICS, t.state.goal)
     }
@@ -62,6 +65,8 @@ class OnboardingReducerTest {
         assertFalse(OnboardingState(step = OnboardingStep.FOCUS).canContinue)
         assertFalse(OnboardingState(step = OnboardingStep.GOAL).canContinue)
         assertFalse(OnboardingState(step = OnboardingStep.GOAL).on(OnboardingEvent.Continue).completed)
+        assertFalse(OnboardingState(step = OnboardingStep.COACH).canContinue)
+        assertFalse(OnboardingState(step = OnboardingStep.COACH).on(OnboardingEvent.Continue).completed)
     }
 
     @Test
@@ -73,11 +78,19 @@ class OnboardingReducerTest {
     @Test
     fun backWalksTheFlow() {
         assertEquals(OnboardingStep.FOCUS, OnboardingState(step = OnboardingStep.GOAL).on(OnboardingEvent.Back).state.step)
+        assertEquals(OnboardingStep.GOAL, OnboardingState(step = OnboardingStep.COACH).on(OnboardingEvent.Back).state.step)
         assertEquals(OnboardingStep.WELCOME, OnboardingState().on(OnboardingEvent.Back).state.step)
     }
 
     @Test
     fun progressCoversAllVisibleSteps() {
-        assertEquals(setOf(1, 2, 3, 4, 5), OnboardingStep.entries.map { OnboardingState(step = it).progressIndex }.toSet())
+        assertEquals(setOf(1, 2, 3, 4, 5, 6), OnboardingStep.entries.map { OnboardingState(step = it).progressIndex }.toSet())
+    }
+
+    @Test
+    fun genderOnlyPicksTheCoach() {
+        assertEquals(eu.motionforge.app.core.model.Coach.FEMALE, OnboardingState(gender = GenderAnswer.WOMAN).coach)
+        assertEquals(eu.motionforge.app.core.model.Coach.MALE, OnboardingState(gender = GenderAnswer.MAN).coach)
+        assertEquals(eu.motionforge.app.core.model.Coach.DEFAULT, OnboardingState(gender = GenderAnswer.NOT_SAID).coach)
     }
 }
