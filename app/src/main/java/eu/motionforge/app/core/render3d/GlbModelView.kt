@@ -107,28 +107,23 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
      */
     private fun addStudioLighting() {
         val engine = viewer.engine
+        // Brighter three-point rig: the coaches wear black and have deep skin tones, which disappeared under the
+        // previous low key light. ModelViewer's own overhead sun stays on.
         val ambient = IndirectLight.Builder()
-            .irradiance(1, floatArrayOf(0.9f, 0.92f, 0.95f))
-            .intensity(22_000f)
+            .irradiance(1, floatArrayOf(0.95f, 0.95f, 1.0f))
+            .intensity(34_000f)
             .build(engine)
         viewer.scene.indirectLight = ambient
-        val key = EntityManager.get().create()
-        LightManager.Builder(LightManager.Type.DIRECTIONAL)
-            .color(1.0f, 0.97f, 0.93f)
-            .intensity(45_000f)
-            .direction(0.35f, -0.45f, -1.0f)
-            .castShadows(false)
-            .build(engine, key)
-        viewer.scene.addEntity(key)
-        // rim light from behind: separates the lit (normal-mapped) coach from the background
-        val rim = EntityManager.get().create()
-        LightManager.Builder(LightManager.Type.DIRECTIONAL)
-            .color(1.0f, 0.95f, 0.92f)
-            .intensity(30_000f)
-            .direction(-0.5f, -0.3f, 1.0f)
-            .castShadows(false)
-            .build(engine, rim)
-        viewer.scene.addEntity(rim)
+        fun dir(r: Float, g: Float, b: Float, lux: Float, x: Float, y: Float, z: Float) {
+            val e = EntityManager.get().create()
+            LightManager.Builder(LightManager.Type.DIRECTIONAL)
+                .color(r, g, b).intensity(lux).direction(x, y, z).castShadows(false).build(engine, e)
+            viewer.scene.addEntity(e)
+        }
+        dir(1.0f, 0.97f, 0.93f, 95_000f, 0.40f, -0.45f, -1.0f)    // key: front-left, slightly above
+        dir(0.85f, 0.90f, 1.0f, 38_000f, -0.80f, -0.20f, -0.60f)  // fill: front-right, cooler
+        dir(1.0f, 0.95f, 0.92f, 70_000f, -0.55f, -0.30f, 1.0f)    // rim left-back: silhouette
+        dir(0.80f, 0.88f, 1.0f, 55_000f, 0.60f, -0.25f, 1.0f)     // rim right-back
     }
 
     /** Must run on the main thread. */
@@ -169,7 +164,7 @@ fun GlbModelView(
     allowOrbit: Boolean = false,
     lit: Boolean = true,
     contentDescription: String = "3D demonstration",
-    backgroundRgb: FloatArray = floatArrayOf(0.086f, 0.106f, 0.125f),
+    backgroundRgb: FloatArray = floatArrayOf(0.16f, 0.18f, 0.21f), // linear ≈ sRGB #6E7680: contrast for black kit
 ) {
     val context = LocalContext.current
     val sceneResult: Result<FilamentScene> = remember {

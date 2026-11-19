@@ -361,7 +361,7 @@ def clip_specs():
         swing = 22 * math.sin(ph)
         pose = merge(
             arms_down(bend=24),
-            leg_pose("L", -62 * lift_l, -6 * lift_l), leg_pose("R", -62 * lift_r, -6 * lift_r),
+            leg_pose("L", -52 * lift_l, -4 * lift_l), leg_pose("R", -52 * lift_r, -4 * lift_r),
             {"upper_arm_L": [("X", swing)], "upper_arm_R": [("X", -swing)],
              "chest": [("Z", 4 * math.sin(ph)), ("X", 2)], "hips": [("Z", -3 * math.sin(ph))],
              "hips_loc": (0, 0, 0.012 * abs(math.sin(ph)))},

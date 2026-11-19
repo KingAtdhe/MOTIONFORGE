@@ -42,6 +42,7 @@ import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.render3d.GlbModelView
 import eu.motionforge.app.core.render3d.GlbPlayback
 import eu.motionforge.app.core.render3d.ViewAngle
+import eu.motionforge.app.core.render3d.defaultViewAngle
 
 private sealed interface DemoAvailability {
     data object Checking : DemoAvailability
@@ -95,7 +96,9 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
     val reduceMotion = remember {
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
-    val playback = remember(exercise.id) { GlbPlayback(initiallyPlaying = !reduceMotion) }
+    val playback = remember(exercise.id) {
+        GlbPlayback(initiallyPlaying = !reduceMotion).apply { viewAngle = defaultViewAngle(exercise.recommendedView.wireName) }
+    }
     LaunchedEffect(playback, sequence) { playback.playSequence(sequence) }
     val speeds = listOf(1f, 0.5f, 0.25f)
 
@@ -193,7 +196,7 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
         )
     }
     val ready = availability as? DemoAvailability.Ready
-    val playback = remember(exercise.id) { GlbPlayback() }
+    val playback = remember(exercise.id) { GlbPlayback().apply { viewAngle = defaultViewAngle(exercise.recommendedView.wireName) } }
     LaunchedEffect(playback, ready?.sequence) { ready?.let { playback.playSequence(it.sequence) } }
     LaunchedEffect(playback, playing) { playback.playing = playing }
 

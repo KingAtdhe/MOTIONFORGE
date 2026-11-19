@@ -110,4 +110,18 @@ class DemoClipsTest {
     fun badManifestIsRejected() {
         ClipManifest.parse("""{"asset":"a.glb","clips":[{"name":"x","durationSeconds":0,"reviewStatus":"draft_pending_coach_review"}]}""")
     }
+
+    @Test
+    fun lessonsStartFromTheirRecommendedView() {
+        assertEquals(ViewAngle.SIDE, defaultViewAngle("side"))
+        assertEquals(ViewAngle.THREE_QUARTER, defaultViewAngle("front_or_diagonal"))
+        assertEquals(ViewAngle.FRONT, defaultViewAngle("full_body"))
+        assertEquals(ViewAngle.FRONT, defaultViewAngle(null))
+    }
+
+    @Test
+    fun everyLessonHasA3dDemo() {
+        val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
+        catalog.forEach { assertTrue("${it.id} has no demo", DemoSequence.resolve(it.demoAnimation, manifest.names).isNotEmpty()) }
+    }
 }

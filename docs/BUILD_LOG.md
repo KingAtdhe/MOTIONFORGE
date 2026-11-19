@@ -347,3 +347,11 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   wraps over the fist; fist grip 0.95.
 - Onboarding: final step "Are you a woman or a man?" (Woman / Man / Prefer not to say) selects the female or male
   coach. Only the coach is stored, not the answer; changeable in Profile. Reducer tests updated + new test (9/9 locally).
+
+## Accuracy, bug and visibility pass (2026-11-19)
+- Audited all 14 clips on both coaches (joint angles, floor contact, foot slide).
+- Fixed: push-up now starts with locked elbows (~180°) and lowers to ~65° at the bottom, hands flat, body centred; boxing stance no longer ducks or steps (mocap window 113–142 + planted feet); idle/stance feet pinned (slide < 1 cm); march knee lift raised to 52°.
+- Visibility: skin texture graded to the Workout Coach sheet tone, clothing lifted; viewer lighting rebuilt (key, fill, two rims, brighter ambient) on a mid-grey background so black kit reads clearly.
+- Lessons open on their recommended camera angle (side / ¾ / front); new ¾ view button.
+- Tests: DemoClipsTest checks every catalogue lesson resolves a 3D demo and the default-angle mapping.
+- Known: female push-up bottom frame has ~1 cm hand/floor overlap; not yet checked on a real device.

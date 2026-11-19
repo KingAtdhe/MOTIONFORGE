@@ -195,6 +195,29 @@ bake("DIFFUSE", "base.png")
 bake("ROUGHNESS", "rough.png", "Non-Color")
 bake("NORMAL", "normal.png", "Non-Color", normal_space="TANGENT")
 
+# ---- colour: the generated texture is much darker than the owner's sheet; grade skin to the sheet's skin tone and
+#      lift the dark fabric a little so the coach reads clearly in the app
+SKIN = {"coach_f": (0.847, 0.494, 0.345), "coach_m": (0.702, 0.388, 0.255)}.get(NAME)
+if SKIN and "--no-grade" not in args:
+    img = out["base.png"]
+    px = np.array(img.pixels[:], np.float32).reshape(RES, RES, 4)
+    rgb = px[..., :3]
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    skin_m = (r > g * 1.15) & (g > b * 1.05) & (r > 0.12)
+    # Blender image pixels are linear for sRGB images: compare in display space
+    to_s = lambda x: np.where(x <= 0.0031308, 12.92 * x, 1.055 * np.power(np.clip(x, 0, None), 1 / 2.4) - 0.055)
+    to_l = lambda x: np.where(x <= 0.04045, x / 12.92, np.power((np.clip(x, 0, None) + 0.055) / 1.055, 2.4))
+    srgb = to_s(rgb)
+    med = np.median(srgb[skin_m], axis=0)
+    gain = np.clip(np.array(SKIN) / np.maximum(med, 1e-3), 1.0, 2.2)
+    from scipy.ndimage import gaussian_filter
+    w = gaussian_filter(skin_m.astype(np.float32), 2.0)[..., None]
+    lifted = srgb * gain * w + (srgb * 1.18 + 0.025) * (1 - w)          # skin to sheet tone; fabric lifted
+    px[..., :3] = to_l(np.clip(lifted, 0, 1))
+    img.pixels[:] = px.ravel()
+    img.save()
+    print("graded skin", med.round(3), "->", SKIN, "gain", gain.round(2))
+
 # metal is ~0 for this character; pack roughness into G (glTF metallicRoughness)
 r = np.array(out["rough.png"].pixels[:], np.float32).reshape(RES, RES, 4)
 mr = np.zeros_like(r)
@@ -391,7 +414,7 @@ ta.build_clips(arm)
 import mocap_retarget as mr  # noqa: E402
 MOCAP = {  # clip: (take, first frame, last frame, loops)
     "idle_neutral": ("111_28", 10, 100, True),
-    "boxing_stance": ("13_18", 114, 186, True),
+    "boxing_stance": ("13_18", 113, 142, True),
     "boxing_jab": ("13_18", 88, 118, False),
     "boxing_cross": ("13_18", 20, 50, False),
 }
@@ -424,16 +447,17 @@ def build_pushups():
         pitch = rest_angle - theta
         R = Matrix.Rotation(pitch, 3, "X")                               # positive X pitches the body forward
         toe_new = H_ + R @ (toe - H_)
-        d = Vector((0, 0, 0.012)) - Vector((0, 0, toe_new.z)) + Vector((0, toe.y - toe_new.y + 0.35 * L_body, 0))
+        # toes on the floor; body centred on the origin along Y so the app frames it like the standing clips
+        d = Vector((0, 0, 0.012)) - Vector((0, 0, toe_new.z)) + Vector((0, 0.5 * L_body + 0.10 - toe_new.y, 0))
         return pitch, d, R
 
     # IK targets: hands under the shoulders (a bit wider), on the floor; poles behind and out for the elbows
     tgt, pole = {}, {}
-    pitch0, d0, R0 = plank(arm_len * 0.97)
+    pitch0, d0, R0 = plank(arm_len * 1.0 + 0.035)
     sh_top = {s_: H_ + R0 @ (Vector(bones[f"upper_arm_{s_}"].head_local) - H_) + d0 for s_ in ("L", "R")}
     for s_, sg in (("L", 1), ("R", -1)):
         e = bpy.data.objects.new(f"ik_{s_}", None); bpy.context.collection.objects.link(e)
-        e.location = (sh_top[s_].x * 1.25, sh_top[s_].y - 0.02, 0.05)
+        e.location = (sh_top[s_].x * 1.25, sh_top[s_].y - 0.02, 0.035)
         tgt[s_] = e
         p_ = bpy.data.objects.new(f"pole_{s_}", None); bpy.context.collection.objects.link(p_)
         p_.location = (sh_top[s_].x * 1.25 + sg * 0.35, sh_top[s_].y + 0.45, 0.45)
@@ -466,6 +490,8 @@ def build_pushups():
             for s_ in ("L", "R"):                                         # toes tucked: feet flexed onto the toes
                 fb = arm.pose.bones[f"foot_{s_}"]; fr = bones[f"foot_{s_}"].matrix_local.to_3x3().to_quaternion()
                 fb.rotation_quaternion = fr.inverted() @ Quaternion((1, 0, 0), math.radians(-35)) @ fr
+            sb = arm.pose.bones["spine"]; sr = bones["spine"].matrix_local.to_3x3().to_quaternion()
+            sb.rotation_quaternion = sr.inverted() @ Quaternion((1, 0, 0), math.radians(8)) @ sr      # flatten the plank
             nb = arm.pose.bones["neck"]; nr = bones["neck"].matrix_local.to_3x3().to_quaternion()
             nb.rotation_quaternion = nr.inverted() @ Quaternion((1, 0, 0), math.radians(-28)) @ nr   # look at the floor ahead
             for fb_ in ("fingers_L", "fingers_R", "fingertips_L", "fingertips_R"):
@@ -486,10 +512,26 @@ def build_pushups():
         bpy.ops.nla.bake(frame_start=1, frame_end=n + 1, only_selected=True, visual_keying=True, clear_constraints=False,
                          use_current_action=True, bake_types={"POSE"}, channel_types={"ROTATION"})
         bpy.ops.object.mode_set(mode="OBJECT")
+        # hands flat on the floor: fingers forward (-Y), palm down, per frame (after the arm IK bake)
+        for f in range(1, n + 2):
+            sc.frame_set(f)
+            for s_, sg in (("L", 1), ("R", -1)):
+                pb = arm.pose.bones[f"hand_{s_}"]
+                M = pb.matrix.copy()
+                rest_rot = bones[f"hand_{s_}"].matrix_local.to_3x3()
+                cur = M.to_3x3()
+                d_now = (cur @ rest_rot.inverted() @ (Vector(bones[f"hand_{s_}"].tail_local) - Vector(bones[f"hand_{s_}"].head_local)).normalized())
+                palm_now = cur @ rest_rot.inverted() @ Vector((-sg, 0, 0))
+                def frame(a, b):
+                    a = a.normalized(); b = (b - a * b.dot(a)).normalized(); return Matrix((a, b, a.cross(b))).transposed()
+                R = frame(Vector((0.0, -1.0, -0.12)), Vector((0, 0, -1))) @ frame(d_now, palm_now).inverted()
+                pb.matrix = Matrix.Translation(M.translation) @ (R @ cur).to_4x4()
+                bpy.context.view_layer.update()
+                pb.keyframe_insert("rotation_quaternion", frame=f)
         act.frame_range = (1, n + 1)
         return act
 
-    top, bottom = arm_len * 0.97, 0.20 * HEIGHT / 1.7
+    top, bottom = arm_len * 1.0 + 0.035, 0.37 * HEIGHT / 1.7
     bake("pushup_down", top, bottom, 1.4)
     bake("pushup_up", bottom, top, 1.2)
     for bn, c in cons:
@@ -500,6 +542,104 @@ def build_pushups():
 
 
 build_pushups()
+
+# ---- foot lock: while a foot is on the floor and nearly still, pin it where it landed (removes foot skating
+#      from retargeted mocap and from hand-keyed hip motion); two-bone analytic IK on thigh/shin, foot keeps its
+#      world orientation.
+def foot_lock(act, planted=False):
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    frames = list(range(a_, b_ + 1))
+    if planted:
+        # stationary drill: hold the hips' horizontal position at its average (keep the bounce), feet pinned all clip
+        hb = arm.pose.bones["hips"]
+        locs = []
+        for f in frames:
+            sc.frame_set(f)
+            locs.append(hb.location.copy())
+        mean = sum(locs, Vector()) / len(locs)
+        rest3 = arm.data.bones["hips"].matrix_local.to_3x3()
+        for f, l in zip(frames, locs):
+            w = rest3 @ l
+            wm = rest3 @ mean
+            hb.location = rest3.inverted() @ Vector((wm.x, wm.y, w.z))
+            hb.keyframe_insert("location", frame=f)
+    track = {"L": [], "R": []}
+    for f in frames:
+        sc.frame_set(f)
+        for s_ in ("L", "R"):
+            track[s_].append(Vector(arm.pose.bones[f"foot_{s_}"].head))
+    ground = min(min(p.z for p in track[s_]) for s_ in track)
+    for s_ in ("L", "R"):
+        P = track[s_]
+        n = len(P)
+        contact = []
+        for i in range(n):
+            v = (P[min(i + 1, n - 1)] - P[max(i - 1, 0)]).xy.length / (2 / ta.FPS)
+            contact.append(planted or (P[i].z < ground + 0.03 and v < 0.45))
+        # segments
+        segs, i = [], 0
+        while i < n:
+            if contact[i]:
+                j = i
+                while j + 1 < n and contact[j + 1]:
+                    j += 1
+                if j - i >= 2:
+                    segs.append((i, j))
+                i = j + 1
+            else:
+                i += 1
+        target = list(P)
+        weight = [0.0] * n
+        for (i0, i1) in segs:
+            anchor = (sum(P, Vector()) / n) if planted else P[(i0 + i1) // 2].copy()
+            if planted:
+                anchor.z = 0
+            for k in range(i0, i1 + 1):
+                target[k] = Vector((anchor.x, anchor.y, min(P[k].z, ground + 0.006) if planted else P[k].z))
+                weight[k] = 1.0
+            for k in range(1, 4):                                   # blend in / out over 3 frames
+                for kk, w in ((i0 - k, 1 - k / 4), (i1 + k, 1 - k / 4)):
+                    if 0 <= kk < n and weight[kk] < w:
+                        weight[kk] = w
+                        target[kk] = P[kk].lerp(Vector((anchor.x, anchor.y, P[kk].z)), w)
+        for k, f in enumerate(frames):
+            if weight[k] <= 0.0 or (target[k] - P[k]).length < 0.002:
+                continue
+            sc.frame_set(f)
+            th, sh_, ft = arm.pose.bones[f"thigh_{s_}"], arm.pose.bones[f"shin_{s_}"], arm.pose.bones[f"foot_{s_}"]
+            foot_m = ft.matrix.copy()
+            Hp, K, A = Vector(th.head), Vector(sh_.head), Vector(ft.head)
+            A2 = target[k]
+            l1, l2 = (K - Hp).length, (A - K).length
+            dvec = A2 - Hp
+            dist = min(dvec.length, l1 + l2 - 1e-4)
+            dn = dvec.normalized()
+            bend = (K - Hp) - dn * (K - Hp).dot(dn)                     # keep the knee's bend direction
+            if bend.length < 1e-5:
+                bend = Vector((0, -1, 0))
+            bend.normalize()
+            a = (l1 * l1 + dist * dist - l2 * l2) / (2 * dist)
+            h = math.sqrt(max(l1 * l1 - a * a, 0.0))
+            K2 = Hp + dn * a + bend * h
+            for pb, tail in ((th, K2), (sh_, Hp + dn * dist)):
+                M = pb.matrix.copy()
+                cur = (Vector(pb.tail) - Vector(pb.head)).normalized()
+                q = cur.rotation_difference((tail - Vector(pb.head)).normalized())
+                pb.matrix = Matrix.Translation(M.translation) @ (q.to_matrix() @ M.to_3x3()).to_4x4()
+                bpy.context.view_layer.update()
+            ft.matrix = Matrix.Translation(Vector(ft.head)) @ foot_m.to_3x3().to_4x4()
+            bpy.context.view_layer.update()
+            for pb in (th, sh_, ft):
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+from mathutils import Matrix  # noqa: E402
+for act in list(bpy.data.actions):
+    if not act.name.startswith("pushup_"):
+        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"))
+print("foot lock done")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
 GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}

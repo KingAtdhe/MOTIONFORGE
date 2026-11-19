@@ -99,6 +99,15 @@ object DemoSequence {
 /** Preset viewing angles. Yaw rotates the model about its vertical axis. */
 enum class ViewAngle(val label: String, val yawDegrees: Float) {
     FRONT("Front", 0f),
+    THREE_QUARTER("¾", 35f),
     SIDE("Side", 90f),
     BACK("Back", 180f),
+}
+
+/** Best starting camera for a lesson, from its recommended view (side-on movements start side-on). */
+fun defaultViewAngle(recommendedView: String?): ViewAngle = when (recommendedView) {
+    "side" -> ViewAngle.SIDE
+    "front_or_diagonal" -> ViewAngle.THREE_QUARTER
+    "front_or_side" -> ViewAngle.THREE_QUARTER
+    else -> ViewAngle.FRONT
 }
