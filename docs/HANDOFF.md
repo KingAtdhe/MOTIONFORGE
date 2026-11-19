@@ -24,10 +24,14 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
   the owner's "Workout Coach" reference sheet (no "W" logo). Muscle-form clay blockout → voxel remesh →
   cavity paint → auto weights → garments cut from body → head/face parts, hair, hands, gloves, trainers →
   cel shading baked into vertex colours (COLOR_0), all materials `KHR_materials_unlit`, inverted-hull outline.
-  ~64k tris (too heavy; target 25–35k). Rig/clips: `trainer_rig.py`, `trainer_anim.py` (9 clips, no push-up).
+  ~35k tris (was 64k). Rig/clips: `trainer_rig.py` (25 bones incl. `fingers_*`/`fingertips_*`), `trainer_anim.py`
+  (9 clips, no push-up; fists in all boxing clips, relaxed hands otherwise; footwork uses two-bone leg IK so the
+  standing foot stays planted). Clothing is painted on the body faces along bisect loops (clean hems), abs are
+  painted lines on a flat rectus plate. Fast iteration: `build_coach.py --previews --quick` (5 small renders, ~1 min).
 - Sheet of renders: `python tools/blender/compose_coach_sheet.py` → `assets/blender/references/coach_f_3d_concept_sheet.jpg`.
-- Known weak spots: ragged top edges, lumpy abs up close, simple face with heavy lips, open paddle hands
-  (no finger bones → no fist), feet slide in footwork, no expressions, male coach not built.
+- Fixed 19 Nov: ragged hems, lumpy abs, heavy lips/nose, no fists, foot sliding, polycount.
+- Known weak spots: still a stylised procedural figure, not her painted sheet's level; boxy shoulders; outline
+  hull streaks at sharply bent elbows; no facial expressions; male coach not built.
 - Older scripts kept: `build_trainer.py` (mannequin), `tools/art/trainer_model_sheet.py` (vector sheets, rejected).
 - Owner's reference image was sent in chat only; it is NOT in the repo — ask her to re-attach it.
 

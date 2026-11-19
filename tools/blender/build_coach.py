@@ -33,6 +33,7 @@ import trainer_rig as tr  # noqa: E402
 from trainer_body import J, material, srgb  # noqa: E402
 
 Z = Vector((0, 0, 1))
+HULL_RATIO = 0.30
 
 
 # ----------------------------------------------------------------------------- clay primitives
@@ -110,16 +111,15 @@ def sculpt_body():
         c.ell((s * 0.078, 0.062, 0.925), (0.086, 0.088, 0.094))    # glute
         c.ell((s * 0.066, -0.082, 1.292), (0.062, 0.054, 0.058))   # chest
         c.ell((s * 0.050, 0.028, 1.462), (0.058, 0.046, 0.044), axis=(s * 0.5, 0, 1))    # trapezius
-        c.ell((s * 0.110, 0.010, 1.428), (0.078, 0.052, 0.034), axis=(s * 0.28, 0, 1))    # shoulder slope
-        c.ell((s * 0.122, 0.034, 1.275), (0.040, 0.058, 0.110))    # lat
-        c.ell((s * 0.088, -0.036, 1.085), (0.026, 0.034, 0.080))   # oblique
-        for i, zc in enumerate((1.045, 1.105, 1.165)):             # abdominals
-            c.ell((s * 0.030, -0.074 - 0.003 * i, zc), (0.026, 0.010, 0.022))
+        c.ell((s * 0.104, 0.010, 1.424), (0.072, 0.050, 0.032), axis=(s * 0.30, 0, 1))    # shoulder slope
+        c.ell((s * 0.110, 0.034, 1.285), (0.036, 0.056, 0.100))    # lat
+        c.ell((s * 0.080, -0.030, 1.080), (0.024, 0.032, 0.075))   # oblique
+        c.ell((s * 0.028, -0.068, 1.110), (0.034, 0.014, 0.085))   # rectus abdominis (one flat plate per side; segments are painted)
         c.ell((s * 0.050, 0.066, 1.330), (0.044, 0.030, 0.070))    # scapular / upper back
         # arm
         S, E, W = J[f"upper_arm_{'L' if s > 0 else 'R'}"], J[f"forearm_{'L' if s > 0 else 'R'}"], J[f"hand_{'L' if s > 0 else 'R'}"]
         d = (E - S).normalized()
-        c.ell(S + Vector((s * 0.004, 0, -0.014)), (0.064, 0.062, 0.066))                 # deltoid
+        c.ell(S + Vector((-s * 0.004, 0, -0.030)), (0.048, 0.052, 0.062), axis=d)        # deltoid
         c.seg(S, E, 0.049, 0.040)
         c.ell(lerp(S, E, 0.52) + Vector((0, -0.017, 0)), (0.036, 0.036, 0.082), axis=d)  # biceps
         c.ell(lerp(S, E, 0.50) + Vector((0, 0.019, 0)), (0.034, 0.034, 0.088), axis=d)   # triceps
@@ -138,7 +138,7 @@ def sculpt_body():
         c.seg(K, A + Vector((0, 0, 0.02)), 0.046, 0.030)
         c.ell(lerp(K, A, 0.30) + Vector((0, 0.024, 0)), (0.044, 0.047, 0.100), axis=g)            # calf
         c.ell(A + Vector((0, 0.0, 0.0)), (0.034, 0.040, 0.040))                                   # ankle
-    return c.build("coach_body", voxel=0.0055, smooth=6, tris=11000)
+    return c.build("coach_body", voxel=0.0055, smooth=6, tris=6600)
 
 
 def sculpt_head():
@@ -147,17 +147,17 @@ def sculpt_head():
     c.ell((0, 0.012, hz + 0.018), (0.073, 0.090, 0.082))            # cranium
     c.ell((0, -0.020, hz - 0.030), (0.060, 0.072, 0.080))           # face mass
     c.ell((0, -0.050, hz - 0.090), (0.030, 0.026, 0.024))           # chin
-    c.ell((0, -0.094, hz - 0.012), (0.011, 0.014, 0.026))           # nose bridge
-    c.ell((0, -0.104, hz - 0.030), (0.0125, 0.011, 0.010))          # nose tip
+    c.ell((0, -0.088, hz - 0.010), (0.0085, 0.011, 0.022))          # nose bridge
+    c.ell((0, -0.097, hz - 0.027), (0.0105, 0.0095, 0.0085))        # nose tip
     c.ell((0, -0.080, hz - 0.062), (0.026, 0.012, 0.014))           # mouth mound
     c.seg((0, 0.006, hz - 0.080), (0, 0.010, hz - 0.112), 0.037, 0.039)  # neck stub (overlaps body neck)
     for s in (1, -1):
         c.ell((s * 0.030, -0.076, hz + 0.022), (0.024, 0.010, 0.007))   # brow ridge
-        c.ell((s * 0.040, -0.060, hz - 0.024), (0.018, 0.016, 0.014))   # cheekbone
-        c.ell((s * 0.038, -0.028, hz - 0.060), (0.022, 0.032, 0.028))   # jaw
-        c.ell((s * 0.011, -0.098, hz - 0.034), (0.008, 0.007, 0.006))   # nostril wing
+        c.ell((s * 0.038, -0.058, hz - 0.020), (0.017, 0.015, 0.012))   # cheekbone
+        c.ell((s * 0.034, -0.030, hz - 0.058), (0.019, 0.030, 0.026))   # jaw
+        c.ell((s * 0.009, -0.091, hz - 0.031), (0.0068, 0.006, 0.005))  # nostril wing
         c.ell((s * 0.075, 0.012, hz - 0.008), (0.008, 0.015, 0.026), axis=(s * 0.25, 0.15, 1))  # ear
-    return c.build("coach_head", voxel=0.0026, smooth=9, tris=5200, smooth_factor=0.5), hz
+    return c.build("coach_head", voxel=0.0026, smooth=9, tris=3400, smooth_factor=0.5), hz
 
 
 def face_parts(hz, mats):
@@ -181,8 +181,8 @@ def face_parts(hz, mats):
         piece("brow", mats["hair"], lambda c: (c.seg((ex - s * 0.0150, ey - 0.0105, ez + 0.0185), (ex + s * 0.0040, ey - 0.0105, ez + 0.0230), 0.0030, 0.0028),
                                                c.seg((ex + s * 0.0040, ey - 0.0105, ez + 0.0230), (ex + s * 0.0200, ey - 0.0050, ez + 0.0190), 0.0028, 0.0012)), voxel=0.0010, tris=200)
     my = hz - 0.060
-    piece("lip_upper", mats["lip"], lambda c: (c.ell((0.008, -0.0915, my + 0.0030), (0.0100, 0.0045, 0.0034)), c.ell((-0.008, -0.0915, my + 0.0030), (0.0100, 0.0045, 0.0034))), tris=240)
-    piece("lip_lower", mats["lip"], lambda c: c.ell((0, -0.0905, my - 0.0040), (0.0150, 0.0055, 0.0046)), tris=200)
+    piece("lip_upper", mats["lip"], lambda c: (c.ell((0.0068, -0.0905, my + 0.0026), (0.0088, 0.0036, 0.0026)), c.ell((-0.0068, -0.0905, my + 0.0026), (0.0088, 0.0036, 0.0026))), tris=200)
+    piece("lip_lower", mats["lip"], lambda c: c.ell((0, -0.0897, my - 0.0032), (0.0122, 0.0042, 0.0034)), tris=180)
     return out
 
 
@@ -202,7 +202,7 @@ def sculpt_hair(hz, mats):
         c.seg(pts[i], pts[i + 1], rad[i], rad[i + 1])
     for dx, dz, r in ((0.034, -0.02, 0.020), (-0.036, -0.05, 0.018), (0.022, -0.10, 0.016), (-0.026, 0.02, 0.018)):
         c.seg(pts[2] + Vector((dx, 0, dz)), pts[4] + Vector((dx * 1.2, 0.006, dz - 0.03)), r, r * 0.45)
-    hair = c.build("coach_hair", voxel=0.0045, smooth=3, tris=3600, smooth_factor=0.4)
+    hair = c.build("coach_hair", voxel=0.0045, smooth=3, tris=2300, smooth_factor=0.4)
     # cut the hairline: keep top/back, clear the face
     bm = bmesh.new()
     bm.from_mesh(hair.data)
@@ -222,41 +222,50 @@ def sculpt_hair(hz, mats):
 
 
 def sculpt_hand(side, mats):
+    """Palm + thumb (hand bone), proximal finger row (fingers bone), middle+distal rows (fingertips bone).
+    Each group is a separate rigid piece with round joint caps, so the fingers can roll into a fist."""
+    from trainer_rig import KNUCKLE, PROX
     s = 1 if side == "L" else -1
     W, T = J[f"hand_{side}"], J[f"hand_tip_{side}"]
-    d = (T - W).normalized()                    # along the fingers
-    y = Vector((0, -1, 0))                      # toward the thumb (forward)
-    x = d.cross(y).normalized()                 # palm normal
+    d = (T - W).normalized()                         # along the fingers
+    y = Vector((0, -1, 0))                           # toward the thumb (forward)
+    x = d.cross(y).normalized()
     y = x.cross(d).normalized()
+    palm = x * s                                     # palm faces the body
     frame = Matrix((x, y, d)).transposed()
     c = Clay()
-    c.ell(W + d * 0.046, (0.0135, 0.040, 0.050), frame=frame)                 # palm
-    c.seg(W - d * 0.02, W + d * 0.012, 0.026, 0.027)                           # wrist
-    lengths = (0.066, 0.076, 0.071, 0.056)
-    for i, L in enumerate(lengths):
-        off = (1.5 - i) * 0.0195
-        base = W + d * 0.088 + y * off
-        mid = base + (d * 0.92 - x * s * 0.0 + y * (1.5 - i) * 0.03).normalized() * L * 0.55
-        tip = mid + (d * 0.86 - x * 0.50 * s * 0 + Vector((-s * 0.25, 0, -0.1))).normalized() * L * 0.45
-        c.seg(base, mid, 0.0098, 0.0090)
-        c.seg(mid, tip, 0.0090, 0.0076)
-    tb = W + d * 0.030 + y * 0.034
-    tm = tb + (d * 0.75 + y * 0.66).normalized() * 0.036
-    c.seg(tb, tm, 0.0125, 0.0105)
-    c.seg(tm, tm + (d * 0.92 + y * 0.30).normalized() * 0.030, 0.0105, 0.0085)
-    hand = c.build(f"coach_hand_{side}", voxel=0.0026, smooth=3, tris=1300, smooth_factor=0.4)
-    hand.data.materials.append(mats["skin"])
+    c.ell(W + d * 0.046, (0.0145, 0.041, 0.050), frame=frame)                  # palm
+    c.ell(W + d * 0.040 + palm * 0.006 - y * 0.020, (0.012, 0.016, 0.036), frame=frame)  # little-finger heel
+    c.seg(W - d * 0.02, W + d * 0.012, 0.026, 0.027)                            # wrist
+    tb = W + d * 0.028 + y * 0.032 + palm * 0.006                                # thumb lies along the index finger,
+    tm = tb + (d * 0.80 + y * 0.30 + palm * 0.50).normalized() * 0.036          # tucked slightly toward the palm
+    c.seg(tb, tm, 0.0130, 0.0108)
+    c.seg(tm, tm + (d * 0.85 + palm * 0.50).normalized() * 0.030, 0.0108, 0.0088)
+    hand = c.build(f"coach_hand_{side}", voxel=0.0026, smooth=3, tris=650, smooth_factor=0.4)
+    p1, p2 = Clay(), Clay()
+    for i, L in enumerate((0.040, 0.046, 0.043, 0.032)):          # middle+distal length per finger
+        off = (1.5 - i) * 0.0192
+        r = 0.0098 - 0.0006 * max(0, i - 1)
+        k = W + d * KNUCKLE + y * off
+        m = W + d * (KNUCKLE + PROX) + y * off * 0.96
+        p1.seg(k, m, r, r * 0.93)
+        p2.seg(m, m + d * L * 0.55, r * 0.93, r * 0.86)
+        p2.seg(m + d * L * 0.55, m + d * L, r * 0.86, r * 0.74)
+    prox = p1.build(f"coach_fingers_{side}", voxel=0.0024, smooth=2, tris=420, smooth_factor=0.4)
+    dist = p2.build(f"coach_fingertips_{side}", voxel=0.0022, smooth=2, tris=480, smooth_factor=0.4)
+    for o in (hand, prox, dist):
+        o.data.materials.append(mats["skin"])
     # fingerless glove: palm wrap + cuff
     g = Clay()
-    g.ell(W + d * 0.044, (0.0185, 0.0445, 0.047), frame=frame)
+    g.ell(W + d * 0.044, (0.0190, 0.0450, 0.046), frame=frame)
     g.seg(W - d * 0.030, W + d * 0.012, 0.0305, 0.0315)
-    glove = g.build(f"coach_glove_{side}", voxel=0.003, smooth=2, tris=700)
+    glove = g.build(f"coach_glove_{side}", voxel=0.003, smooth=2, tris=420)
     glove.data.materials.append(mats["black"])
     strap = Clay()
     strap.seg(W - d * 0.020, W - d * 0.004, 0.0335, 0.0335)
-    st = strap.build(f"coach_strap_{side}", voxel=0.003, smooth=1, tris=260)
+    st = strap.build(f"coach_strap_{side}", voxel=0.003, smooth=1, tris=220)
     st.data.materials.append(mats["accent"])
-    return [hand, glove, st]
+    return {f"hand_{side}": [hand, glove, st], f"fingers_{side}": [prox], f"fingertips_{side}": [dist]}
 
 
 def sculpt_shoe(side, mats):
@@ -267,7 +276,7 @@ def sculpt_shoe(side, mats):
     c.ell((x + s * 0.004, -0.140, 0.042), (0.045, 0.052, 0.030))
     c.ell((x, 0.036, 0.062), (0.041, 0.046, 0.052))
     c.seg((x, 0.012, 0.070), (x, 0.012, 0.125), 0.040, 0.037)
-    upper = c.build(f"coach_shoe_{side}", voxel=0.004, smooth=3, tris=1300, smooth_factor=0.4)
+    upper = c.build(f"coach_shoe_{side}", voxel=0.004, smooth=3, tris=850, smooth_factor=0.4)
     for v in upper.data.vertices:
         if v.co.z < 0.020:
             v.co.z = 0.020
@@ -279,7 +288,7 @@ def sculpt_shoe(side, mats):
             p.material_index = 1
     so = Clay()
     so.ell((x + s * 0.002, -0.052, 0.012), (0.051, 0.150, 0.020))
-    sole = so.build(f"coach_sole_{side}", voxel=0.004, smooth=2, tris=500)
+    sole = so.build(f"coach_sole_{side}", voxel=0.004, smooth=2, tris=320)
     for v in sole.data.vertices:
         v.co.z = min(max(v.co.z, 0.0), 0.024)
     sole.data.materials.append(mats["white"])
@@ -338,38 +347,6 @@ def white_colour(obj):
         d.color = (1, 1, 1, 1)
 
 
-def cut_garment(body, name, keep, thickness, mat_fn, mats_list):
-    """Duplicates the body faces selected by keep(centre) into a shell that sits on the skin.
-    Vertex groups (skin weights) are carried over, so the garment deforms with the body."""
-    g = body.copy()
-    g.data = body.data.copy()
-    g.name = name
-    bpy.context.collection.objects.link(g)
-    bm = bmesh.new()
-    bm.from_mesh(g.data)
-    bmesh.ops.delete(bm, geom=[f for f in bm.faces if not keep(f.calc_center_median())], context="FACES")
-    bm.to_mesh(g.data)
-    bm.free()
-    g.data.materials.clear()
-    for m in mats_list:
-        g.data.materials.append(m)
-    bpy.context.view_layer.objects.active = g
-    bpy.ops.object.select_all(action="DESELECT")
-    g.select_set(True)
-    for mod in list(g.modifiers):
-        g.modifiers.remove(mod)
-    dis = g.modifiers.new("lift", "DISPLACE")
-    dis.strength = thickness
-    dis.mid_level = 0.0
-    bpy.ops.object.modifier_apply(modifier=dis.name)
-    for p in g.data.polygons:
-        p.material_index = mat_fn(p.center)
-    for d in g.data.color_attributes["Col"].data:  # keep a softened version of the form shading
-        k = 0.55 + 0.45 * d.color[0]
-        d.color = (k, k, k, 1)
-    return g
-
-
 def vcol_material(name, rgb, roughness):
     m = material(name, rgb, roughness)
     nt = m.node_tree
@@ -398,7 +375,7 @@ M = {
     "eye": material("coach_eye", srgb("F4F0EA"), 0.3),
     "iris": material("coach_iris", srgb("7A4A26"), 0.3),
     "dark": material("coach_dark", srgb("140E0C"), 0.5),
-    "lip": material("coach_lip", srgb("B5484C"), 0.4),
+    "lip": material("coach_lip", srgb("A8584E"), 0.4),
     "tie": material("coach_tie", srgb("2B4FA8"), 0.6),
     "white": material("coach_white", srgb("ECEAE6"), 0.6),
 }
@@ -407,12 +384,12 @@ body = sculpt_body()
 body.data.materials.append(M["skin"])
 _bm = bmesh.new()
 _bm.from_mesh(body.data)
-for co, no in (((0, 0, 1.212), (0, 0, 1)), ((0, 0, 1.345), (0, 0, 1)), ((0, 0, 0.300), (0, 0, 1)), ((0, 0, 1.008), (0, 0, 1)), ((0, 0, 0.985), (0, 0, 1)),
+for co, no in (((0, 0, 1.212), (0, 0, 1)), ((0, 0, 1.345), (0, 0, 1)), ((0, 0, 1.475), (0, 0, 1)), ((0, 0, 0.300), (0, 0, 1)), ((0, 0, 1.008), (0, 0, 1)), ((0, 0, 0.985), (0, 0, 1)),
                ((0.040, 0, 0), (1, 0, 0)), ((-0.040, 0, 0), (1, 0, 0)), ((0.105, 0, 0), (1, 0, 0)), ((-0.105, 0, 0), (1, 0, 0)), ((0, 0.02, 0), (0, 1, 0)), ((0, -0.012, 0), (0, 1, 0)), ((0, 0, 1.352), (0.7071, 0, 0.7071)), ((0, 0, 1.352), (-0.7071, 0, 0.7071))):
     bmesh.ops.bisect_plane(_bm, geom=_bm.verts[:] + _bm.edges[:] + _bm.faces[:], plane_co=co, plane_no=no)
 _bm.to_mesh(body.data)
 _bm.free()
-paint_cavity(body)
+paint_cavity(body, strength=2.2, blur=3)
 
 arm = tr.build_armature()
 bpy.ops.object.select_all(action="DESELECT")
@@ -449,23 +426,84 @@ def leg_mat(c):
     return 0
 
 
-bra = cut_garment(body, "coach_bra", bra_keep, 0.0045, lambda c: 0, [M["black"], M["accent"]])
-leggings = cut_garment(body, "coach_leggings", leg_keep, 0.0035, leg_mat, [M["black"], M["accent"]])
+def dress(body):
+    """Clothing is painted onto the body's own faces along the bisect loops (clean, straight hem lines,
+    no separate shell to z-fight or fringe), then lifted a few millimetres so hems read as a step."""
+    mesh = body.data
+    mesh.materials.append(M["black"])
+    mesh.materials.append(M["accent"])
+    for p in mesh.polygons:
+        c = p.center
+        if bra_keep(c):
+            p.material_index = 1
+        elif leg_keep(c):
+            p.material_index = 1 + leg_mat(c)
+    cloth = [0] * len(mesh.vertices)
+    skin = [0] * len(mesh.vertices)
+    for p in mesh.polygons:
+        for vi in p.vertices:
+            if p.material_index:
+                cloth[vi] += 1
+            else:
+                skin[vi] += 1
+    col = mesh.color_attributes["Col"]
+    for v in mesh.vertices:
+        if cloth[v.index]:
+            lift = 0.0032 if not skin[v.index] else 0.0012
+            v.co += v.normal * lift
+            k = 0.62 + 0.38 * col.data[v.index].color[0]   # softer form shading on fabric
+            col.data[v.index].color = (k, k, k, 1)
+
+
+dress(body)
+
+
+def paint_abs(body):
+    """Abdominal segments as soft painted ink lines (linea alba + two tendinous lines + outer border),
+    the way the reference painting shows them, instead of lumpy geometry."""
+    mesh = body.data
+    col = mesh.color_attributes["Col"]
+    onskin = [True] * len(mesh.vertices)
+    for p in mesh.polygons:
+        if p.material_index:
+            for vi in p.vertices:
+                onskin[vi] = False
+    for v in mesh.vertices:
+        x, y, z = v.co
+        if not onskin[v.index] or y > -0.035 or not (1.015 < z < 1.212) or abs(x) > 0.075:
+            continue
+        ax = abs(x)
+        dist = []
+        if z < 1.198:
+            dist.append(ax / 0.0045)                                          # linea alba
+        for zl in (1.100, 1.152):
+            if ax < 0.050:
+                dist.append(abs(z - (zl + 0.9 * ax * ax)) / 0.0042)            # tendinous lines, slight curve
+        dist.append(abs(ax - (0.056 - 0.10 * (1.20 - z) ** 2)) / 0.0060)      # outer border of the rectus
+        k = 1.0 - 0.17 * math.exp(-0.6 * min(dist) ** 2)
+        c = col.data[v.index].color
+        col.data[v.index].color = (c[0] * k, c[1] * k, c[2] * k, 1)
+
+
+paint_abs(body)
 
 head, hz = sculpt_head()
 head.data.materials.append(M["skin"])
-paint_cavity(head, strength=1.6, blur=2)
-rigid = {"head": [head] + face_parts(hz, M) + sculpt_hair(hz, M)}
+paint_cavity(head, strength=0.55, blur=3)
+_face = face_parts(hz, M)
+for _o in _face:  # small face parts get no outline shell
+    _o.vertex_groups.new(name="nohull").add(range(len(_o.data.vertices)), 1.0, "REPLACE")
+rigid = {"head": [head] + _face + sculpt_hair(hz, M)}
 _pivot = Vector((0, 0.0, hz - 0.105))
 for _o in rigid["head"]:
     for _v in _o.data.vertices:
         _v.co = _pivot + (_v.co - _pivot) * 1.10
 for side in ("L", "R"):
-    rigid[f"hand_{side}"] = sculpt_hand(side, M)
+    rigid.update(sculpt_hand(side, M))
     rigid[f"foot_{side}"] = sculpt_shoe(side, M)
 paint_cavity(rigid["head"][-2], strength=1.8, blur=1)   # hair clumps
 
-parts = [bra, leggings]
+parts = []
 for bone, objs in rigid.items():
     for o in objs:
         white_colour(o)
@@ -505,8 +543,15 @@ for _m in list(hull.modifiers):
 bpy.ops.object.select_all(action="DESELECT")
 hull.select_set(True)
 bpy.context.view_layer.objects.active = hull
+_hb = bmesh.new()
+_hb.from_mesh(hull.data)
+_gi = hull.vertex_groups["nohull"].index
+_dl = _hb.verts.layers.deform.active
+bmesh.ops.delete(_hb, geom=[v for v in _hb.verts if _gi in v[_dl]], context="VERTS")
+_hb.to_mesh(hull.data)
+_hb.free()
 _d = hull.modifiers.new("dec", "DECIMATE")
-_d.ratio = 0.38
+_d.ratio = HULL_RATIO
 bpy.ops.object.modifier_apply(modifier=_d.name)
 _p = hull.modifiers.new("push", "DISPLACE")
 _p.strength = 0.0042
@@ -527,6 +572,8 @@ body.select_set(True)
 bpy.context.view_layer.objects.active = body
 bpy.ops.object.join()
 
+if "nohull" in body.vertex_groups:
+    body.vertex_groups.remove(body.vertex_groups["nohull"])
 body.data.validate()
 tri_count = sum(len(p.vertices) - 2 for p in body.data.polygons)
 print("TRIS", tri_count, "VERTS", len(body.data.vertices))
@@ -684,6 +731,14 @@ if "--previews" in sys.argv:
         bpy.ops.render.render(write_still=True)
 
     full = dict(target=(0, 0, 0.90), dist=6.2, lens=85, res=(520, 1040))
+    if "--quick" in sys.argv:
+        scene.cycles.samples = 16
+        shot("hero", "idle_neutral", 1, 24, (0.0, 0, 1.20), 2.7, 70, (450, 650))
+        shot("turn_front", "idle_neutral", 1, 0, target=(0, 0, 0.90), dist=6.2, lens=85, res=(300, 600))
+        shot("det_face", "idle_neutral", 1, 12, (0, 0, 1.60), 1.5, 105, (400, 400))
+        shot("pose_jab", "boxing_jab", 13, 58, (0, -0.2, 0.95), 4.6, 70, (400, 500))
+        shot("det_glove", "boxing_stance", 1, 50, (0.05, -0.25, 1.30), 1.2, 90, (400, 400))
+        sys.exit(0)
     shot("hero", "idle_neutral", 1, 24, (0.0, 0, 1.20), 2.7, 70, (900, 1300))
     shot("turn_front", "idle_neutral", 1, 0, **full)
     shot("turn_side", "idle_neutral", 1, 90, **full)
@@ -694,6 +749,6 @@ if "--previews" in sys.argv:
     shot("pose_step", "footwork_forward", 15, 100, (0, -0.1, 0.92), 4.8, 70, (640, 800))
     shot("det_face", "idle_neutral", 1, 12, (0, 0, 1.60), 1.5, 105, (560, 560))
     shot("det_core", "idle_neutral", 1, 16, (0, 0, 1.16), 1.6, 90, (560, 560))
-    shot("det_glove", None, 1, 20, tuple(J["hand_L"] + V((0.03, 0, -0.04))), 0.85, 90, (560, 560))
+    shot("det_glove", "boxing_stance", 1, 50, (0.05, -0.25, 1.30), 1.2, 90, (560, 560))
     shot("det_shoe", "idle_neutral", 1, 52, (0.09, -0.04, 0.08), 0.95, 80, (560, 560))
     arm.animation_data.action = None

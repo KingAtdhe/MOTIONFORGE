@@ -181,3 +181,27 @@ Triggered by owner feedback after the first device look ("can't actually train, 
   no device accuracy testing.
 - **Known gaps:** a session does not survive process death; no boxing-stance evaluator yet; no push-up clips;
   the trainer is a stylised figure — a realistic human needs a hand-sculpted or licensed character.
+
+---
+
+### 2026-11-19 / Coach model pass — clean hems, fists, planted feet, 35k triangles
+- **Implemented:**
+  - Clothing is now painted on the body's own faces along bisect loops and lifted 1–3 mm (replaces separate
+    garment shells that left ragged, fringed hems and z-fought with the outline). Added a cut plane at the
+    strap tops.
+  - Abs: one flat rectus plate per side + painted segment lines (linea alba, two tendinous lines, outer border)
+    instead of six small lumps; softer cavity paint on body and face; smaller nose, nostrils, lips; narrower jaw;
+    smaller deltoids, lats and obliques.
+  - Hands: palm/thumb, proximal row and middle+distal row are separate rigid pieces; rig gains `fingers_L/R` and
+    `fingertips_L/R` (25 bones). Clips: closed fists in stance/jab/cross/guard return/footwork, relaxed curl in
+    idle and squat.
+  - Footwork: two-bone leg IK keeps the standing foot planted while the hips travel; step length 0.16 m.
+    Measured in Blender: foot movement while on the floor ≤ 7 mm per clip (was the full 0.22 m slide).
+  - Outline hull skips the small face parts; 0.30 decimation. Totals: 35,065 tris / 17,686 verts, GLB 1.36 MB
+    (was 64k tris / 2.26 MB).
+  - `--quick` preview mode for fast iteration; concept sheet re-rendered (glove detail now shows the fist).
+- **Checks:** glTF-Validator 0 errors, 1 warning (skinned mesh not at root — same as before), 9 animations.
+  Android build/tests: see CI for this commit.
+- **Not verified on a device:** framing, frame rate and the look of the new hands/hems in Filament on a phone.
+- **Known issues:** boxy shoulders, outline streaks at sharply bent elbows, no expressions, male coach not built,
+  no push-up clips. All clips remain drafts pending qualified-coach review.

@@ -11,6 +11,7 @@ import math
 import bpy
 from mathutils import Euler, Matrix, Quaternion, Vector
 
+from trainer_body import J
 from trainer_rig import BONES
 
 FPS = 30
@@ -23,6 +24,9 @@ LEG_SHIN = 0.427
 def q_world(rots):
     q = Quaternion()
     for axis, deg in rots:
+        if axis == "A":  # arbitrary axis in armature space: deg = (axis_vector, degrees)
+            q = Quaternion(Vector(deg[0]).normalized(), math.radians(deg[1])) @ q
+            continue
         e = Euler((math.radians(deg) if axis == "X" else 0, math.radians(deg) if axis == "Y" else 0,
                    math.radians(deg) if axis == "Z" else 0), "XYZ")
         q = e.to_quaternion() @ q
@@ -103,9 +107,26 @@ def hinge(side, flex, twist=0.0):
     return rots
 
 
+def curl_axis(side):
+    """Axis (armature rest space) that rolls the fingers toward the palm."""
+    s = 1 if side == "L" else -1
+    d = (J[f"hand_tip_{side}"] - J[f"hand_{side}"]).normalized()
+    palm = d.cross(Vector((0, -1, 0))).normalized() * s
+    return tuple(d.cross(palm).normalized())
+
+
+def grip(side, amount):
+    """amount 0 = open hand, 0.3 = relaxed, 1 = closed fist."""
+    a = curl_axis(side)
+    return {f"fingers_{side}": [("A", (a, 92 * amount))], f"fingertips_{side}": [("A", (a, 105 * amount))]}
+
+
+RELAXED = 0.32
+
+
 # ----------------------------------------------------------------------------- base poses
 def arms_down(bend=12):
-    return {
+    return {**grip("L", RELAXED), **grip("R", RELAXED),
         "upper_arm_L": [("Y", 40), ("X", -4)], "upper_arm_R": [("Y", -40), ("X", -4)],
         "forearm_L": hinge("L", -bend), "forearm_R": hinge("R", -bend),
         "hand_L": hinge("L", 0, 8), "hand_R": hinge("R", 0, -8),
@@ -132,6 +153,7 @@ def squat(depth):
         "upper_arm_R": [("Y", -40 - 5 * depth), ("X", -4 - (86 + lean) * depth)],
         "forearm_L": hinge("L", -12 + 8 * depth), "forearm_R": hinge("R", -12 + 8 * depth),
         "hand_L": hinge("L", 0, 8), "hand_R": hinge("R", 0, -8),
+        **grip("L", RELAXED + 0.25 * depth), **grip("R", RELAXED + 0.25 * depth),
     })
     return pose
 
@@ -147,6 +169,7 @@ def arm(side, forward, flex, tuck=0.0, aim=TORSO_TURN, out=0.0):
         f"upper_arm_{side}": [("Y", 45 * s - out * s), ("X", -forward), ("Z", -tuck * s), ("Z", aim)],
         f"forearm_{side}": hinge(side, -flex),
         f"hand_{side}": hinge(side, 8),
+        **grip(side, 1.0),
     }
 
 
@@ -205,6 +228,39 @@ def cross_pose(t):
         arm("L", 38, 122 + 6 * t, tuck=12, aim=total),
         arm("R", 30 + 58 * t, 132 - 122 * t, tuck=16 * (1 - t), aim=total),
     )
+
+
+STANCE_LEGS = {"L": dict(thigh=-14, shin=6, abduct=4, foot_turn=-10), "R": dict(thigh=12, shin=18, abduct=4, foot_turn=28)}
+STANCE_TURN = 24
+
+
+def leg_ik(ay, az):
+    """Two-bone sagittal IK. ay: ankle Blender-Y relative to the hip (negative = forward), az: distance
+    below the hip. Returns (thigh_x, shin_abs_x) in degrees with the knee bending forward."""
+    dist = min(math.hypot(ay, az), LEG_THIGH + LEG_SHIN - 1e-4)
+    base = math.atan2(ay, az)
+    a = math.acos(max(-1.0, min(1.0, (LEG_THIGH ** 2 + dist ** 2 - LEG_SHIN ** 2) / (2 * LEG_THIGH * dist))))
+    t = base - a
+    ky, kz = LEG_THIGH * math.sin(t), LEG_THIGH * math.cos(t)
+    return math.degrees(t), math.degrees(math.atan2(ay - ky, az - kz))
+
+
+def planted_leg(side, forward, lift=0.0):
+    """Stance leg whose ankle sits `forward` metres (world, toward the target) from where the stance
+    puts it, relative to the hips, and `lift` metres off the floor."""
+    st = STANCE_LEGS[side]
+    t0, s0 = math.radians(st["thigh"]), math.radians(st["shin"])
+    ay = LEG_THIGH * math.sin(t0) + LEG_SHIN * math.sin(s0)
+    az = LEG_THIGH * math.cos(t0) + LEG_SHIN * math.cos(s0)
+    # world forward (-Y) expressed in the turned hips frame
+    turn = math.radians(-STANCE_TURN)
+    wx, wy = 0.0, -forward
+    lx = math.cos(turn) * wx + math.sin(turn) * wy
+    ly = -math.sin(turn) * wx + math.cos(turn) * wy
+    thigh, shin = leg_ik(ay + ly, az - lift)
+    out = lx if side == "L" else -lx
+    abduct = st["abduct"] + math.degrees(math.atan2(out, az))
+    return leg_pose(side, thigh, shin, abduct=abduct, foot_turn=st["foot_turn"])
 
 
 # ----------------------------------------------------------------------------- clips
@@ -266,29 +322,26 @@ def clip_specs():
         return lerp_pose(lead_down, stance_pose, ease((t - 0.8) / 0.6))
 
     def step(t, forward_first):
-        """Forward then back (or back then forward) shuffle step, 0.25 m, lead foot moves first."""
-        d = 0.22
-        sign = 1 if forward_first else -1
-
-        def phase(p, moving_leg):
-            # p 0..1 within a single step; moving leg lifts slightly mid-step
-            lift = math.sin(math.pi * p)
-            pose = stance()
-            if moving_leg == "L":
-                pose = merge(pose, {"thigh_L": [("X", -8 * lift)], "shin_L": [("X", 14 * lift)], "foot_L": [("X", -6 * lift)]})
-            else:
-                pose = merge(pose, {"thigh_R": [("X", -6 * lift)], "shin_R": [("X", 12 * lift)], "foot_R": [("X", -6 * lift)]})
-            return pose
-
+        """Shuffle step forward then back (or back then forward), lead foot moves first.
+        Feet are planted: the standing foot keeps its floor position while the hips travel, solved
+        with two-bone leg IK, so there is no foot sliding."""
+        d = 0.16
         seg = 0.45
-        # sequence: lead foot, rear foot, (reverse direction) rear foot, lead foot
         order = [("L", 1), ("R", 1), ("R", -1), ("L", -1)] if forward_first else [("R", -1), ("L", -1), ("L", 1), ("R", 1)]
         i = min(3, int(t // seg))
         p = ease((t - i * seg) / seg)
-        travelled = sum(0.5 * d * o[1] for o in order[:i]) + 0.5 * d * order[i][1] * p
-        pose = phase(p, order[i][0])
+        foot = {"L": 0.0, "R": 0.0}
+        for leg, direction in order[:i]:
+            foot[leg] += d * direction
+        moving, direction = order[i]
+        foot[moving] += d * direction * p
+        hips = sum(0.5 * d * o[1] for o in order[:i]) + 0.5 * d * direction * p
+        lift = math.sin(math.pi * p)
+        pose = stance()
+        for side in ("L", "R"):
+            pose.update(planted_leg(side, foot[side] - hips, 0.030 * lift if side == moving else 0.0))
         loc = pose.get("hips_loc", (0, 0, 0))
-        pose["hips_loc"] = (loc[0], loc[1] - travelled, loc[2])
+        pose["hips_loc"] = (loc[0], loc[1] - hips, loc[2])
         return pose
 
     return [

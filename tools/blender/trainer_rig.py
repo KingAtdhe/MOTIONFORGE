@@ -4,6 +4,10 @@ from mathutils import Vector
 
 from trainer_body import J
 
+KNUCKLE = 0.086   # wrist -> knuckle line, along the hand bone
+PROX = 0.033      # knuckle -> middle finger joint (same for all four fingers so one bone can curl them)
+
+
 # name: (head, tail, parent, deform)
 def bone_table():
     t = {
@@ -19,6 +23,10 @@ def bone_table():
         t[f"upper_arm_{s}"] = (J[f"upper_arm_{s}"], J[f"forearm_{s}"], f"shoulder_{s}", True)
         t[f"forearm_{s}"] = (J[f"forearm_{s}"], J[f"hand_{s}"], f"upper_arm_{s}", True)
         t[f"hand_{s}"] = (J[f"hand_{s}"], J[f"hand_tip_{s}"], f"forearm_{s}", True)
+        # one bone for the proximal finger row, one for the middle+distal rows (enough to make a fist)
+        w, d = J[f"hand_{s}"], (J[f"hand_tip_{s}"] - J[f"hand_{s}"]).normalized()
+        t[f"fingers_{s}"] = (w + d * KNUCKLE, w + d * (KNUCKLE + PROX), f"hand_{s}", True)
+        t[f"fingertips_{s}"] = (w + d * (KNUCKLE + PROX), w + d * (KNUCKLE + PROX + 0.040), f"fingers_{s}", True)
         t[f"thigh_{s}"] = (J[f"thigh_{s}"], J[f"shin_{s}"], "hips", True)
         t[f"shin_{s}"] = (J[f"shin_{s}"], J[f"foot_{s}"], f"thigh_{s}", True)
         t[f"foot_{s}"] = (J[f"foot_{s}"], J[f"toe_{s}"], f"shin_{s}", True)

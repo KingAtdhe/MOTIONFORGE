@@ -18,3 +18,4 @@
 *.keystore
 *.jks
 *.blend1
+__pycache__/

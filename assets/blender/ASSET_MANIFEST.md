@@ -29,7 +29,7 @@ Built by `tools/blender/build_trainer.py` (Blender 5.3, run headless). Rebuild w
 `python tools/blender/build_trainer.py --previews` using Blender's Python / the `bpy` module.
 
 - Avatar v1: stylised training-mannequin look (clean, faceless head; short-sleeve shirt, shorts,
-  trainers). ~5.5k vertices / 10.5k triangles (v2: athletic proportions, sculpted head with separate hair shell, closed hands), 6 materials, no textures, 21 bones, ≤4 influences.
+  trainers). ~5.5k vertices / 10.5k triangles (v2: athletic proportions, sculpted head with separate hair shell, closed hands), 6 materials, no textures, 21 bones, ≤4 influences. **Superseded 19 Nov 2026 by the coach build (`build_coach.py`): ~35k tris, 25 bones (adds `fingers_L/R`, `fingertips_L/R`), cel-shaded vertex colours, unlit materials.**
 - Rest pose: A-pose. Units: metres. 30 fps. Root motion: none (hips bone carries translation).
 - Clips exported (all **draft, pending coach review**): idle_neutral, squat_down, squat_up,
   boxing_stance, boxing_jab, boxing_cross, boxing_guard_return, footwork_forward, footwork_backward.
