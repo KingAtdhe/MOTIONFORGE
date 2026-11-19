@@ -134,8 +134,7 @@ in_band = has_arm & (side_col >= band_lo) & (side_col <= band_hi)
 side_block = in_band & ~is_arm
 # head: the side painting holds the face profile; on the head use it only for the back/side hair
 zf = P[:, 2] / 1.70
-head_front_y = PARTS["torso"][ri_all, 2] - PARTS["torso"][ri_all, 3]
-head_face = (zf > 0.845) & (P[:, 1] < head_front_y + 0.062)
+head_face = (zf > 0.845) & (P[:, 1] < -0.062)           # face zone of the sculpted head (front paint only)
 side_block |= head_face
 print("side-blocked texels", side_block.sum())
 

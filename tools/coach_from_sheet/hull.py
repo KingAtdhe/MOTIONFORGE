@@ -32,6 +32,16 @@ neck_r = chin = int(round(ground - CHIN_Z / PX))
 print("px %.5f cx %.1f cy %.1f crotch %.3f armpit %.3f neck %.3f" % (PX, cx, cy, Z(crotch), Z(armpit), Z(neck_r)))
 
 HAIR_S = np.load("hair_side.npy")
+HAIR_F = np.load("hair_front.npy")
+
+
+def face_half_width(r):
+    """Half width of the bare face (no hair strands) on front row r, or None."""
+    skin = F[r] & ~ndi.binary_dilation(HAIR_F[r], iterations=1)
+    for a, b in intervals(skin):
+        if a <= cx <= b:
+            return (b - a + 1) / 2 * PX
+    return None
 HB = np.load("hair_back.npy")
 _lab, _n = ndi.label(HB)
 HB = _lab == (np.argmax(ndi.sum(HB, _lab, range(1, _n + 1))) + 1)
@@ -66,13 +76,16 @@ for i, r in enumerate(rows):
         xc, xr = (x0 + x1) / 2, (x1 - x0) / 2
         if not below and a <= cx <= b:
             if r < chin:                                         # head + neck: drop the ponytail mass behind
-                yr = min((yb - yf) / 2, xr * 1.18)
+                fw = face_half_width(r)
+                if Z(r) < 1.555 and fw is not None:              # jaw / cheeks: bare-face width, not hair
+                    xr = float(np.clip(fw + 0.006, 0.040, 0.080))
+                yr = min((yb - yf) / 2, max(xr, 0.072) * 1.18)
                 P["torso"][i] = (xc, xr, yf + yr, yr, 2.0)
                 head_back = yf + 2 * yr
             elif r < armpit:                                     # shoulders: torso + deltoids
                 t = np.clip((armpit - r) * PX / (Z(chin) - Z(armpit)), 0, 1)
                 yb2 = min(yb, (back_ref if back_ref is not None else yb) + 0.012)
-                txr = min(xr, CH * (1 - 0.55 * t ** 1.6))
+                txr = min(xr, CH * (1 - 0.32 * t ** 1.6))
                 P["torso"][i] = (0.0, txr, (yf + yb2) / 2, (yb2 - yf) / 2, 2.3)
                 for key, edge in (("armR", x0), ("armL", x1)):
                     inner = np.sign(edge) * txr * 0.70
@@ -203,7 +216,55 @@ for kz, z in enumerate(zs):
             continue
         f = np.maximum(f, 1.0 - (np.abs((X - xc) / xr) ** n + np.abs((Y - yc) / yr) ** n) ** (1 / n))
     vol[:, :, kz] = f
-vol = ndi.gaussian_filter(vol, sigma=(1.0, 1.0, 1.6))
+# head: an explicit sculpt (skull, face planes, jaw, chin, cheekbones, brow, nose, lips, ears, hair cap) placed
+# on the landmarks measured on the sheet (brows 1.575, eyes 1.555, nose tip 1.515, mouth 1.485, chin 1.445 m);
+# the outline-derived head oval above the neck is replaced by it.
+HEAD = [  # centre (x, y, z), radii (x, y, z)
+    ((0, -0.025, 1.585), (0.071, 0.091, 0.086)),      # cranium
+    ((0, -0.058, 1.515), (0.053, 0.056, 0.066)),      # face mass
+    ((0.029, -0.056, 1.476), (0.024, 0.036, 0.026)), ((-0.029, -0.056, 1.476), (0.024, 0.036, 0.026)),   # jaw
+    ((0, -0.081, 1.463), (0.018, 0.015, 0.016)),      # chin
+    ((0, -0.040, 1.468), (0.038, 0.042, 0.026)),      # under the jaw, into the neck
+    ((0.040, -0.074, 1.537), (0.018, 0.014, 0.014)), ((-0.040, -0.074, 1.537), (0.018, 0.014, 0.014)),  # cheekbones
+    ((0.026, -0.099, 1.578), (0.026, 0.009, 0.010)), ((-0.026, -0.099, 1.578), (0.026, 0.009, 0.010)),  # brow
+    ((0, -0.107, 1.545), (0.0075, 0.011, 0.024)),     # nose bridge
+    ((0, -0.116, 1.515), (0.0105, 0.010, 0.0095)),    # nose tip
+    ((0.0095, -0.110, 1.511), (0.0068, 0.0065, 0.006)), ((-0.0095, -0.110, 1.511), (0.0068, 0.0065, 0.006)),
+    ((0, -0.101, 1.487), (0.018, 0.009, 0.010)),      # lips
+    ((0.071, -0.015, 1.535), (0.009, 0.015, 0.024)), ((-0.071, -0.015, 1.535), (0.009, 0.015, 0.024)),  # ears
+    ((0, 0.020, 1.678), (0.034, 0.030, 0.024)),       # hair gathered at the crown
+]
+NECK = ((0, -0.015), 0.043, 1.395, 1.52)
+for kz, z in enumerate(zs):
+    if z < NECK[2] - 0.01:
+        continue
+    f = vol[:, :, kz]
+    if z > CHIN_Z + 0.008:                               # drop the outline oval: the sculpted head takes over
+        i = int(np.argmin(np.abs(zrow - z)))
+        f = np.full(X.shape, -1.0, np.float32)
+        if not np.isnan(P["hair"][i][0]):
+            xc, xr, yc, yr, n = P["hair"][i]
+            f = np.maximum(f, 1.0 - (np.abs((X - xc) / xr) ** n + np.abs((Y - yc) / yr) ** n) ** (1 / n))
+    if z < NECK[3]:
+        f = np.maximum(f, 1.0 - np.sqrt((X - NECK[0][0]) ** 2 + (Y - NECK[0][1]) ** 2) / NECK[1])
+    for (cx_, cy_, cz_), (rx, ry, rz) in HEAD:
+        dz = (z - cz_) / rz
+        if abs(dz) < 1:
+            f = np.maximum(f, 1.0 - np.sqrt(((X - cx_) / rx) ** 2 + ((Y - cy_) / ry) ** 2 + dz ** 2))
+    # hair cap: skull + ~1 cm, behind the hairline (forehead stays bare), with locks framing the face down the sides
+    dz = (z - 1.595) / 0.097
+    if abs(dz) < 1:
+        cap = 1.0 - np.sqrt((X / 0.081) ** 2 + ((Y + 0.022) / 0.101) ** 2 + dz ** 2)
+        keep = (Y > -0.062) | (z > 1.638) | ((np.abs(X) > 0.058) & (z > 1.47))
+        f = np.maximum(f, np.where(keep, cap, -1.0))
+    vol[:, :, kz] = f
+vs = ndi.gaussian_filter(vol, sigma=(1.0, 1.0, 1.6))
+wide = ndi.gaussian_filter(vol, sigma=(2.6, 2.6, 2.6))
+wz = np.clip(1 - np.abs(zs - 1.36) / 0.10, 0, 1)[None, None, :]        # shoulder / neck band
+mid = ndi.gaussian_filter(vol, sigma=(1.7, 1.7, 1.7))
+wh = np.clip((zs - 1.44) / 0.02, 0, 1)[None, None, :]                    # head: blend the sculpt forms
+vol = vs * (1 - wz) + wide * wz
+vol = vol * (1 - wh) + mid * wh
 verts, faces, _, _ = measure.marching_cubes(vol, level=0.0, spacing=(VOX, VOX, VOX))
 verts += np.array([xs[0], ys[0], zs[0]])
 np.savez("hull.npz", verts=verts.astype(np.float32), faces=faces.astype(np.int32), px=PX, cx=cx, cy=cy, top=top, ground=ground,

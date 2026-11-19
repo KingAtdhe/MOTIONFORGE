@@ -246,3 +246,11 @@ painting onto it.
 - Body shape: the side outline's chest bulge becomes two breast ellipsoids on a ribcage line, and the hip bulge two
   glute lobes, instead of one wide oval. Outline overlap now front 0.93 / side 0.91 IoU.
 - Arms reject dark and red paint from the side painting. 28,860 tris, validator 0 errors, 9 clips.
+
+### 2026-11-19 / Coach v5.4 — sculpted head
+- The head is no longer an outline-derived oval: `hull.py` now builds it from sculpt forms (skull, face mass,
+  jaw, chin, under-jaw, cheekbones, brow, nose bridge/tip/nostrils, lips, ears, crown bun, hair cap with a bare
+  forehead and side locks) placed on landmarks measured on the sheet (brows 1.575, eyes 1.555, nose tip 1.515,
+  mouth 1.485, chin 1.445 m), blended with a local smoothing pass; neck cylinder joins it to the torso.
+- Bare-face width from the hair mask (not the hair strands) for jaw/cheeks; wider shoulder-band smoothing.
+- The painted face now turns naturally in three-quarter and side views. 28,907 tris, validator 0 errors.
