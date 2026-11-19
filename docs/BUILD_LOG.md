@@ -293,3 +293,15 @@ painting onto it.
 - Checks: glTF-Validator 0 errors for both (30k tris, 9 animations, 3×2048 JPEG maps, GLB ~4.5 MB each).
 - Not verified on a device. Known issues: male back texture is darker than the sheet (from the generated mesh);
   a few thin hair spikes in deep poses; fingers rigid (hands are sculpted loosely closed); clips still drafts.
+
+### 2026-11-19 / Coaches v7.1 — audit fixes
+Audit (edge-stretch per clip, lowest point per frame, close-up renders of both coaches):
+- Feet sank 1.6 cm (F) / 2.7 cm (M) in stance and footwork, 6.6 cm (M) in the squat -> per-frame floor contact
+  pass after baking (hips corrected so the lowest shoe point stays on the floor). Now 0–2 mm.
+- Guard fists and forearms went inside the sculpted chest (read as a 'tear' on the male tank top) -> guard
+  geometry is now parameters in `trainer_anim` (G_*); sculpted coaches use fists in front of the chin.
+- Hair spikes in deep poses (hair took arm/chest weight) -> above the jaw only head/neck may move vertices.
+- Chest/armpit surface contaminated by arm weights -> arm influence ramps from 0 on the torso to 1 on the arm
+  (no hard seam), then weight smoothing, ≤4 influences, normalised; no unweighted vertices.
+- Squat: arms open 14° so the hands don't cross in front of the face.
+Both GLBs: 0 validator errors, 30k tris, 9 clips.

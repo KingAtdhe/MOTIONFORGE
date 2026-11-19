@@ -152,8 +152,8 @@ def squat(depth):
     # arms rise forward for balance (relative to the leaning chest)
     lean = 32 * depth
     pose = merge(pose, {
-        "upper_arm_L": [("Y", REST_ARM - 5 + 5 * depth), ("X", -4 - (86 + lean) * depth)],
-        "upper_arm_R": [("Y", -(REST_ARM - 5) - 5 * depth), ("X", -4 - (86 + lean) * depth)],
+        "upper_arm_L": [("Y", REST_ARM - 5 + 5 * depth), ("X", -4 - (86 + lean) * depth), ("Z", 14 * depth)],
+        "upper_arm_R": [("Y", -(REST_ARM - 5) - 5 * depth), ("X", -4 - (86 + lean) * depth), ("Z", -14 * depth)],
         "forearm_L": hinge("L", -12 + 8 * depth), "forearm_R": hinge("R", -12 + 8 * depth),
         "hand_L": hinge("L", 0, 8), "hand_R": hinge("R", 0, -8),
         **grip("L", RELAXED + 0.25 * depth), **grip("R", RELAXED + 0.25 * depth),
@@ -176,8 +176,14 @@ def arm(side, forward, flex, tuck=0.0, aim=TORSO_TURN, out=0.0):
     }
 
 
-def guard(lead_forward=38, rear_forward=30, lead_flex=122, rear_flex=132):
-    return merge(arm("L", lead_forward, lead_flex, tuck=12), arm("R", rear_forward, rear_flex, tuck=16))
+# Guard geometry (degrees). Bulkier characters need the fists further in front of the chest; builds may override.
+G_LEAD_FWD, G_LEAD_FLEX, G_LEAD_TUCK = 38, 122, 12
+G_REAR_FWD, G_REAR_FLEX, G_REAR_TUCK = 30, 132, 16
+
+
+def guard(lead_forward=None, rear_forward=None, lead_flex=None, rear_flex=None):
+    return merge(arm("L", G_LEAD_FWD if lead_forward is None else lead_forward, G_LEAD_FLEX if lead_flex is None else lead_flex, tuck=G_LEAD_TUCK),
+                 arm("R", G_REAR_FWD if rear_forward is None else rear_forward, G_REAR_FLEX if rear_flex is None else rear_flex, tuck=G_REAR_TUCK))
 
 
 def stance_body(turn=24, sink=0.035, chest_turn=8):
@@ -205,8 +211,8 @@ def jab_pose(t):
     extra = 6 * t  # lead shoulder turns slightly further forward
     return merge(
         stance_body(turn=24, chest_turn=8 + extra),
-        arm("L", 38 + 50 * t, 122 - 112 * t, tuck=12 * (1 - t), aim=TORSO_TURN + extra),
-        arm("R", 30, 132, tuck=16, aim=TORSO_TURN + extra),
+        arm("L", G_LEAD_FWD + (88 - G_LEAD_FWD) * t, G_LEAD_FLEX - (G_LEAD_FLEX - 10) * t, tuck=G_LEAD_TUCK * (1 - t), aim=TORSO_TURN + extra),
+        arm("R", G_REAR_FWD, G_REAR_FLEX, tuck=G_REAR_TUCK, aim=TORSO_TURN + extra),
     )
 
 
@@ -228,8 +234,8 @@ def cross_pose(t):
     )
     return merge(
         body,
-        arm("L", 38, 122 + 6 * t, tuck=12, aim=total),
-        arm("R", 30 + 58 * t, 132 - 122 * t, tuck=16 * (1 - t), aim=total),
+        arm("L", G_LEAD_FWD, G_LEAD_FLEX + 6 * t, tuck=G_LEAD_TUCK, aim=total),
+        arm("R", G_REAR_FWD + (88 - G_REAR_FWD) * t, G_REAR_FLEX - (G_REAR_FLEX - 10) * t, tuck=G_REAR_TUCK * (1 - t), aim=total),
     )
 
 

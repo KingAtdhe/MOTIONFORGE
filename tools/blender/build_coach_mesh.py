@@ -249,9 +249,76 @@ bpy.ops.object.select_all(action="DESELECT")
 bpy.context.view_layer.objects.active = lo
 lo.select_set(True)
 bpy.ops.object.modifier_apply(modifier=dt.name)
+bpy.data.objects.remove(proxy)
+
+# ---- weight clean-up (things heat weighting gets wrong on a sculpt with arms close to the body)
+ARM_BONES = {f"{b}_{s_}" for b in ("upper_arm", "forearm", "hand", "fingers", "fingertips") for s_ in ("L", "R")}
+arm_inner = {}                       # per side: z -> x where the arm piece starts (below the armpit)
+for side, sgn in (("L", 1), ("R", -1)):
+    tab = []
+    for z in np.arange(0.44 * H, 0.75 * H, 0.005 * H):
+        b_ = band(z)
+        x = np.sort(b_[:, 0][b_[:, 0] * sgn > 0] * sgn)
+        if len(x) > 10:
+            g = np.diff(x)
+            i = int(np.argmax(g))
+            if g[i] > 0.012:
+                tab.append((z, x[i] + g[i] * 0.5))
+    arm_inner[side] = np.array(tab)
+armpit_z = {s_: arm_inner[s_][:, 0].max() for s_ in arm_inner}
+gid = {g.name: g.index for g in lo.vertex_groups}
+inv = {i: n for n, i in gid.items()}
+head_z = J["neck"].z + 0.035 * H
+changed = 0
+for vv in lo.data.vertices:
+    co = vv.co
+    side = "L" if co.x > 0 else "R"
+    tb_ = arm_inner[side]
+    sx = abs(J[f"upper_arm_{side}"].x)
+    if co.z > head_z:                                                       # head and hair: only head / neck may move them
+        stray = [g for g in vv.groups if inv[g.group] not in ("head", "neck")]
+        if stray:
+            for g in stray:
+                lo.vertex_groups[g.group].remove([vv.index])
+            if not any(g.weight > 0.01 for g in vv.groups):
+                lo.vertex_groups["head"].add([vv.index], 1.0, "REPLACE")
+            changed += 1
+        continue
+    # how much the arm may move this vertex: 0 on the torso, ramping to 1 at the arm (no hard seam)
+    if co.z < armpit_z[side] - 0.005 and co.z > max(tb_[:, 0].min(), J[f"forearm_{side}"].z):
+        xi = float(np.interp(co.z, tb_[:, 0], tb_[:, 1]))
+        k = np.clip((abs(co.x) - (xi - 0.03)) / 0.03, 0.0, 1.0)
+    elif co.z >= armpit_z[side] - 0.005 and co.z < J["neck"].z:
+        k = np.clip((abs(co.x) - 0.55 * sx) / (0.40 * sx), 0.0, 1.0)      # chest / shoulder top: pecs belong to the chest
+    else:
+        k = 1.0
+    if k < 0.999:
+        arm_w = [(g.group, g.weight) for g in vv.groups if inv[g.group] in ARM_BONES]
+        if arm_w:
+            moved = 0.0
+            for gi, w in arm_w:
+                nw = w * k
+                moved += w - nw
+                if nw < 0.005:
+                    lo.vertex_groups[gi].remove([vv.index])
+                else:
+                    lo.vertex_groups[gi].add([vv.index], nw, "REPLACE")
+            tgt = "chest" if co.z > J["chest"].z - 0.05 else "spine"
+            cur = next((g.weight for g in vv.groups if inv[g.group] == tgt), 0.0)
+            lo.vertex_groups[tgt].add([vv.index], cur + moved, "REPLACE")
+            changed += 1
+for vv in lo.data.vertices:                                                 # anything left unweighted -> nearest torso bone
+    if not any(g.weight > 0.01 for g in vv.groups):
+        lo.vertex_groups["head" if vv.co.z > head_z else ("chest" if vv.co.z > J["chest"].z else "spine")].add([vv.index], 1.0, "REPLACE")
+print("weight clean-up changed", changed)
+bpy.ops.object.select_all(action="DESELECT")
+bpy.context.view_layer.objects.active = lo
+lo.select_set(True)
+bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
+bpy.ops.object.vertex_group_smooth(group_select_mode="ALL", factor=0.5, repeat=2)
+bpy.ops.object.mode_set(mode="OBJECT")
 bpy.ops.object.vertex_group_limit_total(group_select_mode="ALL", limit=4)
 bpy.ops.object.vertex_group_normalize_all(lock_active=False)
-bpy.data.objects.remove(proxy)
 lo.parent = arm
 mod = lo.modifiers.new("Armature", "ARMATURE"); mod.object = arm
 groups = {g.index: g.name for g in lo.vertex_groups}
@@ -267,7 +334,31 @@ ta.REST_ARM = math.degrees(math.atan2(abs(_ua.x), -_ua.z))
 ta.LEG_THIGH = (J["shin_L"] - J["thigh_L"]).length
 ta.LEG_SHIN = (J["foot_L"] - J["shin_L"]).length
 print("rest arm", round(ta.REST_ARM, 1), "legs", round(ta.LEG_THIGH, 3), round(ta.LEG_SHIN, 3))
+# guard: fists in front of the chin, clear of a sculpted (bulkier) chest
+ta.G_LEAD_FWD, ta.G_LEAD_FLEX, ta.G_LEAD_TUCK = 52, 112, 4
+ta.G_REAR_FWD, ta.G_REAR_FLEX, ta.G_REAR_TUCK = 50, 120, 6
 ta.build_clips(arm)
+
+# ---- floor contact: after baking, lift / lower the hips each frame so the lowest point of the shoes touches the floor
+foot_vs = np.array([vv.index for vv in lo.data.vertices if vv.co.z < 0.13 * H])
+ground_rest = float(min(lo.data.vertices[i].co.z for i in foot_vs))
+hips_pb = arm.pose.bones["hips"]
+for act in bpy.data.actions:
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    fc = [c for c in act.fcurves if c.data_path == 'pose.bones["hips"].location'] if hasattr(act, "fcurves") else []
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        dg = bpy.context.evaluated_depsgraph_get()
+        ev = lo.evaluated_get(dg)
+        m2 = ev.to_mesh()
+        zmin = min(m2.vertices[i].co.z for i in foot_vs)
+        ev.to_mesh_clear()
+        dz = ground_rest - zmin
+        if abs(dz) > 0.002:
+            rest_m = arm.data.bones["hips"].matrix_local.to_3x3()
+            hips_pb.location = hips_pb.location + rest_m.inverted() @ Vector((0, 0, dz))
+            hips_pb.keyframe_insert("location", frame=f)
 arm.animation_data.action = None
 print("TRIS", sum(len(p.vertices) - 2 for p in lo.data.polygons))
 
