@@ -37,9 +37,9 @@ W = 120 + max(sum(i.width + 60 for i in top), sum(i.width + 60 for i in bot)) + 
 W = max(W, 120 + sum(p.width + 40 for p in poses))
 out = Image.new("RGB", (W, 120 + 2 * (H + 90) + 600), (222, 222, 230))
 d = ImageDraw.Draw(out)
-d.text((60, 30), "COACH v5 — YOUR SHEET (TOP) VS THE IN-APP 3D MODEL (BOTTOM)", font=font(52), fill=(24, 25, 30))
+d.text((60, 30), "COACH v6 — YOUR SHEET (TOP) VS THE IN-APP 3D MODEL (BOTTOM)", font=font(52), fill=(24, 25, 30))
 y = 120
-for row, label in ((top, "SHEET"), (bot, "3D MODEL (unlit, as in the app)")):
+for row, label in ((top, "SHEET"), (bot, "3D MODEL (sculpted relief, real lighting)")):
     x = 60
     d.text((x, y), label, font=font(36), fill=(200, 30, 50))
     for im in row:

@@ -18,8 +18,10 @@ bpy     $REPO/tools/coach_from_sheet/bake.py hull.blend hull_uv.blend 2048   # U
 python  -c "from PIL import Image; Image.open('$REPO/assets/blender/references/workout_coach_owner_sheet.png').crop((440,0,860,440)).save('f_region.png')"
 python  $REPO/tools/coach_from_sheet/esrgan.py RealESRGAN_x4plus_anime_6B.pth f_region.png sheet_f_x4.png
 python  $REPO/tools/coach_from_sheet/project.py        # painting -> coach_albedo.png (logo removed)
+python  $REPO/tools/coach_from_sheet/detail.py         # smudge clean-up, height from painted shading, light-free base colour
+bpy     $REPO/tools/coach_from_sheet/detail_bake.py    # displaced high-res copy -> tangent normal map (coach_normal.png)
 bpy     $REPO/tools/blender/build_coach_sheet.py $WORK # rig, fist hands, A-pose rest, clips, GLB + manifest
-bpy     $REPO/tools/coach_from_sheet/preview_unlit.py $REPO/assets/blender/source/trainer_avatar.blend $REPO/assets/blender/previews
+bpy     $REPO/tools/coach_from_sheet/preview_lit.py $REPO/assets/blender/source/trainer_avatar.blend $REPO/assets/blender/previews
 ```
 Checks: `ortho.py` + `overlay.py` (outline overlap with the sheet), `clay.py`, `texview.py`, `animview.py`.
 

@@ -260,3 +260,15 @@ painting onto it.
 - The side painting's headset mic and the front painting's jaw ink line no longer land on the jaw/neck: the
   jaw sides take the neck's own sampled skin tone with a soft shadow toward the jaw, edges blended.
 - Hair side locks end at cheek height. 28,905 tris, validator 0 errors.
+
+### 2026-11-19 / Coach v6 — sculpted relief and real lighting
+- `detail.py`: cleans projection smudges on bare skin (arms, torso), derives a height map from the painting's
+  shading (band-pass luminance, per-material strength: skin > hair > fabric) and a light-free base colour
+  (low-frequency painted light divided out, painted specular streaks pulled back).
+- `detail_bake.py`: subdivided (2 levels, ~272k verts) and displaced copy of the body -> 2048 tangent-space
+  normal map baked onto the 28.9k-tri game mesh (muscle relief, creases, hair strands react to light).
+- `build_coach_sheet.py` builds lit PBR materials when the maps exist (base colour + normal map, roughness 0.55,
+  no KHR_materials_unlit; hands take the measured arm skin tone); `--unlit` keeps the old path.
+- App: rim light added behind the model (`GlbModelView`), alongside the SH ambient and key light.
+- Previews are now Cycles studio-lit (`preview_lit.py`). GLB 2.06 MB, 28,905 tris, validator 0 errors.
+- Not verified on a device: Filament's look with the normal map and light levels must be checked on a phone.

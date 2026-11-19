@@ -50,16 +50,36 @@ body = next(o for o in bpy.data.objects if o.type == "MESH")
 body.name = body.data.name = "trainer_avatar"
 
 # ---- body material: the projected painting
-img = bpy.data.images.load(os.path.join(WORK, "coach_albedo.png"))
-img.name = "coach_albedo"
+# LIT: real-light materials (light-free base colour + baked normal map from detail.py / detail_bake.py)
+LIT = os.path.exists(os.path.join(WORK, "coach_normal.png")) and "--unlit" not in sys.argv
+img = bpy.data.images.load(os.path.join(WORK, "coach_basecolor.png" if LIT else "coach_albedo.png"))
+img.name = "coach_basecolor" if LIT else "coach_albedo"
 mbody = bpy.data.materials.new("coach_body")
 mbody.use_nodes = True
 nt = mbody.node_tree
 bs = nt.nodes["Principled BSDF"]
-bs.inputs["Roughness"].default_value = 0.6
+bs.inputs["Roughness"].default_value = 0.55
 it = nt.nodes.new("ShaderNodeTexImage")
 it.image = img
 nt.links.new(it.outputs[0], bs.inputs["Base Color"])
+if LIT:
+    nimg = bpy.data.images.load(os.path.join(WORK, "coach_normal.png"))
+    nimg.name = "coach_normal"
+    nimg.colorspace_settings.name = "Non-Color"
+    nt_ = nt.nodes.new("ShaderNodeTexImage"); nt_.image = nimg
+    nm = nt.nodes.new("ShaderNodeNormalMap")
+    nt.links.new(nt_.outputs[0], nm.inputs["Color"])
+    nt.links.new(nm.outputs[0], bs.inputs["Normal"])
+    try:
+        bs.inputs["Specular IOR Level"].default_value = 0.35
+    except KeyError:
+        pass
+if LIT and os.path.exists(os.path.join(WORK, "coach_skin.json")):
+    _rgb = json.load(open(os.path.join(WORK, "coach_skin.json")))["skin_rgb"]
+    M_SKIN_RGB = tuple(c ** 2.2 for c in _rgb)          # sRGB texture value -> linear factor
+else:
+    M_SKIN_RGB = None
+print("LIT materials" if LIT else "UNLIT materials")
 body.data.materials.clear()
 body.data.materials.append(mbody)
 
@@ -73,6 +93,8 @@ bm.free()
 
 M = {"skin": material("coach_hand_skin", srgb("D9905F"), 0.5), "black": material("coach_glove", srgb("1E1D22"), 0.6),
      "accent": material("coach_glove_accent", srgb("C7283A"), 0.55), "paint": material("coach_glove_paint", (1.0, 1.0, 1.0), 0.6)}
+if M_SKIN_RGB:
+    M["skin"].node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*M_SKIN_RGB, 1.0)
 for m in list(M.values()) + [mbody]:
     nt_ = m.node_tree
     b_ = nt_.nodes["Principled BSDF"]
@@ -112,7 +134,7 @@ def shade(o, white=False):
     me = o.data
     a = me.color_attributes.new("Col", "FLOAT_COLOR", "POINT")
     for v in me.vertices:
-        if white:
+        if white or LIT:
             k = 1.0
         else:
             k = 0.58 + 0.52 * max(0.0, v.normal.dot(LIGHT)) + 0.08 * v.normal.z
@@ -157,7 +179,7 @@ def glove_details(side, objs):
             if o.name.startswith("coach_fingers_") and facing_back > 0.4 and abs(du - KNUCKLE - 0.006) < 0.007:
                 if min(abs(dy - (1.5 - i) * 0.0192) for i in range(4)) < 0.0055:
                     col = RED
-            k = 0.62 + 0.55 * max(0.0, v.normal.dot(LIGHT)) + 0.08 * v.normal.z
+            k = 1.0 if LIT else 0.62 + 0.55 * max(0.0, v.normal.dot(LIGHT)) + 0.08 * v.normal.z
             a.data[v.index].color = (col[0] * k, col[1] * k, col[2] * k, 1.0)
         me.color_attributes.active_color = a
         me.color_attributes.render_color_index = 0
@@ -257,9 +279,11 @@ jl = struct.unpack("<I", raw[12:16])[0]
 g = json.loads(raw[20:20 + jl])
 rest = raw[20 + jl:]
 for mt in g["materials"]:
-    mt.setdefault("extensions", {})["KHR_materials_unlit"] = {}
+    if not LIT:
+        mt.setdefault("extensions", {})["KHR_materials_unlit"] = {}
     mt["doubleSided"] = False
-g["extensionsUsed"] = sorted(set(g.get("extensionsUsed", []) + ["KHR_materials_unlit"]))
+if not LIT:
+    g["extensionsUsed"] = sorted(set(g.get("extensionsUsed", []) + ["KHR_materials_unlit"]))
 js = json.dumps(g, separators=(",", ":")).encode()
 js += b" " * ((4 - len(js) % 4) % 4)
 with open(exp, "wb") as fh:

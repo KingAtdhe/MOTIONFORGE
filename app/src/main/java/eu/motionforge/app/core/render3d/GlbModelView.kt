@@ -120,6 +120,15 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
             .castShadows(false)
             .build(engine, key)
         viewer.scene.addEntity(key)
+        // rim light from behind: separates the lit (normal-mapped) coach from the background
+        val rim = EntityManager.get().create()
+        LightManager.Builder(LightManager.Type.DIRECTIONAL)
+            .color(1.0f, 0.95f, 0.92f)
+            .intensity(30_000f)
+            .direction(-0.5f, -0.3f, 1.0f)
+            .castShadows(false)
+            .build(engine, rim)
+        viewer.scene.addEntity(rim)
     }
 
     /** Must run on the main thread. */
