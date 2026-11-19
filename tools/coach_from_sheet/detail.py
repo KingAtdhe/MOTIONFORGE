@@ -51,12 +51,42 @@ on_arm = ~np.isnan(_axc) & (np.abs(pos[..., 0] - np.nan_to_num(_axc)) < np.nan_t
 arm_zone = cov & ((on_arm & (pos[..., 2] < 1.215)) | (np.abs(pos[..., 0]) > 0.150)) & (pos[..., 2] > 0.985) & (pos[..., 2] < 1.38)
 loc = nconv(Lr * skin, 9.0) / np.maximum(nconv(skin.astype(np.float32), 9.0), 1e-3)
 defect |= arm_zone & ((Lr < 0.70 * loc) | ~skin)
-zone = zone | arm_zone
+# upper inner arm / deltoid (above the armpit): only reddish-brown smudges, never the near-black bra straps
+upper = cov & on_arm & (pos[..., 2] >= 1.215) & (pos[..., 2] < 1.38) & (np.abs(pos[..., 0]) > 0.095)
+defect |= upper & (Lr > 0.14) & ((~skin & (r_ > g_ * 1.2)) | (skin & (Lr < 0.72 * loc)))
+zone = zone | arm_zone | upper
 defect = ndi.binary_dilation(defect, iterations=2) & zone
 good_skin = skin & ~defect
 fillc = np.stack([ndi.gaussian_filter(A[..., c] * good_skin, 5.0) for c in range(3)], -1) / np.maximum(ndi.gaussian_filter(good_skin.astype(np.float32), 5.0), 1e-4)[..., None]
 A = np.where(defect[..., None], fillc, A)
 skin = skin | defect
+# painted crease shadows on the arms (inner elbow, armpit) read as bruises once real light is on: lift dark
+# skin there toward the local skin tone (relief keeps the crease)
+Lr2 = A @ np.array([0.30, 0.55, 0.15], np.float32)
+armish = (arm_zone | upper) & skin
+armL_med = float(np.median(Lr2[armish])) if armish.sum() > 100 else 0.5
+floor_ = np.maximum(0.86 * loc, 0.72 * armL_med)          # never far below the arm's overall skin tone
+lift = np.where(armish, np.clip(floor_ / np.maximum(Lr2, 1e-3), 1.0, 1.9), 1.0)
+lift = ndi.gaussian_filter(lift, 1.5)
+A = np.clip(A * lift[..., None], 0, 1)
+# bruise-coloured patches (too little green for skin) on arms / shoulders: recolour to the local skin hue,
+# keeping their brightness
+armzone2 = cov & (np.abs(pos[..., 0]) > 0.085) & (pos[..., 2] > 0.985) & (pos[..., 2] < 1.40)
+sk = armzone2 & skin
+Lr3 = A @ np.array([0.30, 0.55, 0.15], np.float32)
+ref = np.stack([ndi.gaussian_filter(A[..., c] * sk, 12.0) for c in range(3)], -1) / np.maximum(ndi.gaussian_filter(sk.astype(np.float32), 12.0), 1e-4)[..., None]
+refL = ref @ np.array([0.30, 0.55, 0.15], np.float32)
+gr = A[..., 1] / np.maximum(A[..., 0], 1e-3)
+gr_med = float(np.median(gr[sk])) if sk.sum() > 100 else 0.56
+bruise = armzone2 & (A[..., 0] > 0.22) & (gr < gr_med - 0.08) & (Lr3 > 0.12)
+glob = np.median(A[sk], axis=0) if sk.sum() > 100 else np.array([0.85, 0.49, 0.33], np.float32)
+ref = 0.35 * ref + 0.65 * glob[None, None, :]
+refL = ref @ np.array([0.30, 0.55, 0.15], np.float32)
+bruise = ndi.binary_dilation(bruise, iterations=2) & armzone2 & (Lr3 > 0.12)
+w_ = ndi.gaussian_filter(bruise.astype(np.float32), 1.5)
+recol = ref * np.clip(np.maximum(Lr3, 0.75 * refL) / np.maximum(refL, 1e-3), 0.6, 1.3)[..., None]
+A = np.clip(A * (1 - w_[..., None]) + recol * w_[..., None], 0, 1)
+print("bruise texels", int(bruise.sum()))
 print("smudge texels cleaned", int(defect.sum()))
 L = A @ np.array([0.30, 0.55, 0.15], np.float32)
 wskin = ndi.gaussian_filter(skin.astype(np.float32), 2.0)
@@ -68,7 +98,10 @@ fine = nconv(L, 1.2) - nconv(L, 6.0)
 mass = nconv(L, 6.0) - nconv(L, 28.0)
 fine = np.clip(fine, -0.12, 0.12)
 mass = np.clip(mass, -0.20, 0.20)
-h = wskin * (0.55 * fine + 1.0 * mass) + wfab * (0.35 * fine + 0.30 * mass) + whair * (0.9 * fine + 0.2 * mass)
+strand = np.clip(nconv(L, 0.6) - nconv(L, 2.5), -0.10, 0.10)       # hair strands / face creases
+face = ndi.gaussian_filter(((pos[..., 2] > 1.43) & skin).astype(np.float32), 2.0)
+h = (wskin * (0.55 * fine + 1.0 * mass) + wfab * (0.35 * fine + 0.30 * mass)
+     + whair * (0.9 * fine + 1.6 * strand + 0.25 * mass) + face * (0.6 * strand - 0.4 * mass))
 h = ndi.gaussian_filter(h, 0.7)
 h = np.where(cov, h, 0)
 idx = ndi.distance_transform_edt(~cov, return_distances=False, return_indices=True)
@@ -91,6 +124,12 @@ base = base * (1 - 0.55 * hl[..., None]) + nconv(A, 3.0) * gain[..., None] * (0.
 base = np.clip(base, 0, 1)
 base = np.where(cov[..., None], base, A)
 Image.fromarray((base * 255 + 0.5).astype(np.uint8)).save("coach_basecolor.png")
+# roughness / metal (glTF packs roughness in G, metal in B): skin satin, fabric matte, hair glossier
+rough = wskin * 0.48 + wfab * 0.68 + whair * 0.36
+rough = rough + 0.06 * np.clip(-fine * 4, 0, 1)          # creases a touch rougher
+mr = np.zeros(A.shape, np.float32); mr[..., 1] = np.clip(rough, 0.2, 0.9)
+mr[..., 0] = 1.0
+Image.fromarray((mr * 255 + 0.5).astype(np.uint8)).save("coach_mr.png")
 import json
 arm_skin = skin & (pos[..., 2] > 0.95) & (pos[..., 2] < 1.15) & (np.abs(pos[..., 0]) > 0.17)
 json.dump({"skin_rgb": [float(v) for v in np.median(base[arm_skin], axis=0)]}, open("coach_skin.json", "w"))

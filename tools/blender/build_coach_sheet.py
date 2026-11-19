@@ -70,6 +70,14 @@ if LIT:
     nm = nt.nodes.new("ShaderNodeNormalMap")
     nt.links.new(nt_.outputs[0], nm.inputs["Color"])
     nt.links.new(nm.outputs[0], bs.inputs["Normal"])
+    if os.path.exists(os.path.join(WORK, "coach_mr.png")):
+        mimg = bpy.data.images.load(os.path.join(WORK, "coach_mr.png")); mimg.name = "coach_mr"
+        mimg.colorspace_settings.name = "Non-Color"
+        mt_ = nt.nodes.new("ShaderNodeTexImage"); mt_.image = mimg
+        sep = nt.nodes.new("ShaderNodeSeparateColor")
+        nt.links.new(mt_.outputs[0], sep.inputs[0])
+        nt.links.new(sep.outputs[1], bs.inputs["Roughness"])
+        nt.links.new(sep.outputs[2], bs.inputs["Metallic"])
     try:
         bs.inputs["Specular IOR Level"].default_value = 0.35
     except KeyError:

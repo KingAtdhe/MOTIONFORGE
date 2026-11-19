@@ -272,3 +272,9 @@ painting onto it.
 - App: rim light added behind the model (`GlbModelView`), alongside the SH ambient and key light.
 - Previews are now Cycles studio-lit (`preview_lit.py`). GLB 2.06 MB, 28,905 tris, validator 0 errors.
 - Not verified on a device: Filament's look with the normal map and light levels must be checked on a phone.
+
+### 2026-11-19 / Coach v6.1 — hair strands, roughness map, arm clean-up
+- Height map gains a fine 'strand' band for hair and face creases; roughness map added (skin 0.48 satin,
+  fabric 0.68 matte, hair 0.36 glossy; creases a touch rougher), packed glTF-style (G = roughness).
+- Arm skin: painted crease shadows lifted toward the arm's overall tone; bruise-coloured patches (too little
+  green for skin) recoloured to the global arm skin hue at their own brightness. GLB 2.24 MB, validator 0 errors.
