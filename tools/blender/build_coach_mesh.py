@@ -217,6 +217,9 @@ lo.data.materials.append(m)
 
 # ---------------------------------------------------------------- rig + weights
 sc.render.fps = ta.FPS
+K1, K2 = 0.48, 0.72                     # knuckle line and middle finger joint, as fractions of wrist->fingertip
+_Lh = (Vector(J["hand_tip_L"]) - Vector(J["hand_L"])).length
+tr.KNUCKLE, tr.PROX = K1 * _Lh, (K2 - K1) * _Lh
 arm = tr.build_armature()
 # Heat weights need a clean closed surface: compute them on a voxel-remeshed proxy of the body (merges the loose
 # shells a generated mesh has), then transfer to the game mesh by nearest surface point.
@@ -326,9 +329,30 @@ unweighted = sum(1 for vv in lo.data.vertices if not any(g.weight > 0.01 for g i
 print("weights: groups", len(groups), "unweighted verts", unweighted)
 if False:
     pass
-for g in list(lo.vertex_groups):
-    if g.name.startswith("finger"):
-        lo.vertex_groups.remove(g)      # the sculpted hands are already loosely closed; fingers stay rigid
+# ---- finger weights: split each hand along its length (palm | proximal row | middle+tip rows) so it can make a fist
+def _ss(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+for side in ("L", "R"):
+    W_, T_ = Vector(J[f"hand_{side}"]), Vector(J[f"hand_tip_{side}"])
+    Lh = (T_ - W_).length
+    d_ = (T_ - W_).normalized()
+    gh, gf, gt = lo.vertex_groups[f"hand_{side}"], lo.vertex_groups[f"fingers_{side}"], lo.vertex_groups[f"fingertips_{side}"]
+    for vv in lo.data.vertices:
+        hw = next((g.weight for g in vv.groups if g.group == gh.index), 0.0)
+        if hw < 0.5:
+            continue
+        t = (vv.co - W_).dot(d_) / Lh
+        w2 = _ss(K2 - 0.05, K2 + 0.05, t)
+        w1 = _ss(K1 - 0.06, K1 + 0.06, t) * (1 - w2)
+        if w1 + w2 < 0.01:
+            continue
+        rest_w = hw * (1 - w1 - w2)
+        gh.add([vv.index], rest_w, "REPLACE")
+        gf.add([vv.index], hw * w1, "REPLACE")
+        gt.add([vv.index], hw * w2, "REPLACE")
 _ua = J["forearm_L"] - J["upper_arm_L"]
 ta.REST_ARM = math.degrees(math.atan2(abs(_ua.x), -_ua.z))
 ta.LEG_THIGH = (J["shin_L"] - J["thigh_L"]).length
@@ -452,6 +476,30 @@ def build_pushups():
 
 
 build_pushups()
+
+# ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
+GRIP = {"boxing_": 0.85, "footwork_": 0.85, "pushup_": 0.0}
+
+
+def key_grip(act, amount):
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    for s_ in ("L", "R"):
+        for bn, (axis, deg) in ((f"fingers_{s_}", ta.grip(s_, amount)[f"fingers_{s_}"][0][1]), (f"fingertips_{s_}", ta.grip(s_, amount)[f"fingertips_{s_}"][0][1])):
+            pb = arm.pose.bones[bn]
+            rq = arm.data.bones[bn].matrix_local.to_3x3().to_quaternion()
+            from mathutils import Quaternion
+            q = rq.inverted() @ Quaternion(Vector(axis).normalized(), math.radians(deg)) @ rq
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = q
+            for f in range(a_, b_ + 1):
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+
+
+for act in bpy.data.actions:
+    amt = next((v for k, v in GRIP.items() if act.name.startswith(k)), 0.4)
+    key_grip(act, amt)
+arm.animation_data.action = None
 
 # ---- floor contact: after baking, lift / lower the hips each frame so the lowest point of the shoes touches the floor
 foot_vs = np.array([vv.index for vv in lo.data.vertices if vv.co.z < 0.13 * H])

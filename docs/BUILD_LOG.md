@@ -330,3 +330,10 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   idle_neutral ← 111_28, boxing_stance ← 13_18 f114–186, boxing_jab ← 13_18 f88–118, boxing_cross ← 13_18 f20–50.
 - Squat stays hand-keyed (the recorded squats are deep crouches, not the lesson's bodyweight squat); push-up,
   guard return and footwork stay hand-keyed. Manifest durations now read from the actions.
+
+### 2026-11-19 / Fists
+- Owner: "they don't do a fist when punching". Cause: finger vertex groups were deleted and the mocap clips key the
+  finger bones at identity on every frame. Now each hand is split along its length (palm | proximal row from 48 % |
+  middle+tip from 72 % of wrist→fingertip) into hand / fingers / fingertips weights, finger bones placed at those
+  joints, and every frame of every clip is keyed: fist 0.85 in all boxing and footwork clips, relaxed 0.4 in
+  idle/squat, open for the push-up. Known gap: the thumb is not rigged and stays where it was sculpted.
