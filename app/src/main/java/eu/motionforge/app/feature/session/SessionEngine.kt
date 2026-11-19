@@ -1,6 +1,7 @@
 package eu.motionforge.app.feature.session
 
 import eu.motionforge.app.core.model.Exercise
+import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.core.model.TrainingCategory
 
 sealed interface SessionStep {
@@ -12,6 +13,8 @@ sealed interface SessionStep {
         override val durationSeconds: Int,
         /** True only for movements with a validated-in-principle repetition rule (currently squat). */
         val countsReps: Boolean,
+        /** Rule-based boxing form cues for this step (camera only), or null. */
+        val formDrill: BoxingDrill? = null,
     ) : SessionStep
 
     data class Rest(override val durationSeconds: Int, val nextName: String) : SessionStep
@@ -33,7 +36,13 @@ object SessionPlanner {
     private const val WARM_UP_ID = "standing_mobility_warmup"
     private const val MAX_QUICK_EXERCISES = 4
 
-    private fun work(e: Exercise) = SessionStep.Work(e.id, e.name, e.durationSeconds, countsReps = e.id == SQUAT_ID)
+    const val STANCE_ID = "boxing_stance"
+    const val JAB_ID = "boxing_jab"
+
+    private fun work(e: Exercise) = SessionStep.Work(
+        e.id, e.name, e.durationSeconds, countsReps = e.id == SQUAT_ID,
+        formDrill = when (e.id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; else -> null },
+    )
 
     fun single(exercise: Exercise) = SessionPlan(exercise.name, exercise.category, listOf(work(exercise)))
 

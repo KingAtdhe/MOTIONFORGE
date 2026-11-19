@@ -114,4 +114,13 @@ class SessionEngineTest {
         assertEquals(TrackingQuality.UNAVAILABLE, TrackingQuality.of(true, 29, 100))
         assertEquals(TrackingQuality.NOT_USED, TrackingQuality.of(false, 100, 100))
     }
+
+    @Test
+    fun boxingStanceAndJabStepsCarryAFormCheck() {
+        val stance = catalog.first { it.id == SessionPlanner.STANCE_ID }
+        val jab = catalog.first { it.id == SessionPlanner.JAB_ID }
+        org.junit.Assert.assertEquals(eu.motionforge.app.core.movement.BoxingDrill.STANCE, (SessionPlanner.single(stance).steps.first() as SessionStep.Work).formDrill)
+        org.junit.Assert.assertEquals(eu.motionforge.app.core.movement.BoxingDrill.JAB, (SessionPlanner.single(jab).steps.first() as SessionStep.Work).formDrill)
+        org.junit.Assert.assertEquals(null, (SessionPlanner.single(squat).steps.first() as SessionStep.Work).formDrill)
+    }
 }

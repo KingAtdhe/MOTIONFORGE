@@ -2,6 +2,8 @@ package eu.motionforge.app.feature.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.motionforge.app.core.movement.BoxingFormMonitor
+import eu.motionforge.app.core.movement.FormFeedback
 import eu.motionforge.app.core.movement.SquatRepCounter
 import eu.motionforge.app.core.pose.PoseOutput
 import eu.motionforge.app.core.pose.TrackingState
@@ -30,6 +32,11 @@ class SessionViewModel(plan: SessionPlan, private val repository: SessionReposit
 
     private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY)
     private val repCounter = SquatRepCounter()
+
+    private val _form = MutableStateFlow<FormFeedback?>(null)
+    /** Boxing form cues for the current step (null when the step has no form check). */
+    val form: StateFlow<FormFeedback?> = _form.asStateFlow()
+    private var formMonitor: BoxingFormMonitor? = null
     private var startedAtMillis = 0L
     private var ticker: Job? = null
 
@@ -40,6 +47,12 @@ class SessionViewModel(plan: SessionPlan, private val repository: SessionReposit
         if (event is SessionEvent.Start && after.phase == SessionPhase.RUNNING) startedAtMillis = System.currentTimeMillis()
         // A repetition may never span a step change or a pause.
         if (after.stepIndex != before.stepIndex || after.phase != SessionPhase.RUNNING) repCounter.reset()
+        val drill = (after.currentStep as? SessionStep.Work)?.formDrill
+        if (after.stepIndex != before.stepIndex || (drill != null && formMonitor == null)) {
+            formMonitor = drill?.let { BoxingFormMonitor(it) }
+            _form.value = drill?.let { FormFeedback.NotAssessing(0) }
+        }
+        if (after.phase != SessionPhase.RUNNING) formMonitor?.reset()
         syncTicker(after.phase)
     }
 
@@ -72,11 +85,20 @@ class SessionViewModel(plan: SessionPlan, private val repository: SessionReposit
             repCounter.update(output.frame, tracking = trackingState.allowsFeedback)
             if (repCounter.repetitions > before) onEvent(SessionEvent.RepCounted)
         }
+        val monitor = formMonitor
+        if (monitor != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.formDrill != null) {
+            _form.value = when (output) {
+                is PoseOutput.Detected -> monitor.update(output.frame, tracking = trackingState.allowsFeedback)
+                else -> FormFeedback.NotAssessing(monitor.jabs)
+            }
+        }
     }
 
     fun onCameraHidden() {
         evaluator.reset()
         repCounter.reset()
+        formMonitor?.reset()
+        if (_form.value != null) _form.value = FormFeedback.NotAssessing(formMonitor?.jabs ?: 0)
         _tracking.value = TrackingState.PAUSED
     }
 

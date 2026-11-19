@@ -53,11 +53,16 @@ class DemoClipsTest {
 
     @Test
     fun everyLessonEitherHasItsClipOrIsKnownToBePending() {
-        val pending = setOf("pushup_down") // prone push-up clips not built yet; lesson shows written steps
+        val pending = emptySet<String>()
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
         catalog.mapNotNull { it.demoAnimation }.forEach { clip ->
             assertTrue("clip $clip neither exported nor known-pending", clip in manifest.names || clip in pending)
         }
+    }
+
+    @Test
+    fun pushUpPlaysDownThenUp() {
+        assertEquals(listOf("pushup_down", "pushup_up"), DemoSequence.resolve("pushup_down", manifest.names))
     }
 
     @Test
@@ -72,7 +77,7 @@ class DemoClipsTest {
 
     @Test
     fun missingClipGivesEmptySequence() {
-        assertEquals(emptyList<String>(), DemoSequence.resolve("pushup_down", manifest.names))
+        assertEquals(emptyList<String>(), DemoSequence.resolve("not_a_clip_down", manifest.names))
         assertEquals(emptyList<String>(), DemoSequence.resolve(null, manifest.names))
     }
 

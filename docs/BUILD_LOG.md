@@ -305,3 +305,20 @@ Audit (edge-stretch per clip, lowest point per frame, close-up renders of both c
   (no hard seam), then weight smoothing, ≤4 influences, normalised; no unweighted vertices.
 - Squat: arms open 14° so the hands don't cross in front of the face.
 Both GLBs: 0 validator errors, 30k tris, 9 clips.
+
+### 2026-11-19 / Push-up clips + boxing form check (experimental)
+- **Push-up:** `pushup_down` / `pushup_up` for both coaches, built in `build_coach_mesh.py`: the body pivots about
+  the toes as a straight plank (shoulder height from arm length at the top to ~0.20 m at the bottom), hands planted
+  under the shoulders via two-bone IK baked to keys (`nla.bake`, visual keying), elbows tracking back ~45°, neck
+  looking at the floor ahead, toes tucked. The push-up lesson now shows its 3D demo (down → up).
+- **Boxing form check** (`core/movement/BoxingFormMonitor`): rule-based, pixel-space, normalised by shoulder width.
+  Stance: hands low (both wrists clearly below the shoulder line), feet narrow (< 0.75 shoulder widths) or very wide
+  (> 2.1). Jab: counts lead-hand extensions (reach ratio > 0.86, min 400 ms apart), flags the rear hand dropping
+  during the extension and the hand not returning to guard within 1.5 s. A cue needs the rule true in ≥ 70 % of the
+  last second of frames and is held ≥ 2.5 s; missing/low-visibility landmarks or tracking off → "Form check paused".
+  Wording is always "possible form adjustment"; never scores power, speed or injury risk. Session screen shows it
+  over the camera for the stance and jab steps, labelled experimental, with a jab count for the jab.
+- Tests: 9 new monitor tests (good guard → no cue; hands low / narrow feet → cue after a second; a single bad frame
+  never advises; low visibility and tracking off → paused; jabs counted once per extension; rear-hand drop and slow
+  return flagged) — run locally with the bundled Kotlin compiler + JUnit 4: 9/9; planner test for the form drills.
+- Thresholds are hypotheses for coach review and device testing; nothing measured on a phone yet.

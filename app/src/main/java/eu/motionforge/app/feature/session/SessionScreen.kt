@@ -53,6 +53,8 @@ import eu.motionforge.app.core.design.TrackingStatusChip
 import eu.motionforge.app.core.design.accent
 import eu.motionforge.app.core.design.formatClock
 import eu.motionforge.app.core.model.Exercise
+import eu.motionforge.app.core.movement.BoxingDrill
+import eu.motionforge.app.core.movement.FormFeedback
 import eu.motionforge.app.core.pose.TrackingState
 import eu.motionforge.app.feature.lesson.TrainerDemoCompact
 
@@ -65,6 +67,7 @@ fun SessionScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val tracking by viewModel.tracking.collectAsStateWithLifecycle()
+    val form by viewModel.form.collectAsStateWithLifecycle()
     val save by viewModel.save.collectAsStateWithLifecycle()
 
     // Keep the screen awake while a session is in progress.
@@ -79,7 +82,7 @@ fun SessionScreen(
         SessionPhase.READY -> SetupStage(state.plan, onStart = { camera -> viewModel.onEvent(SessionEvent.Start(camera)) }, onClose = onClose)
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
-            RunningStage(state, tracking, exercisesById, viewModel)
+            RunningStage(state, tracking, form, exercisesById, viewModel)
         }
         SessionPhase.FINISHED -> SummaryStage(state, save, onSave = viewModel::saveSession, onClose = onClose, onOpenProgress = onOpenProgress)
     }
@@ -145,6 +148,7 @@ private fun SetupStage(plan: SessionPlan, onStart: (camera: Boolean) -> Unit, on
 private fun RunningStage(
     state: SessionState,
     tracking: TrackingState,
+    form: FormFeedback?,
     exercisesById: Map<String, Exercise>,
     viewModel: SessionViewModel,
 ) {
@@ -180,6 +184,10 @@ private fun RunningStage(
                 cameraVisible -> {
                     PoseCameraPane(lensFacing = lensFacing, showOverlay = true, onOutput = viewModel::onPose, modifier = Modifier.fillMaxSize())
                     TrackingStatusChip(tracking, Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
+                    val drill = (step as? SessionStep.Work)?.formDrill
+                    if (form != null && drill != null) {
+                        FormCueCard(form, drill, Modifier.align(Alignment.BottomCenter).padding(12.dp))
+                    }
                 }
                 exercise != null -> TrainerDemoCompact(exercise, playing = !paused, modifier = Modifier.fillMaxSize())
             }
@@ -289,6 +297,27 @@ private fun SummaryStage(
                 PrimaryButton(if (save == SaveState.SAVING) "Saving…" else "Save session", onClick = { onSave(effort.takeIf { it in 1..10 }) }, enabled = save != SaveState.SAVING)
                 TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Discard") }
             }
+        }
+    }
+}
+
+/** Boxing form cue overlay. Always labelled experimental; never certifies technique. */
+@Composable
+private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifier = Modifier) {
+    val (color, text) = when (form) {
+        is FormFeedback.NotAssessing -> MfColors.Muted to "Form check paused — keep your whole body, hands and feet in view."
+        is FormFeedback.Steady -> MfColors.Signal to "No adjustment cues right now."
+        is FormFeedback.Cue -> MfColors.Caution to form.issue.message
+    }
+    androidx.compose.material3.Surface(
+        modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+        shape = RoundedCornerShape(14.dp),
+        color = MfColors.Ink.copy(alpha = 0.85f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color),
+    ) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+            Eyebrow(if (drill == BoxingDrill.JAB) "Form check (experimental) · jabs ${form.jabs}" else "Form check (experimental)", color = color)
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MfColors.Chalk)
         }
     }
 }

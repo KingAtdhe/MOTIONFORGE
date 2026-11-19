@@ -339,6 +339,104 @@ ta.G_LEAD_FWD, ta.G_LEAD_FLEX, ta.G_LEAD_TUCK = 52, 112, 4
 ta.G_REAR_FWD, ta.G_REAR_FLEX, ta.G_REAR_TUCK = 50, 120, 6
 ta.build_clips(arm)
 
+
+# ---- push-up (prone) clips: whole body pivots about the toes as a straight plank, hands planted on the floor
+#      under the shoulders (two-bone IK baked to keys), elbows track back at ~45 degrees from the body.
+def build_pushups():
+    import mathutils
+    from mathutils import Matrix, Quaternion
+    bones = arm.data.bones
+    H_ = Vector(bones["hips"].head_local)
+    toe = (Vector(bones["foot_L"].tail_local) + Vector(bones["foot_R"].tail_local)) / 2
+    sh = (Vector(bones["upper_arm_L"].head_local) + Vector(bones["upper_arm_R"].head_local)) / 2
+    L_body = (sh - toe).length
+    arm_len = (bones["upper_arm_L"].length + bones["forearm_L"].length + 0.6 * bones["hand_L"].length)
+    rest_angle = math.atan2(sh.z - toe.z, -(sh.y - toe.y))          # rest: body vertical -> ~90 deg
+
+    def plank(h_sh):
+        """hips rotation (about X, forward pitch) and location so toes stay at the floor point and the shoulders
+        are h_sh above the floor"""
+        theta = math.asin(max(0.05, min(0.95, h_sh / L_body)))          # body angle above horizontal
+        pitch = rest_angle - theta
+        R = Matrix.Rotation(pitch, 3, "X")                               # positive X pitches the body forward
+        toe_new = H_ + R @ (toe - H_)
+        d = Vector((0, 0, 0.012)) - Vector((0, 0, toe_new.z)) + Vector((0, toe.y - toe_new.y + 0.35 * L_body, 0))
+        return pitch, d, R
+
+    # IK targets: hands under the shoulders (a bit wider), on the floor; poles behind and out for the elbows
+    tgt, pole = {}, {}
+    pitch0, d0, R0 = plank(arm_len * 0.97)
+    sh_top = {s_: H_ + R0 @ (Vector(bones[f"upper_arm_{s_}"].head_local) - H_) + d0 for s_ in ("L", "R")}
+    for s_, sg in (("L", 1), ("R", -1)):
+        e = bpy.data.objects.new(f"ik_{s_}", None); bpy.context.collection.objects.link(e)
+        e.location = (sh_top[s_].x * 1.25, sh_top[s_].y - 0.02, 0.05)
+        tgt[s_] = e
+        p_ = bpy.data.objects.new(f"pole_{s_}", None); bpy.context.collection.objects.link(p_)
+        p_.location = (sh_top[s_].x * 1.25 + sg * 0.35, sh_top[s_].y + 0.45, 0.45)
+        pole[s_] = p_
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="POSE")
+    cons = []
+    for s_ in ("L", "R"):
+        c = arm.pose.bones[f"forearm_{s_}"].constraints.new("IK")
+        c.target = tgt[s_]; c.pole_target = pole[s_]; c.chain_count = 2; c.pole_angle = math.radians(45 if s_ == "L" else 135)
+        cons.append((f"forearm_{s_}", c))
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+    def bake(name, h_from, h_to, dur):
+        act = bpy.data.actions.new(name); act.use_fake_user = True
+        arm.animation_data.action = act
+        n = int(round(dur * ta.FPS))
+        for f in range(n + 1):
+            t = ta.ease(f / n)
+            h = h_from + (h_to - h_from) * t
+            pitch, d, R = plank(h)
+            for pb in arm.pose.bones:
+                pb.rotation_mode = "QUATERNION"
+                pb.rotation_quaternion = (1, 0, 0, 0); pb.location = (0, 0, 0)
+            hb = arm.pose.bones["hips"]
+            rest = bones["hips"].matrix_local.to_3x3()
+            q = Quaternion((1, 0, 0), pitch)
+            hb.rotation_quaternion = rest.to_quaternion().inverted() @ q @ rest.to_quaternion()
+            hb.location = rest.inverted() @ d
+            for s_ in ("L", "R"):                                         # toes tucked: feet flexed onto the toes
+                fb = arm.pose.bones[f"foot_{s_}"]; fr = bones[f"foot_{s_}"].matrix_local.to_3x3().to_quaternion()
+                fb.rotation_quaternion = fr.inverted() @ Quaternion((1, 0, 0), math.radians(-35)) @ fr
+            nb = arm.pose.bones["neck"]; nr = bones["neck"].matrix_local.to_3x3().to_quaternion()
+            nb.rotation_quaternion = nr.inverted() @ Quaternion((1, 0, 0), math.radians(-28)) @ nr   # look at the floor ahead
+            for fb_ in ("fingers_L", "fingers_R", "fingertips_L", "fingertips_R"):
+                pass
+            for pb in arm.pose.bones:
+                if pb.name.split("_")[0] not in ("upper", "forearm", "hand"):
+                    pb.keyframe_insert("rotation_quaternion", frame=f + 1)
+                    pb.keyframe_insert("location", frame=f + 1)
+        # arms: evaluate the IK and bake its visual result into keys on this action
+        bpy.context.view_layer.objects.active = arm
+        bpy.ops.object.mode_set(mode="POSE")
+        for pb in arm.pose.bones:
+            sel = pb.name.split("_")[0] in ("upper", "forearm", "hand")
+            if hasattr(pb, "select"):
+                pb.select = sel
+            else:
+                pb.bone.select = sel
+        bpy.ops.nla.bake(frame_start=1, frame_end=n + 1, only_selected=True, visual_keying=True, clear_constraints=False,
+                         use_current_action=True, bake_types={"POSE"}, channel_types={"ROTATION"})
+        bpy.ops.object.mode_set(mode="OBJECT")
+        act.frame_range = (1, n + 1)
+        return act
+
+    top, bottom = arm_len * 0.97, 0.20 * HEIGHT / 1.7
+    bake("pushup_down", top, bottom, 1.4)
+    bake("pushup_up", bottom, top, 1.2)
+    for bn, c in cons:
+        arm.pose.bones[bn].constraints.remove(c)
+    for o in list(tgt.values()) + list(pole.values()):
+        bpy.data.objects.remove(o)
+    arm.animation_data.action = None
+
+
+build_pushups()
+
 # ---- floor contact: after baking, lift / lower the hips each frame so the lowest point of the shoes touches the floor
 foot_vs = np.array([vv.index for vv in lo.data.vertices if vv.co.z < 0.13 * H])
 ground_rest = float(min(lo.data.vertices[i].co.z for i in foot_vs))
@@ -379,7 +477,9 @@ bpy.ops.export_scene.gltf(filepath=exp, export_format="GLB", use_selection=True,
                           export_frame_range=False, export_anim_single_armature=True, export_reset_pose_bones=True)
 print("EXPORTED", exp, os.path.getsize(exp))
 manifest = {"asset": f"models/{NAME}.glb", "generator": "tools/blender/build_coach_mesh.py", "fps": ta.FPS,
-            "clips": [{"name": n, "durationSeconds": round(dd, 3), "reviewStatus": "draft_pending_coach_review"} for n, dd, _ in ta.clip_specs()]}
+            "clips": [{"name": n, "durationSeconds": round(dd, 3), "reviewStatus": "draft_pending_coach_review"} for n, dd, _ in ta.clip_specs()]
+                     + [{"name": "pushup_down", "durationSeconds": 1.4, "reviewStatus": "draft_pending_coach_review"},
+                        {"name": "pushup_up", "durationSeconds": 1.2, "reviewStatus": "draft_pending_coach_review"}]}
 if "--app" in args:
     shutil.copyfile(exp, os.path.join(ROOT, "app/src/main/assets/models", NAME + ".glb"))
     with open(os.path.join(ROOT, "app/src/main/assets/models", NAME + ".clips.json"), "w") as fh:

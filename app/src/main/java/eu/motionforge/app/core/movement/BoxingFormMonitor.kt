@@ -1,0 +1,171 @@
+package eu.motionforge.app.core.movement
+
+import eu.motionforge.app.core.pose.BodyLandmark
+import eu.motionforge.app.core.pose.Landmark
+import eu.motionforge.app.core.pose.PoseFrame
+import kotlin.math.hypot
+
+/** Which beginner boxing drill is being watched. */
+enum class BoxingDrill { STANCE, JAB }
+
+enum class FormIssue(val message: String) {
+    HANDS_LOW("Possible form adjustment: bring your hands up near your face."),
+    FEET_NARROW("Possible form adjustment: step your feet a little wider for balance."),
+    FEET_WIDE("Your feet may be very wide — find a comfortable, balanced width."),
+    REAR_HAND_DROPS("Possible form adjustment: keep the rear hand near your face while the lead hand extends."),
+    SLOW_RETURN("Possible form adjustment: bring the hand back to guard after each jab."),
+}
+
+/**
+ * What the monitor reports.
+ * - [NotAssessing]: the needed landmarks are not clearly visible (or tracking is off). Never gives advice then.
+ * - [Steady]: visible and no rule has been met for long enough.
+ * - [Cue]: one rule has held for most of the recent window; shown for at least [BoxingFormMonitor.holdMs].
+ */
+sealed interface FormFeedback {
+    val jabs: Int
+
+    data class NotAssessing(override val jabs: Int) : FormFeedback
+    data class Steady(override val jabs: Int) : FormFeedback
+    data class Cue(val issue: FormIssue, override val jabs: Int) : FormFeedback
+}
+
+/**
+ * Rule-based, explainable feedback for the boxing stance and the jab, from 2D pose landmarks.
+ *
+ * Every rule is a simple geometric test in pixel space, normalised by the shoulder width so that distance to
+ * the camera does not matter. A rule only becomes a cue when it is true in at least [persistFraction] of the
+ * frames of the last [windowMs]; a single low-quality frame can never produce advice. Low-visibility frames are
+ * skipped and, if they dominate, the state is [FormFeedback.NotAssessing].
+ *
+ * Thresholds are first hypotheses for coach review and device testing — not biomechanical truths. The monitor
+ * never judges power, speed, impact or injury risk.
+ */
+class BoxingFormMonitor(
+    private val drill: BoxingDrill,
+    private val minVisibility: Float = 0.6f,
+    private val windowMs: Long = 1_000,
+    private val persistFraction: Double = 0.7,
+    val holdMs: Long = 2_500,
+    private val handsLowBelowShoulder: Double = 0.15,
+    private val feetNarrow: Double = 0.75,
+    private val feetWide: Double = 2.1,
+    private val extendedRatio: Double = 0.86,
+    private val guardRatio: Double = 0.70,
+    private val returnMs: Long = 1_500,
+    private val minJabMs: Long = 400,
+) {
+    private data class Sample(val t: Long, val issues: Set<FormIssue>)
+
+    private val window = ArrayDeque<Sample>()
+    private var visibleFrames = 0
+    private var hiddenFrames = 0
+    private var shown: FormIssue? = null
+    private var shownSince = 0L
+    private var jabCount = 0
+    private var extended = false
+    private var extendedAt = 0L
+    private var lastJabAt = -1_000_000L
+    private var rearDroppedThisJab = false
+
+    val jabs: Int get() = jabCount
+
+    fun reset() {
+        window.clear(); visibleFrames = 0; hiddenFrames = 0; shown = null; extended = false; rearDroppedThisJab = false
+    }
+
+    fun update(frame: PoseFrame, tracking: Boolean): FormFeedback {
+        val t = frame.timestampMs
+        val issues = if (tracking) evaluate(frame) else null
+        if (issues == null) {
+            hiddenFrames++
+            window.addLast(Sample(t, emptySet()).copy())
+            trim(t)
+            // mostly unseen recently -> stop advising
+            if (hiddenFrames > visibleFrames) {
+                shown = null; extended = false
+                return FormFeedback.NotAssessing(jabCount)
+            }
+        } else {
+            visibleFrames++
+            window.addLast(Sample(t, issues))
+            trim(t)
+        }
+        if (window.size < 5) return FormFeedback.Steady(jabCount)
+
+        val current = shown
+        if (current != null && t - shownSince < holdMs) return FormFeedback.Cue(current, jabCount)
+        val persistent = FormIssue.entries.firstOrNull { issue ->
+            window.count { issue in it.issues } >= persistFraction * window.size
+        }
+        if (persistent != null && persistent != current) {
+            shown = persistent; shownSince = t
+        } else if (persistent == null) {
+            shown = null
+        }
+        return shown?.let { FormFeedback.Cue(it, jabCount) } ?: FormFeedback.Steady(jabCount)
+    }
+
+    private fun trim(t: Long) {
+        while (window.isNotEmpty() && t - window.first().t > windowMs) {
+            window.removeFirst()
+        }
+        if (visibleFrames + hiddenFrames > 60) { visibleFrames /= 2; hiddenFrames /= 2 }
+    }
+
+    /** Issues seen in this frame, or null when the frame cannot be assessed. */
+    private fun evaluate(f: PoseFrame): Set<FormIssue>? {
+        val need = listOf(
+            BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.RIGHT_ELBOW,
+            BodyLandmark.LEFT_WRIST, BodyLandmark.RIGHT_WRIST, BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE,
+        )
+        if (need.any { f[it].visibility < minVisibility }) return null
+        val w = f.imageWidth.toDouble()
+        val h = f.imageHeight.toDouble()
+        fun px(l: Landmark) = (l.x * w) to (l.y * h)
+        fun dist(a: Landmark, b: Landmark): Double {
+            val (ax, ay) = px(a); val (bx, by) = px(b); return hypot(ax - bx, ay - by)
+        }
+        val ls = f[BodyLandmark.LEFT_SHOULDER]; val rs = f[BodyLandmark.RIGHT_SHOULDER]
+        val sw = dist(ls, rs)
+        if (sw < 20.0) return null                                   // side-on or too far: shoulder width unreliable
+        val shoulderY = (ls.y + rs.y) / 2 * h
+        val issues = mutableSetOf<FormIssue>()
+
+        fun wristLow(wrist: Landmark) = wrist.y * h > shoulderY + handsLowBelowShoulder * sw
+        fun reachRatio(side: String): Double {
+            val s = f[if (side == "L") BodyLandmark.LEFT_SHOULDER else BodyLandmark.RIGHT_SHOULDER]
+            val e = f[if (side == "L") BodyLandmark.LEFT_ELBOW else BodyLandmark.RIGHT_ELBOW]
+            val wr = f[if (side == "L") BodyLandmark.LEFT_WRIST else BodyLandmark.RIGHT_WRIST]
+            val chain = dist(s, e) + dist(e, wr)
+            return if (chain < 1.0) 0.0 else dist(s, wr) / chain
+        }
+
+        val feet = dist(f[BodyLandmark.LEFT_ANKLE], f[BodyLandmark.RIGHT_ANKLE]) / sw
+        if (feet < feetNarrow) issues += FormIssue.FEET_NARROW
+        if (feet > feetWide) issues += FormIssue.FEET_WIDE
+
+        val lw = f[BodyLandmark.LEFT_WRIST]; val rw = f[BodyLandmark.RIGHT_WRIST]
+        when (drill) {
+            BoxingDrill.STANCE -> if (wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
+            BoxingDrill.JAB -> {
+                val rl = reachRatio("L"); val rr = reachRatio("R")
+                val leadIsLeft = rl >= rr
+                val lead = if (leadIsLeft) rl else rr
+                val rear = if (leadIsLeft) rw else lw
+                val t = f.timestampMs
+                if (!extended && lead > extendedRatio && t - lastJabAt > minJabMs) {
+                    extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false
+                }
+                if (extended) {
+                    if (wristLow(rear)) rearDroppedThisJab = true
+                    if (lead < guardRatio) extended = false
+                    else if (t - extendedAt > returnMs) issues += FormIssue.SLOW_RETURN
+                }
+                if (extended && rearDroppedThisJab) issues += FormIssue.REAR_HAND_DROPS
+                if (!extended && wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
+            }
+        }
+        return issues
+    }
+}
