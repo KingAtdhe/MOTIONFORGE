@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import eu.motionforge.app.core.pose.TrackingState
@@ -337,7 +338,7 @@ fun SectionHeader(title: String, trailing: String? = null) {
         Text(
             title.uppercase(),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.weight(1f).semantics { androidx.compose.ui.semantics.heading() },
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         if (trailing != null) Text(trailing.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
