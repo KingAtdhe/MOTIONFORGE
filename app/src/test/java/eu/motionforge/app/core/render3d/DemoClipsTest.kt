@@ -124,4 +124,13 @@ class DemoClipsTest {
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
         catalog.forEach { assertTrue("${it.id} has no demo", DemoSequence.resolve(it.demoAnimation, manifest.names).isNotEmpty()) }
     }
+
+    @Test
+    fun everyLessonHasCoachArtForBothCoaches() {
+        val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
+        eu.motionforge.app.core.model.Coach.entries.forEach { coach ->
+            assertTrue("${coach.heroArt} missing", File(assets, coach.heroArt).isFile)
+            catalog.forEach { assertTrue("${coach.lessonArt(it.id)} missing", File(assets, coach.lessonArt(it.id)).isFile) }
+        }
+    }
 }

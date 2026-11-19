@@ -412,17 +412,23 @@ ta.build_clips(arm)
 
 # ---- recorded motion (CMU mocap, assets/mocap) replaces the hand-keyed clips where a clean take exists
 import mocap_retarget as mr  # noqa: E402
-MOCAP = {  # clip: (take, first frame, last frame, loops)
-    "idle_neutral": ("111_28", 10, 100, True),
-    "boxing_stance": ("13_18", 113, 142, True),
-    "boxing_jab": ("13_18", 88, 118, False),
-    "boxing_cross": ("13_18", 20, 50, False),
+MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to the first pose)
+    "idle_neutral": ("111_28", 10, 100, True, 0),
+    "boxing_stance": ("13_18", 113, 142, True, 0),
+    # 13_18 only has jab-cross combinations: keep the jab (peak f99) and ease back to guard before the cross starts
+    "boxing_jab": ("13_18", 88, 104, False, 14),
+    # cross (peak f33) from the same combination; the lead arm holds its guard pose from f15 (before the jab)
+    "boxing_cross": ("13_18", 22, 42, False, 10),
 }
-for clip, (take, f0, f1, loops) in MOCAP.items():
+HOLD = {"boxing_cross": ("L", 15)}
+# the performer stands bladed, so "hips forward" is ~45 deg off the punching line; turn the boxing takes so punches
+# go straight at the viewer's target (-Y), like the hand-keyed footwork / guard clips
+TURN = {"boxing_stance": -40.0, "boxing_jab": -40.0, "boxing_cross": -20.0}
+for clip, (take, f0, f1, loops, settle) in MOCAP.items():
     old_act = bpy.data.actions.get(clip)
     if old_act:
         bpy.data.actions.remove(old_act)
-    act_, _ = mr.retarget(arm, np.load(os.path.join(ROOT, "assets/mocap", take + ".npz")), f0, f1, clip, loop=loops)
+    act_, _ = mr.retarget(arm, np.load(os.path.join(ROOT, "assets/mocap", take + ".npz")), f0, f1, clip, loop=loops, settle=settle, hold=HOLD.get(clip), turn=TURN.get(clip, 0.0))
     act_.name = clip
     print("mocap", clip, take, f0, f1)
 
@@ -640,6 +646,61 @@ for act in list(bpy.data.actions):
     if not act.name.startswith("pushup_"):
         foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"))
 print("foot lock done")
+
+
+# ---- guard height: the boxing takes drop the non-punching hand to chest height between punches; a beginner lesson
+#      should show the guard at the chin. Whenever an arm is retracted, pull its wrist (two-bone IK, elbow keeps its
+#      bend direction, fist keeps its orientation) to the stance clip's average guard position relative to the head (fists stay at the chin).
+def guard_fix(act, ref):
+    pbs = arm.pose.bones
+    arm.animation_data.action = ref
+    ra, rb = [int(x) for x in ref.frame_range]
+    acc = {"L": Vector(), "R": Vector()}
+    for f in range(ra, rb + 1):
+        sc.frame_set(f)
+        ci = pbs["head"].matrix.inverted()
+        for s_ in acc:
+            acc[s_] += ci @ Vector(pbs[f"hand_{s_}"].head)
+    guard = {s_: v / (rb - ra + 1) for s_, v in acc.items()}
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        for s_ in ("L", "R"):
+            ua, fa, hd = pbs[f"upper_arm_{s_}"], pbs[f"forearm_{s_}"], pbs[f"hand_{s_}"]
+            S, K, W = Vector(ua.head), Vector(fa.head), Vector(hd.head)
+            l1, l2 = (K - S).length, (W - K).length
+            ext = (W - S).length / (l1 + l2)
+            w = min(max((0.80 - ext) / 0.20, 0.0), 1.0)
+            w = w * w * (3 - 2 * w)
+            if w < 0.01:
+                continue
+            target = W.lerp(pbs["head"].matrix @ guard[s_], w)
+            hand_m = hd.matrix.copy()
+            dvec = target - S
+            dist = min(dvec.length, l1 + l2 - 1e-4)
+            dn = dvec.normalized()
+            bend = (K - S) - dn * (K - S).dot(dn)
+            bend = bend.normalized() if bend.length > 1e-5 else Vector((0, 0, -1))
+            a = (l1 * l1 + dist * dist - l2 * l2) / (2 * dist)
+            h = math.sqrt(max(l1 * l1 - a * a, 0.0))
+            K2 = S + dn * a + bend * h
+            for pb, tail in ((ua, K2), (fa, S + dn * dist)):
+                M = pb.matrix.copy()
+                cur = (Vector(pb.tail) - Vector(pb.head)).normalized()
+                q = cur.rotation_difference((tail - Vector(pb.head)).normalized())
+                pb.matrix = Matrix.Translation(M.translation) @ (q.to_matrix() @ M.to_3x3()).to_4x4()
+                bpy.context.view_layer.update()
+            hd.matrix = Matrix.Translation(Vector(hd.head)) @ hand_m.to_3x3().to_4x4()
+            bpy.context.view_layer.update()
+            for pb in (ua, fa, hd):
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+for clip in ("boxing_jab", "boxing_cross"):
+    guard_fix(bpy.data.actions[clip], bpy.data.actions["boxing_stance"])
+print("guard fix done")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
 GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}

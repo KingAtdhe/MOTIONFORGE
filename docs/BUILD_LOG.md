@@ -355,3 +355,17 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Lessons open on their recommended camera angle (side / ¾ / front); new ¾ view button.
 - Tests: DemoClipsTest checks every catalogue lesson resolves a 3D demo and the default-angle mapping.
 - Known: female push-up bottom frame has ~1 cm hand/floor overlap; not yet checked on a real device.
+
+## Punch accuracy + app redesign (2026-11-19)
+- Found: the CMU take used for jab and cross only contains jab→cross combinations, so the "jab" clip also threw a
+  cross and the "cross" clip started mid-jab; the bladed performer also punched ~45° off the camera's target line,
+  and dropped the guard to chest height between punches.
+- Fixed in the build: jab = f88–104 eased back to guard (`settle`), cross = f22–42 with the lead arm held in guard
+  (`hold`), boxing takes turned so punches aim at the viewer's target (`turn`), and a guard pass (two-bone IK) puts
+  the non-punching fist back at the chin. Audit: jab rear elbow stays 82–89°, cross lead elbow 60–70°, feet still.
+- New `tools/blender/render_thumbs.py`: Cycles stills of each coach for every lesson + a hero portrait
+  (`app/src/main/assets/thumbs/coach_*`, ~550 KB total).
+- UI: Home rebuilt (coach hero "Today" card, stats, picture carousels per category); Train is a 2-column picture
+  grid with pill filters; lesson page opens on the 3D demo with round play/replay buttons and pill speed/angle
+  pickers, numbered step badges, ✕/✓ mistakes; onboarding shows both coaches and dims the one not chosen.
+- Tests: every lesson has a still for both coaches (DemoClipsTest). Not run on a device yet.

@@ -136,6 +136,7 @@ fun MotionForgeApp(
             composable(Routes.TRAIN) {
                 TrainScreen(
                     catalog = catalog,
+                    coach = preferences.coach,
                     filter = filter,
                     onCategory = catalogViewModel::setCategory,
                     onDuration = catalogViewModel::setDuration,

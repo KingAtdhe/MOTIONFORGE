@@ -1,7 +1,20 @@
 package eu.motionforge.app.feature.lesson
 
 import android.provider.Settings
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.Surface
+import androidx.compose.ui.semantics.contentDescription
+import eu.motionforge.app.core.design.SegmentedPill
+import eu.motionforge.app.core.design.accent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,7 +41,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import eu.motionforge.app.MotionForgeApplication
-import eu.motionforge.app.core.design.ChoiceButton
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
@@ -102,18 +113,19 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
     LaunchedEffect(playback, sequence) { playback.playSequence(sequence) }
     val speeds = listOf(1f, 0.5f, 0.25f)
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Eyebrow("3D demonstration")
+    val accent = exercise.category.accent
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(380.dp)
-                .clip(RoundedCornerShape(14.dp)),
+                .height(420.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(24.dp)),
         ) {
             GlbModelView(
                 assetPath = manifest.assetPath,
                 playback = playback,
-                modifier = Modifier.fillMaxWidth().height(380.dp),
+                modifier = Modifier.fillMaxWidth().height(420.dp),
                 allowOrbit = false,
                 contentDescription = "3D trainer demonstrating ${exercise.name}",
             )
@@ -129,35 +141,57 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     if (clip != null) {
                         val label = DemoSequence.phaseLabel(clip) +
                             if (playback.sequence.size > 1) "  ${playback.currentStep + 1}/${playback.sequence.size}" else ""
-                        Text(
-                            label,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MfColors.Chalk,
+                        Surface(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
                                 .padding(12.dp)
                                 .semantics { liveRegion = LiveRegionMode.Polite },
-                        )
+                            shape = RoundedCornerShape(50),
+                            color = MfColors.Ink.copy(alpha = 0.78f),
+                        ) {
+                            Text(
+                                label.uppercase(),
+                                Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = accent,
+                            )
+                        }
                     }
                 }
             }
         }
 
         if (playback.loadState is GlbLoadState.Loaded) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ChoiceButton(if (playback.playing) "Pause" else "Play", selected = false, onClick = { playback.playing = !playback.playing })
-                OutlinedButton(onClick = { playback.replay() }) { Text("Replay") }
-            }
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                speeds.forEach { sp ->
-                    ChoiceButton(if (sp == 1f) "1×" else "$sp×", playback.speed == sp, { playback.speed = sp })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                FilledIconButton(
+                    onClick = { playback.playing = !playback.playing },
+                    modifier = Modifier.size(52.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = MfColors.Ink),
+                ) {
+                    if (playback.playing) {
+                        Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Pause" })
+                    } else {
+                        Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
+                    }
                 }
-            }
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ViewAngle.entries.forEach { angle ->
-                    ChoiceButton(angle.label, playback.viewAngle == angle, { playback.viewAngle = angle })
+                OutlinedIconButton(onClick = { playback.replay() }, modifier = Modifier.size(52.dp)) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "Replay")
                 }
+                SegmentedPill(
+                    options = speeds.map { if (it == 1f) "1×" else "$it×" },
+                    selectedIndex = speeds.indexOf(playback.speed).coerceAtLeast(0),
+                    onSelect = { playback.speed = speeds[it] },
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    accent = MfColors.Chalk,
+                )
             }
+            SegmentedPill(
+                options = ViewAngle.entries.map { it.label },
+                selectedIndex = ViewAngle.entries.indexOf(playback.viewAngle),
+                onSelect = { playback.viewAngle = ViewAngle.entries[it] },
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                accent = accent,
+            )
             if (reduceMotion && !playback.playing) {
                 Text(
                     "Animations are reduced on this phone, so the demonstration starts paused.",

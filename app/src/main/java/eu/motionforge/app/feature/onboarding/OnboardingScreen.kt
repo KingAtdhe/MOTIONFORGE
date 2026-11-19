@@ -1,12 +1,19 @@
 package eu.motionforge.app.feature.onboarding
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.alpha
+import eu.motionforge.app.core.design.CoachArt
+import eu.motionforge.app.core.model.Coach
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -117,11 +124,12 @@ private fun ColumnScope.Heading(title: String, body: String) {
 
 @Composable
 private fun ColumnScope.WelcomeStep() {
-    Eyebrow("MOTIONFORGE")
+    Eyebrow("MOTIONFORGE", color = MaterialTheme.colorScheme.primary)
+    CoachPair(Modifier.fillMaxWidth().height(280.dp))
     Heading(
         "See the movement. Practise it. Understand your progress.",
-        "Short guided sessions for beginner fitness and non-contact boxing fundamentals, with clear " +
-            "written steps and — in upcoming builds — a 3D trainer and on-device camera tracking.",
+        "Short guided sessions for beginner fitness and non-contact boxing fundamentals. A 3D coach demonstrates " +
+            "every lesson, and the camera can track your movement on this phone.",
     )
     Panel {
         Text("No account needed. Your progress stays on this phone.", style = MaterialTheme.typography.bodyMedium)
@@ -220,6 +228,7 @@ private fun ColumnScope.CoachStep(selected: GenderAnswer?, onEvent: (OnboardingE
         "Are you a woman or a man?",
         "We'll show you a matching 3D coach. Only the coach choice is saved on this phone — you can switch coach any time in Profile.",
     )
+    CoachPair(Modifier.fillMaxWidth().height(220.dp), highlight = selected?.let { if (it == GenderAnswer.MAN) Coach.MALE else Coach.FEMALE })
     GenderAnswer.entries.forEach { g ->
         SelectableOption(
             title = g.label,
@@ -231,5 +240,28 @@ private fun ColumnScope.CoachStep(selected: GenderAnswer?, onEvent: (OnboardingE
             selected = selected == g,
             onSelect = { onEvent(OnboardingEvent.GenderChosen(g)) },
         )
+    }
+}
+
+/** Both coaches side by side; the highlighted one is shown at full strength. Decorative (choices are labelled). */
+@Composable
+private fun CoachPair(modifier: Modifier, highlight: Coach? = null) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(Coach.FEMALE, Coach.MALE).forEach { c ->
+            val dim = highlight != null && highlight != c
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(androidx.compose.ui.graphics.Color.Transparent, MaterialTheme.colorScheme.primary.copy(alpha = if (dim) 0.04f else 0.18f)),
+                        ),
+                        androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                    ),
+            ) {
+                CoachArt(c.heroArt, Modifier.fillMaxSize().alpha(if (dim) 0.35f else 1f))
+            }
+        }
     }
 }

@@ -1,6 +1,12 @@
 package eu.motionforge.app.feature.lesson
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import eu.motionforge.app.core.design.accent
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -71,6 +77,7 @@ fun LessonDetailScreen(
 private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice: (String) -> Unit) {
     ScreenColumn(title = exercise.name, onBack = onBack) {
         Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TrainerDemo(exercise)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FactChip(exercise.category.displayName)
             FactChip(exercise.level.displayName)
@@ -101,16 +108,20 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             )
         }
 
-        TrainerDemo(exercise)
-
         PrimaryButton("Start practice · ${exercise.durationSeconds} s", onClick = { onStartPractice(exercise.id) })
 
         SectionTitle("How to do it")
+        val accent = exercise.category.accent
         exercise.instructions.forEachIndexed { i, step ->
-            Row {
-                Text("${i + 1}.", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(12.dp))
-                Text(step, style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    Modifier.size(32.dp).background(accent.copy(alpha = 0.16f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("${i + 1}", style = MaterialTheme.typography.titleLarge, color = accent)
+                }
+                Spacer(Modifier.width(14.dp))
+                Text(step, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
             }
         }
 
@@ -123,8 +134,8 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             SectionTitle("Common mistakes")
             exercise.commonMistakes.forEach { m ->
                 Panel {
-                    Text(m.mistake, style = MaterialTheme.typography.titleMedium)
-                    Text("Try: ${m.adjustment}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("✕  ${m.mistake}", style = MaterialTheme.typography.titleMedium, color = MfColors.Halt)
+                    Text("✓  ${m.adjustment}", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }

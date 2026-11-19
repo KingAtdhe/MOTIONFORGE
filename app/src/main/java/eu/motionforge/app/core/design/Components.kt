@@ -243,3 +243,102 @@ fun formatClock(totalSeconds: Int): String {
     val s = totalSeconds.coerceAtLeast(0)
     return "%d:%02d".format(s / 60, s % 60)
 }
+
+/**
+ * Picture card for a lesson: the coach performing the move over a category-tinted backdrop, name and facts below.
+ * The whole card is one button; the picture is decorative (the title says what it is).
+ */
+@Composable
+fun LessonTile(
+    title: String,
+    meta: String,
+    accent: Color,
+    artPath: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    eyebrow: String? = null,
+    artHeight: androidx.compose.ui.unit.Dp = 168.dp,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Button },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(artHeight)
+                    .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.05f), accent.copy(alpha = 0.30f)))),
+            ) {
+                CoachArt(
+                    artPath,
+                    Modifier.fillMaxWidth().height(artHeight).padding(top = 8.dp),
+                )
+                if (eyebrow != null) {
+                    Surface(
+                        modifier = Modifier.padding(10.dp),
+                        shape = RoundedCornerShape(50),
+                        color = MfColors.Ink.copy(alpha = 0.78f),
+                    ) {
+                        Text(
+                            eyebrow.uppercase(),
+                            Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accent,
+                        )
+                    }
+                }
+            }
+            Box(Modifier.fillMaxWidth().height(3.dp).background(accent))
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title.uppercase(), style = MaterialTheme.typography.titleLarge, maxLines = 2)
+                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
+        }
+    }
+}
+
+/** Pill-shaped single-choice control (speed, camera angle). Each option exposes its selected state. */
+@Composable
+fun SegmentedPill(
+    options: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    accent: Color = MfColors.Volt,
+) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+        Row(Modifier.padding(4.dp)) {
+            options.forEachIndexed { i, label ->
+                val selected = i == selectedIndex
+                Surface(
+                    modifier = Modifier
+                        .heightIn(min = 44.dp)
+                        .selectable(selected = selected, onClick = { onSelect(i) }, role = Role.RadioButton),
+                    shape = RoundedCornerShape(50),
+                    color = if (selected) accent else Color.Transparent,
+                ) {
+                    Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                        Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) MfColors.Ink else MfColors.Chalk)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Section heading with an optional trailing count, used between home/train blocks. */
+@Composable
+fun SectionHeader(title: String, trailing: String? = null) {
+    Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.Bottom) {
+        Text(
+            title.uppercase(),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.weight(1f).semantics { androidx.compose.ui.semantics.heading() },
+        )
+        if (trailing != null) Text(trailing.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

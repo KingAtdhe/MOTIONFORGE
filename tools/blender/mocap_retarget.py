@@ -31,8 +31,13 @@ def _frame(up, side):
     return Matrix((side, up, fwd)).transposed()            # columns: side, up, forward
 
 
-def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2, loop=False, fps=30):
-    P = np.asarray(data["P"], np.float64)[f0:f1 + 1]
+def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2, loop=False, fps=30, settle=0, hold=None, turn=0.0):
+    """settle > 0: append that many frames easing from the last recorded pose back to the first one, so a single
+    punch cut out of a combination returns to guard instead of running into the next punch.
+    hold=("L", g): the left arm keeps its pose from recorded frame g (< f0, a guard) for the whole clip, so a rear
+    punch cut from a combination doesn't show the lead hand still coming back from the jab."""
+    g0 = min(f0, hold[1]) if hold else f0
+    P = np.asarray(data["P"], np.float64)[g0:f1 + 1]
     I = {n: i for i, n in enumerate(list(data["names"]))}
     if smooth:
         from scipy.ndimage import gaussian_filter1d
@@ -42,6 +47,7 @@ def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2,
     up = np.array([0.0, 0.0, 1.0])
     fwd = np.cross(side, up).mean(0)       # Blender: X x Z ... forward for a character whose left is +X is -Y
     ang = math.atan2(fwd[1], fwd[0]) - math.atan2(-1.0, 0.0)
+    ang -= math.radians(turn)              # extra turn (deg, counter-clockwise seen from above), e.g. so punches aim at -Y
     R = np.array([[math.cos(-ang), -math.sin(-ang), 0], [math.sin(-ang), math.cos(-ang), 0], [0, 0, 1]])
     P = P @ R.T
     hips0 = P[0, I["Hips"]].copy()
@@ -110,6 +116,15 @@ def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2,
             basis = inherit.inverted() @ new
             l, r, _ = basis.decompose()
             keys.setdefault(b.name, []).append((r, l if b.name == "hips" else Vector((0, 0, 0))))
+    if hold:
+        side_, g = hold
+        gi = g - g0
+        for bn in (f"shoulder_{side_}", f"upper_arm_{side_}", f"forearm_{side_}", f"hand_{side_}"):
+            r_hold = keys[bn][gi][0]
+            keys[bn] = [(r_hold, l) for (_, l) in keys[bn]]
+        cut = f0 - g0
+        keys = {bn: seq[cut:] for bn, seq in keys.items()}
+        n -= cut
     if loop and n > 16:
         # blend the last K frames toward the first pose so the clip loops without a pop
         K = min(12, n // 3)
@@ -119,6 +134,14 @@ def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2,
                 w = (i + 1) / K
                 r, l = seq[n - K + i]
                 seq[n - K + i] = (r.slerp(r0, w * w * (3 - 2 * w)), l.lerp(l0, w * w * (3 - 2 * w)))
+    if settle:
+        for bn, seq in keys.items():
+            (r0, l0), (r1, l1) = seq[0], seq[-1]
+            for i in range(settle):
+                w = (i + 1) / settle
+                w = w * w * (3 - 2 * w)
+                seq.append((r1.slerp(r0, w), l1.lerp(l0, w)))
+        n += settle
     for bn, seq in keys.items():
         pb = arm.pose.bones[bn]
         pb.rotation_mode = "QUATERNION"

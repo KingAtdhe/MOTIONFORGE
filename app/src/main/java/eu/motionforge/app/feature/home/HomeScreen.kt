@@ -1,30 +1,56 @@
 package eu.motionforge.app.feature.home
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.motionforge.app.core.design.CoachArt
 import eu.motionforge.app.core.design.Eyebrow
-import eu.motionforge.app.core.design.HeroCard
-import eu.motionforge.app.core.design.LessonCard
-import eu.motionforge.app.core.design.accent
-import eu.motionforge.app.feature.session.SessionPlanner
-import eu.motionforge.app.feature.session.SessionStep
+import eu.motionforge.app.core.design.LessonTile
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
-import eu.motionforge.app.core.design.ScreenColumn
+import eu.motionforge.app.core.design.SectionHeader
+import eu.motionforge.app.core.design.StatTile
+import eu.motionforge.app.core.design.accent
+import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.model.TrainingCategory
 import eu.motionforge.app.data.UserPreferences
 import eu.motionforge.app.feature.catalog.CatalogUiState
 import eu.motionforge.app.feature.catalog.LessonSuggestions
+import eu.motionforge.app.feature.session.SessionPlan
+import eu.motionforge.app.feature.session.SessionPlanner
+import eu.motionforge.app.feature.session.SessionStep
 
 @Composable
 fun HomeScreen(
@@ -36,14 +62,25 @@ fun HomeScreen(
     sessionsThisWeek: Int?,
     onRetry: () -> Unit,
 ) {
-    ScreenColumn(title = "Ready to move?") {
-        val focusText = preferences.focus?.displayName ?: "All lessons"
-        val goalText = preferences.goal?.displayName
-        Text(
-            if (goalText != null) "Focus: $focusText · Goal: $goalText" else "Focus: $focusText",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    val coach = preferences.coach
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column {
+            Eyebrow("MOTIONFORGE", color = MaterialTheme.colorScheme.primary)
+            Text("READY TO MOVE?", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
+            val focusText = preferences.focus?.displayName ?: "All lessons"
+            val goalText = preferences.goal?.displayName
+            Text(
+                if (goalText != null) "$focusText · $goalText" else focusText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         when (catalog) {
             CatalogUiState.Loading -> Row(verticalAlignment = Alignment.CenterVertically) {
@@ -58,47 +95,37 @@ fun HomeScreen(
             }
             is CatalogUiState.Ready -> {
                 val exercises = catalog.exercises
-                val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
-                val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
-
-                val accent = (preferences.focus ?: TrainingCategory.FITNESS).accent
                 val quick = SessionPlanner.quick(exercises, preferences.focus)
+                val accent = (preferences.focus ?: TrainingCategory.FITNESS).accent
                 if (quick != null) {
-                    HeroCard(
-                        eyebrow = "Today · about ${(quick.totalSeconds + 30) / 60} min",
-                        title = quick.title,
-                        body = quick.steps.filterIsInstance<SessionStep.Work>().joinToString(" → ") { it.name },
-                        action = "Start session",
-                        accent = accent,
-                        onClick = onStartQuickSession,
-                    )
+                    TodayHero(quick, coach, accent, onStartQuickSession)
                 } else {
                     Panel { Text("No lessons are available in this build.") }
                 }
-                if (sessionsThisWeek != null) {
-                    Text(
-                        if (sessionsThisWeek == 0) "No sessions saved this week yet." else "$sessionsThisWeek session${if (sessionsThisWeek == 1) "" else "s"} saved this week.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (lastViewed != null) {
-                    HomeLesson("Continue where you left off", lastViewed, onOpenLesson)
-                }
-                if (suggestion != null) {
-                    HomeLesson("Suggested lesson", suggestion, onOpenLesson)
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StatTile(sessionsThisWeek?.toString() ?: "–", "Sessions this week", Modifier.weight(1f), accent = accent)
+                    StatTile(exercises.size.toString(), "Lessons", Modifier.weight(1f))
                 }
 
-                Eyebrow("Categories")
+                val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
+                val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
+                val picks = listOfNotNull(lastViewed?.let { "Continue" to it }, suggestion?.let { "Suggested" to it })
+                if (picks.isNotEmpty()) {
+                    SectionHeader("For you")
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        picks.forEach { (label, ex) -> HomeTile(ex, coach, onOpenLesson, label) }
+                    }
+                }
+
                 TrainingCategory.entries.forEach { category ->
-                    val count = exercises.count { it.category == category }
-                    LessonCard(
-                        title = category.displayName,
-                        subtitle = "$count beginner lessons",
-                        facts = emptyList(),
-                        accent = category.accent,
-                        onClick = { onOpenCategory(category) },
-                    )
+                    val inCategory = exercises.filter { it.category == category }
+                    if (inCategory.isNotEmpty()) {
+                        CategoryHeader(category, inCategory.size, onOpenCategory)
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            inCategory.forEach { HomeTile(it, coach, onOpenLesson) }
+                        }
+                    }
                 }
             }
         }
@@ -115,13 +142,79 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeLesson(label: String, exercise: Exercise, onOpenLesson: (String) -> Unit) {
-    LessonCard(
+private fun TodayHero(plan: SessionPlan, coach: Coach, accent: Color, onStart: () -> Unit) {
+    val minutes = (plan.totalSeconds + 30) / 60
+    Surface(
+        onClick = onStart,
+        modifier = Modifier.fillMaxWidth().height(300.dp).semantics { role = Role.Button },
+        shape = RoundedCornerShape(26.dp),
+        color = MfColors.Panel,
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.5f)),
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.linearGradient(listOf(accent.copy(alpha = 0.38f), MfColors.Panel, MfColors.Ink))),
+        ) {
+            // coach portrait on the right, behind the text
+            CoachArt(
+                coach.heroArt,
+                Modifier.align(Alignment.BottomEnd).fillMaxHeight().width(190.dp).padding(top = 10.dp),
+                contentScale = ContentScale.Fit,
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Brush.horizontalGradient(0f to MfColors.Ink.copy(alpha = 0.55f), 0.6f to Color.Transparent)),
+            )
+            Column(
+                Modifier.fillMaxHeight().fillMaxWidth(0.62f).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Eyebrow("Today · about $minutes min", color = accent)
+                Text(plan.title.uppercase(), style = MaterialTheme.typography.headlineLarge)
+                Text(
+                    plan.steps.filterIsInstance<SessionStep.Work>().joinToString(" → ") { it.name },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MfColors.Chalk.copy(alpha = 0.8f),
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.weight(1f))
+                Surface(shape = RoundedCornerShape(50), color = accent) {
+                    Text(
+                        "▶  START",
+                        Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MfColors.Ink,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryHeader(category: TrainingCategory, count: Int, onOpenCategory: (TrainingCategory) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.width(4.dp).height(22.dp).background(category.accent, RoundedCornerShape(2.dp)))
+        Spacer(Modifier.width(10.dp))
+        Text(category.displayName.uppercase(), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
+        androidx.compose.material3.TextButton(onClick = { onOpenCategory(category) }) {
+            Text("All $count  ›", color = category.accent)
+        }
+    }
+}
+
+@Composable
+private fun HomeTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit, eyebrow: String? = null) {
+    LessonTile(
         title = exercise.name,
-        subtitle = exercise.purpose,
-        facts = listOf(exercise.category.displayName, "${exercise.durationSeconds} s"),
+        meta = "${exercise.durationSeconds} s · ${exercise.level.displayName}",
         accent = exercise.category.accent,
+        artPath = coach.lessonArt(exercise.id),
         onClick = { onOpenLesson(exercise.id) },
-        eyebrow = label,
+        modifier = Modifier.width(170.dp),
+        eyebrow = eyebrow,
     )
 }
