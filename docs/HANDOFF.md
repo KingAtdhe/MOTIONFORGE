@@ -20,18 +20,13 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 - 82 JVM unit tests.
 
 ## Trainer / coach model
-- **Current in-app model (v5, 19 Nov):** female coach built from the owner's sheet
-  `assets/blender/references/workout_coach_owner_sheet.png` (now in the repo). Pipeline in
-  `tools/coach_from_sheet/` (see its README) + `tools/blender/build_coach_sheet.py`: body shape from the
-  sheet's front + side outlines (outline overlap ~0.95 IoU), the owner's painting projected onto it
-  (front/back/both sides, chest logo removed, 2048 JPEG texture), sculpted fist-capable hands, rig with finger
-  bones, A-pose rest, the 9 clips. ~28.8k tris, GLB 1.8 MB, unlit materials. Paint source is a 4x-restored copy
-  of the sheet (`esrgan.py`); gloves painted per vertex to match the sheet's glove detail. Side-by-side check:
-  `assets/blender/references/coach_f_v5_vs_sheet.jpg`.
-- Weak spots: painted detail is soft (sheet figures are ~420 px tall — a bigger sheet would sharpen it);
-  smudges on the sides of the head/torso and inner thighs where no view saw the surface cleanly; hands are
-  plain sculpted pieces next to the painted arms; ponytail is a simple lock; male coach not built.
-- `build_coach.py` (procedural cel coach, v4) is kept for reference but **running it overwrites the in-app GLB**.
+- **In the app (v7):** `models/coach_f.glb` (female, default) and `models/coach_m.glb` (male), chosen in Profile →
+  "Your coach". Both are the owner's sculpted meshes (generated from her sheet; source GLBs kept outside the repo)
+  processed by `tools/blender/build_coach_mesh.py` — see BUILD_LOG 2026-11-19 v7. Sheet:
+  `assets/blender/references/coaches_v7.jpg`.
+- Rebuild: `python tools/blender/build_coach_mesh.py <owner.glb> coach_f 1.70 --app` (same for coach_m 1.85).
+- Earlier code-built coaches (`build_coach.py`, `build_coach_sheet.py`, `tools/coach_from_sheet/`) are kept for
+  reference only; they write `trainer_avatar.glb`, which the app no longer uses.
 
 ## Environment tricks that worked
 - No Android SDK in the workspace; GitHub Actions is the compile check. Poll runs through

@@ -128,4 +128,4 @@ private fun StaticFallback(reason: String, modifier: Modifier = Modifier) {
     }
 }
 
-private const val SPIKE_ASSET = "models/trainer_avatar.glb"
+private const val SPIKE_ASSET = "models/coach_f.glb"

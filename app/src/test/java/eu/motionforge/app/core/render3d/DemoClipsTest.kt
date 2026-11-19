@@ -32,9 +32,18 @@ class DemoClipsTest {
 
     @Test
     fun manifestMatchesTheExportedGlb() {
-        val glb = File(assets, manifest.assetPath)
-        assertTrue("GLB missing: $glb", glb.exists())
-        assertEquals(manifest.names, glbAnimationNames(glb))
+        eu.motionforge.app.core.model.Coach.entries.forEach { coach ->
+            val m = ClipManifest.parse(File(assets, coach.manifestPath).readText())
+            val glb = File(assets, m.assetPath)
+            assertTrue("GLB missing for $coach: $glb", glb.exists())
+            assertEquals("clips of $coach", m.names, glbAnimationNames(glb))
+        }
+    }
+
+    @Test
+    fun everyCoachHasTheSameClips() {
+        val sets = eu.motionforge.app.core.model.Coach.entries.map { ClipManifest.parse(File(assets, it.manifestPath).readText()).names }
+        sets.forEach { assertEquals(sets.first(), it) }
     }
 
     @Test

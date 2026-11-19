@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -37,6 +38,7 @@ import eu.motionforge.app.core.model.ReviewStatus
 import eu.motionforge.app.core.render3d.ClipManifest
 import eu.motionforge.app.core.render3d.DemoSequence
 import eu.motionforge.app.core.render3d.GlbLoadState
+import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.render3d.GlbModelView
 import eu.motionforge.app.core.render3d.GlbPlayback
 import eu.motionforge.app.core.render3d.ViewAngle
@@ -52,12 +54,14 @@ private sealed interface DemoAvailability {
 @Composable
 fun TrainerDemo(exercise: Exercise) {
     val context = LocalContext.current
-    val clipsRepo = remember { (context.applicationContext as MotionForgeApplication).container.clips }
-    val availability by produceState<DemoAvailability>(DemoAvailability.Checking, exercise.id) {
+    val container = remember { (context.applicationContext as MotionForgeApplication).container }
+    val clipsRepo = container.clips
+    val coach = rememberCoach()
+    val availability by produceState<DemoAvailability>(DemoAvailability.Checking, exercise.id, coach) {
         value = if (exercise.demoAnimation == null) {
             DemoAvailability.WrittenOnly
         } else {
-            clipsRepo.trainer().fold(
+            clipsRepo.trainer(coach).fold(
                 onSuccess = { m ->
                     val seq = DemoSequence.resolve(exercise.demoAnimation, m.names)
                     if (seq.isEmpty()) DemoAvailability.NotReady else DemoAvailability.Ready(m, seq)
@@ -178,8 +182,9 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
 fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val clipsRepo = remember { (context.applicationContext as MotionForgeApplication).container.clips }
-    val availability by produceState<DemoAvailability>(DemoAvailability.Checking, exercise.id) {
-        value = clipsRepo.trainer().fold(
+    val coach = rememberCoach()
+    val availability by produceState<DemoAvailability>(DemoAvailability.Checking, exercise.id, coach) {
+        value = clipsRepo.trainer(coach).fold(
             onSuccess = { m ->
                 val seq = DemoSequence.resolve(exercise.demoAnimation, m.names)
                 if (seq.isEmpty()) DemoAvailability.NotReady else DemoAvailability.Ready(m, seq)
@@ -210,4 +215,13 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
             }
         }
     }
+}
+
+/** The coach chosen in Profile (default until preferences load). */
+@Composable
+private fun rememberCoach(): Coach {
+    val context = LocalContext.current
+    val prefs = remember { (context.applicationContext as MotionForgeApplication).container.preferences }
+    val state by prefs.preferences.collectAsState(initial = null)
+    return state?.coach ?: Coach.DEFAULT
 }

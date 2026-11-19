@@ -2,6 +2,8 @@ package eu.motionforge.app.feature.settings
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -12,19 +14,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import eu.motionforge.app.BuildConfig
+import eu.motionforge.app.MotionForgeApplication
+import eu.motionforge.app.core.design.ChoiceButton
+import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.ScreenColumn
 import eu.motionforge.app.data.UserPreferences
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
@@ -37,6 +46,8 @@ fun ProfileScreen(
     var cameraGranted by rememberSaveable { mutableStateOf(granted()) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { cameraGranted = granted() }
     var confirmReset by rememberSaveable { mutableStateOf(false) }
+    val prefsRepo = remember { (context.applicationContext as MotionForgeApplication).container.preferences }
+    val scope = rememberCoroutineScope()
 
     ScreenColumn(title = "Profile") {
         Panel {
@@ -44,6 +55,19 @@ fun ProfileScreen(
             Text("Focus: ${preferences.focus?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Goal: ${preferences.goal?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Account: guest (no account needed)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Panel {
+            Eyebrow("Your coach")
+            Text("Who demonstrates the moves in lessons and sessions.", style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Coach.entries.forEach { c ->
+                    ChoiceButton(
+                        label = c.displayName,
+                        selected = preferences.coach == c,
+                        onClick = { scope.launch { prefsRepo.setCoach(c) } },
+                    )
+                }
+            }
         }
         Panel {
             Eyebrow("Camera & privacy")
@@ -59,7 +83,7 @@ fun ProfileScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                "Stored on this phone: your focus, goal and last viewed lesson. Nothing is sent to a server.",
+                "Stored on this phone: your focus, goal, chosen coach and last viewed lesson. Nothing is sent to a server.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -36,9 +36,9 @@ jobs:
       - name: Verify APK contents
         run: |
           APK=app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$APK" | tee apk-contents.txt | grep -E "assets/models/pose_landmarker_lite.task|assets/models/trainer_avatar.glb|assets/models/trainer_avatar.clips.json|assets/exercise_data/exercises.json"
+          unzip -l "$APK" | tee apk-contents.txt | grep -E "assets/models/pose_landmarker_lite.task|assets/models/coach_f.glb|assets/models/coach_f.clips.json|assets/models/coach_m.glb|assets/models/coach_m.clips.json|assets/exercise_data/exercises.json"
           # Model and GLB must be stored uncompressed (MediaPipe memory-maps the model).
-          unzip -v "$APK" | grep -E "pose_landmarker_lite.task" | grep -q " Stored " && unzip -v "$APK" | grep -E "trainer_avatar.glb" | grep -q " Stored "
+          unzip -v "$APK" | grep -E "pose_landmarker_lite.task" | grep -q " Stored " && unzip -v "$APK" | grep -E "coach_f.glb" | grep -q " Stored "
           echo "APK size: $(du -h "$APK" | cut -f1)"
 
       - name: Lint (report only during Phase 0)

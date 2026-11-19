@@ -278,3 +278,18 @@ painting onto it.
   fabric 0.68 matte, hair 0.36 glossy; creases a touch rougher), packed glTF-style (G = roughness).
 - Arm skin: painted crease shadows lifted toward the arm's overall tone; bruise-coloured patches (too little
   green for skin) recoloured to the global arm skin hue at their own brightness. GLB 2.24 MB, validator 0 errors.
+
+### 2026-11-19 / Coaches v7 — owner-supplied sculpted meshes, both coaches in the app
+- Owner supplied two sculpted GLBs (Tripo, generated from her Workout Coach sheet; ~2M tris, 4K maps each). Source
+  files are hers and are not committed (65 MB each); keep them outside the repo.
+- `tools/blender/build_coach_mesh.py <glb> <name> <height>`: scale to height (1.70 / 1.85 m), decimate to 30k tris,
+  new UVs, bake base colour / roughness / tangent normals from the full-detail mesh (2048), joints measured on the
+  mesh (arm/leg centrelines, crotch), rig with the standard 25 bones, heat weights computed on a voxel-remeshed
+  proxy (0.0032 m) and transferred to the game mesh (heat fails on the raw generated mesh), ≤4 influences,
+  the 9 clips with `REST_ARM` = the model's own arm angle. Outputs `assets/blender/{source,exports}/coach_f|coach_m`.
+- App: `Coach` enum (female default / male), choice stored in preferences, "Your coach" picker in Profile, lesson and
+  session demos load the chosen coach's manifest. Old `trainer_avatar` assets removed from the APK; CI checks both
+  coach GLBs. Tests: both manifests match their GLBs and share the same clip set.
+- Checks: glTF-Validator 0 errors for both (30k tris, 9 animations, 3×2048 JPEG maps, GLB ~4.5 MB each).
+- Not verified on a device. Known issues: male back texture is darker than the sheet (from the generated mesh);
+  a few thin hair spikes in deep poses; fingers rigid (hands are sculpted loosely closed); clips still drafts.

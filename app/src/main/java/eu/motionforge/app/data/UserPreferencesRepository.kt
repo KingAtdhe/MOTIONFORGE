@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.model.TrainingCategory
 import eu.motionforge.app.core.model.TrainingGoal
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +25,7 @@ data class UserPreferences(
     val focus: TrainingCategory?,
     val goal: TrainingGoal?,
     val lastViewedExerciseId: String?,
+    val coach: Coach = Coach.DEFAULT,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -40,6 +42,7 @@ class UserPreferencesRepository(context: Context) {
                 focus = p[FOCUS]?.let { name -> TrainingCategory.entries.firstOrNull { it.name == name } },
                 goal = p[GOAL]?.let { name -> TrainingGoal.entries.firstOrNull { it.name == name } },
                 lastViewedExerciseId = p[LAST_VIEWED],
+                coach = Coach.fromName(p[COACH]),
             )
         }
 
@@ -55,6 +58,10 @@ class UserPreferencesRepository(context: Context) {
         store.edit { it[LAST_VIEWED] = id }
     }
 
+    suspend fun setCoach(coach: Coach) {
+        store.edit { it[COACH] = coach.name }
+    }
+
     /** Local data reset: removes every stored preference and returns the app to onboarding. */
     suspend fun clearAll() {
         store.edit { it.clear() }
@@ -65,5 +72,6 @@ class UserPreferencesRepository(context: Context) {
         val FOCUS = stringPreferencesKey("focus")
         val GOAL = stringPreferencesKey("goal")
         val LAST_VIEWED = stringPreferencesKey("last_viewed_exercise")
+        val COACH = stringPreferencesKey("coach")
     }
 }
