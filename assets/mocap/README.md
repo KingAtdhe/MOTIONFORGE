@@ -29,3 +29,10 @@ Tracked but not used: Pexels 4806552 shadowboxing (legs out of frame, punches to
 13_18 stays for the boxing clips), Pexels 8165998 standing (hands in pockets), Mixkit 52117 (figure too small),
 Mixkit 11766 push-ups (filmed head-on, legs hidden — the push-up stays procedural). Mixkit 40967 (sparring) and
 608 (runner filmed from behind) were not tracked: out of the lesson scope / unusable angle.
+
+Second batch (also tracked, not used): Pexels 7187515 (side-view silhouette shadowboxing — tracks well, but from a
+single side camera the near and far arm get confused, so punches came out twisted; CMU 13_18 is studio mocap and
+stays), Pexels 6296168, 7187405, 7187538 (mostly guard / legs out of frame), Pexels 4804794, 6388436, 8858126, 4812839
+push-ups (elbow bend and body height not recoverable from the camera angle, or a one-leg yoga variant — the
+procedural push-up with planted hands stays). CMU 14_01–03 were checked for footwork: they are free-form in-and-out
+boxing with ducks and lunges, not a beginner step-drag drill, so footwork stays hand-keyed.
