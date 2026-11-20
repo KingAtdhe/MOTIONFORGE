@@ -36,9 +36,19 @@ jobs:
       - name: Verify APK contents
         run: |
           APK=app/build/outputs/apk/debug/app-debug.apk
-          unzip -l "$APK" | tee apk-contents.txt | grep -E "assets/models/pose_landmarker_lite.task|assets/models/coach_f.glb|assets/models/coach_f.clips.json|assets/models/coach_m.glb|assets/models/coach_m.clips.json|assets/exercise_data/exercises.json"
-          # Model and GLB must be stored uncompressed (MediaPipe memory-maps the model).
-          unzip -v "$APK" | grep -E "pose_landmarker_lite.task" | grep -q " Stored " && unzip -v "$APK" | grep -E "coach_f.glb" | grep -q " Stored "
+          unzip -l "$APK" | tee apk-contents.txt
+          grep -q "assets/models/pose_landmarker_lite.task" apk-contents.txt
+          grep -q "assets/exercise_data/exercises.json" apk-contents.txt
+          # Pose model must be stored uncompressed (MediaPipe memory-maps it).
+          unzip -v "$APK" | grep -E "pose_landmarker_lite.task" | grep -q " Stored "
+          # Coach models are optional (none bundled while new coaches are made); when present, each needs its manifest
+          # and must be stored uncompressed.
+          for c in coach_f coach_m; do
+            if [ -f "app/src/main/assets/models/$c.glb" ]; then
+              grep -q "assets/models/$c.clips.json" apk-contents.txt
+              unzip -v "$APK" | grep -E "$c.glb" | grep -q " Stored "
+            fi
+          done
           echo "APK size: $(du -h "$APK" | cut -f1)"
 
       - name: Lint (report only during Phase 0)
