@@ -65,12 +65,12 @@
     },
     {
       "name": "pushup_down",
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "pushup_up",
-      "durationSeconds": 1.2,
+      "durationSeconds": 1.4,
       "reviewStatus": "draft_pending_coach_review"
     }
   ]

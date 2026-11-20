@@ -467,3 +467,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Not converted: shadowboxing, push-up and standing videos (reasons in the mocap README). Boxing stays on CMU mocap;
   push-up stays procedural.
 - Verified: renders of the exported GLBs for both coaches (squat bottom, hinge, march cycle). Not verified on device.
+
+## 2026-11-20 — Push-up from a real-person video
+
+- pushup_down / pushup_up on both coaches now come from a side-view gym push-up (Pexels 4742661) instead of the
+  procedural plank. Lowering slowed to 0.7x and pushing up sped to 1.6x so both phases take ~1.45 s.
+- `landmarks_to_joints.py --straight-legs`: knees on the hip–ankle line and both feet driven from their midpoint at a
+  fixed width (one leg hides the other from a side camera, which made a foot kick up).
+- `build_coach_mesh.plant_hands`: two-bone IK pins each hand to one floor spot across both clips (elbow direction from
+  the recording), then palms flat, fingers forward. `build_pushups()` stays as the fallback when no recording exists.
+- Verified with renders of both exported GLBs. Not verified on device.

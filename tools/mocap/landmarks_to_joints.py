@@ -15,6 +15,7 @@ ap.add_argument("--first", type=int, default=0); ap.add_argument("--last", type=
 ap.add_argument("--sigma", type=float, default=1.6)
 ap.add_argument("--min-vis", type=float, default=0.35)
 ap.add_argument("--speed", type=float, default=1.0, help="playback speed (0.5 = half speed, slowed to a lesson tempo)")
+ap.add_argument("--straight-legs", action="store_true", help="plank moves (push-up): knees on the hip-ankle line, feet heavily smoothed; for clips where the legs track poorly")
 ap.add_argument("--reverse", action="store_true", help="play backwards (e.g. a lowering phase reused for rising)")
 a = ap.parse_args()
 d = np.load(a.inp)
@@ -38,6 +39,18 @@ P = np.stack([np.stack([np.interp(to, t, P[:, j, c]) for c in range(3)], -1) for
 P[..., 0] = gaussian_filter1d(P[..., 0], a.sigma, axis=0, mode="nearest")
 P[..., 2] = gaussian_filter1d(P[..., 2], a.sigma, axis=0, mode="nearest")
 P[..., 1] = gaussian_filter1d(P[..., 1], a.sigma * 1.5, axis=0, mode="nearest")
+
+if a.straight_legs:
+    for j in (27, 28, 29, 30, 31, 32):
+        P[:, j] = gaussian_filter1d(P[:, j], a.sigma * 5, axis=0, mode="nearest")
+    # one leg hides the other from a side camera: drive both feet from their midpoint, fixed width apart
+    for l, r in ((27, 28), (29, 30), (31, 32)):
+        m = (P[:, l] + P[:, r]) * 0.5
+        half = np.median(P[:, l] - P[:, r], axis=0) * 0.5
+        half[2] = 0.0
+        P[:, l], P[:, r] = m + half, m - half
+    for hip, knee, ank in ((23, 25, 27), (24, 26, 28)):
+        P[:, knee] = (P[:, hip] + P[:, ank]) * 0.5
 
 # MediaPipe world landmarks are hip-centred, so the body never drops. Give it its real height: per frame, move
 # everything so the lowest foot point (heels, ankles, toes) sits on the floor (Z = 0).

@@ -574,6 +574,10 @@ MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to 
     # only the flat-back first part of a forward bend (before it rounds into a toe touch), slowed; up = reversed
     "hip_hinge_down": ("vid_hinge_down", 0, 54, False, 0),
     "hip_hinge_up": ("vid_hinge_up", 0, 48, False, 0),
+    # side-view gym push-up (Pexels 4742661): lowering slowed to 0.7x, pushing up sped to 1.6x for an even tempo;
+    # hands are planted on the floor afterwards (plant_hands)
+    "pushup_down": ("vid_pushup_down", 0, 43, False, 0),
+    "pushup_up": ("vid_pushup_up", 0, 42, False, 0),
 }
 # (tried: CMU 13_29 squat softened toward standing — blending a deep squat's joint rotations doesn't give a natural
 #  shallow squat (knees shoot forward, hips stay under the body), so the squat stays hand-keyed with mocap-like timing)
@@ -756,7 +760,80 @@ def build_pushups():
     arm.animation_data.action = None
 
 
-build_pushups()
+
+def plant_hands(acts):
+    """Recorded push-ups: pin each hand to one spot on the floor for both clips (the tracked wrists slide and hover a
+    little), elbows keep their recorded direction (IK pole from the average elbow), palm flat, fingers forward."""
+    from mathutils import Matrix
+    bones = arm.data.bones
+    spots, poles = {"L": [], "R": []}, {"L": [], "R": []}
+    for act in acts:
+        arm.animation_data.action = act
+        a_, b_ = [int(x) for x in act.frame_range]
+        for f in range(a_, b_ + 1):
+            sc.frame_set(f)
+            for s_ in ("L", "R"):
+                spots[s_].append(Vector(arm.pose.bones[f"hand_{s_}"].head))
+                poles[s_].append(Vector(arm.pose.bones[f"forearm_{s_}"].head) - Vector(arm.pose.bones[f"upper_arm_{s_}"].head))
+    tgt, pole, cons = {}, {}, []
+    for s_ in ("L", "R"):
+        P_ = sum(spots[s_], Vector()) / len(spots[s_])
+        e = bpy.data.objects.new(f"pik_{s_}", None); bpy.context.collection.objects.link(e)
+        e.location = (P_.x, P_.y, 0.035)
+        tgt[s_] = e
+        sh0 = Vector(arm.pose.bones[f"upper_arm_{s_}"].head)
+        el = sum(poles[s_], Vector()) / len(poles[s_])
+        p_ = bpy.data.objects.new(f"ppole_{s_}", None); bpy.context.collection.objects.link(p_)
+        p_.location = sh0 + el.normalized() * 0.6 + Vector((0, 0, 0.2))
+        pole[s_] = p_
+        c = arm.pose.bones[f"forearm_{s_}"].constraints.new("IK")
+        c.target = e; c.pole_target = p_; c.chain_count = 2; c.pole_angle = math.radians(-90)
+        cons.append((f"forearm_{s_}", c))
+    for act in acts:
+        arm.animation_data.action = act
+        a_, b_ = [int(x) for x in act.frame_range]
+        bpy.context.view_layer.objects.active = arm
+        bpy.ops.object.mode_set(mode="POSE")
+        for pb in arm.pose.bones:
+            sel = pb.name.split("_")[0] in ("upper", "forearm")
+            if hasattr(pb, "select"):
+                pb.select = sel
+            else:
+                pb.bone.select = sel
+        bpy.ops.nla.bake(frame_start=a_, frame_end=b_, only_selected=True, visual_keying=True, clear_constraints=False,
+                         use_current_action=True, bake_types={"POSE"}, channel_types={"ROTATION"})
+        bpy.ops.object.mode_set(mode="OBJECT")
+    for bn, c in cons:
+        arm.pose.bones[bn].constraints.remove(c)
+    for o in list(tgt.values()) + list(pole.values()):
+        bpy.data.objects.remove(o)
+    # palms flat, fingers pointing ahead of the body (head direction is -Y)
+    def frame(a, b):
+        a = a.normalized(); b = (b - a * b.dot(a)).normalized(); return Matrix((a, b, a.cross(b))).transposed()
+    for act in acts:
+        arm.animation_data.action = act
+        a_, b_ = [int(x) for x in act.frame_range]
+        for f in range(a_, b_ + 1):
+            sc.frame_set(f)
+            for s_, sg in (("L", 1), ("R", -1)):
+                pb = arm.pose.bones[f"hand_{s_}"]
+                M = pb.matrix.copy()
+                rest_rot = bones[f"hand_{s_}"].matrix_local.to_3x3()
+                cur = M.to_3x3()
+                d_now = cur @ rest_rot.inverted() @ (Vector(bones[f"hand_{s_}"].tail_local) - Vector(bones[f"hand_{s_}"].head_local)).normalized()
+                palm_now = cur @ rest_rot.inverted() @ Vector((-sg, 0, 0))
+                R = frame(Vector((0.0, -1.0, -0.12)), Vector((0, 0, -1))) @ frame(d_now, palm_now).inverted()
+                pb.matrix = Matrix.Translation(M.translation) @ (R @ cur).to_4x4()
+                bpy.context.view_layer.update()
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+if "pushup_down" in bpy.data.actions and "pushup_up" in bpy.data.actions:
+    plant_hands([bpy.data.actions["pushup_down"], bpy.data.actions["pushup_up"]])
+    print("push-ups from video, hands planted")
+else:
+    build_pushups()
 
 # ---- foot lock: while a foot is on the floor and nearly still, pin it where it landed (removes foot skating
 #      from retargeted mocap and from hand-keyed hip motion); two-bone analytic IK on thigh/shin, foot keeps its

@@ -24,6 +24,8 @@ video frames ship in the app; only the joint positions below.
 | vid_squat.npz | Mixkit 52116, woman squatting in a gym (Mixkit Stock Video Free License) | src f64–110, 0.6x speed | squat_down (f6–50), squat_up (f50–88) |
 | vid_hinge_down.npz | Mixkit 52120, woman stretching on the street (Mixkit Stock Video Free License) | src f46–59 (flat-back start of the forward bend only), 0.3x | hip_hinge_down |
 | vid_hinge_up.npz | same | same frames reversed, 0.34x | hip_hinge_up |
+| vid_pushup_down.npz | Pexels 4742661, man doing push-ups in a gym, side view (Pexels licence, free use) | src f362–387, 0.7x, legs straightened (`--straight-legs`) | pushup_down |
+| vid_pushup_up.npz | same | src f386–442, 1.6x, legs straightened | pushup_up |
 
 Tracked but not used: Pexels 4806552 shadowboxing (legs out of frame, punches toward the camera track poorly — CMU
 13_18 stays for the boxing clips), Pexels 8165998 standing (hands in pockets), Mixkit 52117 (figure too small),
@@ -36,3 +38,8 @@ stays), Pexels 6296168, 7187405, 7187538 (mostly guard / legs out of frame), Pex
 push-ups (elbow bend and body height not recoverable from the camera angle, or a one-leg yoga variant — the
 procedural push-up with planted hands stays). CMU 14_01–03 were checked for footwork: they are free-form in-and-out
 boxing with ducks and lunges, not a beginner step-drag drill, so footwork stays hand-keyed.
+
+Third batch: Pexels 4742661 used for the push-up (hands pinned to the floor in the build by `plant_hands`). Not used:
+Pixabay 13134 (good side-view push-ups, but on handles), Pexels 4804817 (push-up bars), 6893310 (filmed from the front-
+side, legs hidden), and three footwork clips (16908132, 9943379, 7187519) that only show the feet and shins, so there is
+no body to track. Footwork and guard return stay hand-keyed.
