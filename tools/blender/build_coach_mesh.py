@@ -127,6 +127,13 @@ J.update({"pelvis": Vector((0, 0, crotch + 0.07 * H)), "spine": Vector((0, 0, 0.
           "head_top": Vector((0, 0, H))})
 print("crotch", round(crotch, 3), {k: tuple(round(c, 3) for c in J[k]) for k in ("upper_arm_L", "forearm_L", "hand_L", "hand_tip_L", "thigh_L", "shin_L", "foot_L")})
 
+RIGGED = args[args.index("--rigged") + 1] if "--rigged" in args else None
+if RIGGED:
+    import rigged_coach as rc  # noqa: E402
+    mx_arm, mx_mesh = rc.load(RIGGED, HEIGHT)
+    J.update(rc.joints(mx_arm, mx_mesh, HEIGHT))
+    print("joints from rigged skeleton", {k: tuple(round(c, 3) for c in J[k]) for k in ("upper_arm_L", "hand_L", "thigh_L", "foot_L")})
+
 import trainer_body as tb  # noqa: E402
 tb.J.clear()
 tb.J.update(J)
@@ -602,6 +609,27 @@ def soften(act, keep, ref):
     arm.animation_data.action = None
 
 
+# the recorded boxer drops his chin hard toward the chest; on the full-detail coach that hides the face behind the
+# guard. Keep 40 % of the recorded neck/head bend relative to the ribcage (chin slightly down, eyes forward).
+def lift_head(act, keep=0.4):
+    from mathutils import Quaternion
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    vals = {}
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        vals[f] = {n: arm.pose.bones[n].rotation_quaternion.copy() for n in ("neck", "head")}
+    for f, d in vals.items():
+        for n, q in d.items():
+            pb = arm.pose.bones[n]
+            pb.rotation_quaternion = Quaternion().slerp(q, keep)
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
+    lift_head(bpy.data.actions[clip])
+
 for clip, (keep, ref) in SOFTEN.items():
     soften(bpy.data.actions[clip], keep, ref)
     print("softened", clip, keep)
@@ -830,7 +858,7 @@ print("foot lock done")
 # ---- guard height: the boxing takes drop the non-punching hand to chest height between punches; a beginner lesson
 #      should show the guard at the chin. Whenever an arm is retracted, pull its wrist (two-bone IK, elbow keeps its
 #      bend direction, fist keeps its orientation) to the stance clip's average guard position relative to the head (fists stay at the chin).
-def guard_fix(act, ref):
+def guard_targets(ref):
     pbs = arm.pose.bones
     arm.animation_data.action = ref
     ra, rb = [int(x) for x in ref.frame_range]
@@ -840,7 +868,16 @@ def guard_fix(act, ref):
         ci = pbs["head"].matrix.inverted()
         for s_ in acc:
             acc[s_] += ci @ Vector(pbs[f"hand_{s_}"].head)
-    guard = {s_: v / (rb - ra + 1) for s_, v in acc.items()}
+    arm.animation_data.action = None
+    return {s_: v / (rb - ra + 1) for s_, v in acc.items()}
+
+
+# the recorded boxer holds his fists at eyebrow height (rear one higher); a beginner guard sits at the chin
+GUARD_DROP = {"L": 0.04 * HEIGHT / 1.8, "R": 0.10 * HEIGHT / 1.8}
+
+
+def guard_fix(act, guard):
+    pbs = arm.pose.bones
     arm.animation_data.action = act
     a_, b_ = [int(x) for x in act.frame_range]
     for f in range(a_, b_ + 1):
@@ -854,7 +891,7 @@ def guard_fix(act, ref):
             w = w * w * (3 - 2 * w)
             if w < 0.01:
                 continue
-            target = W.lerp(pbs["head"].matrix @ guard[s_], w)
+            target = W.lerp(pbs["head"].matrix @ guard[s_] - Vector((0, 0, GUARD_DROP[s_])), w)
             hand_m = hd.matrix.copy()
             dvec = target - S
             dist = min(dvec.length, l1 + l2 - 1e-4)
@@ -877,8 +914,9 @@ def guard_fix(act, ref):
     arm.animation_data.action = None
 
 
-for clip in ("boxing_jab", "boxing_cross"):
-    guard_fix(bpy.data.actions[clip], bpy.data.actions["boxing_stance"])
+_guard = guard_targets(bpy.data.actions["boxing_stance"])
+for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
+    guard_fix(bpy.data.actions[clip], _guard)
 print("guard fix done")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
@@ -928,6 +966,19 @@ for act in bpy.data.actions:
 arm.animation_data.action = None
 print("TRIS", sum(len(p.vertices) - 2 for p in lo.data.polygons))
 
+# ---- rigged coach: carry every finished clip over to the owner's skeleton and export that instead
+if RIGGED:
+    names = [a.name for a in bpy.data.actions]
+    for n in names:
+        bpy.data.actions[n].name = "src_" + n
+    for n in names:
+        rc.transfer(arm, mx_arm, bpy.data.actions["src_" + n], sc, n)
+    if not os.environ.get("KEEP_SRC"):
+        for n in names:
+            bpy.data.actions.remove(bpy.data.actions["src_" + n])
+    rc.prepare_textures(mx_mesh)
+    print("transferred", len(names), "clips to the rigged coach")
+
 # ---------------------------------------------------------------- save + export
 for img in out.values():
     img.pack()
@@ -937,8 +988,12 @@ bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=blend, compress=True)
 exp = os.path.join(ROOT, "assets/blender/exports", NAME + ".glb")
 bpy.ops.object.select_all(action="DESELECT")
-lo.select_set(True)
-arm.select_set(True)
+if RIGGED:
+    mx_mesh.select_set(True)
+    mx_arm.select_set(True)
+else:
+    lo.select_set(True)
+    arm.select_set(True)
 bpy.ops.export_scene.gltf(filepath=exp, export_format="GLB", use_selection=True, export_yup=True, export_apply=False, export_texcoords=True,
                           export_normals=True, export_tangents=True, export_materials="EXPORT", export_image_format="JPEG", export_jpeg_quality=88,
                           export_skins=True, export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,

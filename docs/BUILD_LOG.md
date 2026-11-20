@@ -427,3 +427,15 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   takes half the hip-to-ribcage twist. Squat back to hand-keyed (mocap rejected, see comment) with natural timing:
   eased descent with a small settle, quicker drive up, arms trailing the hips, breathing; feet pinned, knees over toes.
 - GLBs now ~9.3 MB each. Validator 0 errors.
+
+## Owner's rigged coaches (Tripo, Mixamo skeleton) (2026-11-20)
+- Owner exported both coaches rigged from Tripo (53-bone Mixamo-style skeleton, ~18–19k triangles, her texture);
+  kept in assets/blender/rigged/. Build: `build_coach_mesh.py <source.glb> coach_m 1.85 --rigged <rigged.glb> --app`.
+- `tools/blender/rigged_coach.py`: the MOTIONFORGE rig is built from the rigged skeleton's own joint positions, all
+  clips are generated on it as before (hand-keyed, mocap, IK, foot lock, guard, grip, floor contact), then copied
+  frame by frame onto the Mixamo bones (world rotation change per bone, limbs re-aimed to the posed limb, Spine1 takes
+  half the waist twist, fingers/thumb follow the fist) and the rigged model is exported with its own skin weights.
+  Checked: transferred hand/foot/chest positions match the source rig within ~1 cm.
+- Also: guard lowered to the chin (recorded boxer held fists at eyebrow height), boxing head/neck bend kept at 40 %
+  so the face isn't buried behind the guard; thumbnails rendered with standard colour (AgX bleached the skin), hero
+  picture now the relaxed standing pose. GLBs ~4.5 MB each.

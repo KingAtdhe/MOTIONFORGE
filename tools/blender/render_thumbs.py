@@ -24,7 +24,7 @@ SHOTS = {
     "boxing_cross": ("boxing_cross", "punch", -55),
     "boxing_guard_return": ("boxing_guard_return", "end", 30),
     "footwork_forward_backward": ("footwork_forward", 0.4, 55),
-    "hero": ("boxing_stance", 0.3, 22),
+    "hero": ("idle_neutral", 0.0, 18),
 }
 
 bpy.ops.wm.open_mainfile(filepath=src)
@@ -33,13 +33,23 @@ sc.render.engine = "CYCLES"
 sc.cycles.samples = 64
 sc.cycles.use_denoising = True
 sc.render.film_transparent = True
-sc.view_settings.view_transform = "AgX"
-sc.view_settings.look = "AgX - Medium High Contrast"
+sc.view_settings.view_transform = "Standard"   # keep the source texture colours (AgX bleached the skin)
 sc.render.image_settings.file_format = "WEBP"
 sc.render.image_settings.color_mode = "RGBA"
 sc.render.image_settings.quality = 82
 
-arm = next(o for o in bpy.data.objects if o.type == "ARMATURE")
+# the owner's rigged coach (coach_rig) when present, else the MOTIONFORGE rig
+arm = bpy.data.objects.get("coach_rig") or next(o for o in bpy.data.objects if o.type == "ARMATURE")
+MIX = arm.name == "coach_rig"
+
+
+def bone(name):
+    """MOTIONFORGE bone name -> this armature's bone."""
+    if not MIX:
+        return arm.pose.bones[name]
+    base, side = name.rsplit("_", 1)
+    sd = "Left" if side == "L" else "Right"
+    return arm.pose.bones["mixamorig:" + sd + {"hand": "Hand", "shin": "Leg"}[base]]
 mesh = next(o for o in bpy.data.objects if o.type == "MESH" and o.find_armature() == arm)
 for o in list(bpy.data.objects):
     if o.type == "LIGHT" or (o.type == "MESH" and o is not mesh):
@@ -49,7 +59,7 @@ world = sc.world or bpy.data.worlds.new("w")
 sc.world = world
 world.use_nodes = True
 world.node_tree.nodes["Background"].inputs[0].default_value = (0.20, 0.22, 0.25, 1)
-world.node_tree.nodes["Background"].inputs[1].default_value = 0.6
+world.node_tree.nodes["Background"].inputs[1].default_value = 0.9
 
 
 def area(name, energy, size, color, loc, target):
@@ -89,9 +99,9 @@ def pick(act, how):
     for f in range(f0, f1 + 1):
         sc.frame_set(f)
         if how == "punch":  # hand furthest forward (coach faces -Y)
-            s = min((arm.matrix_world @ arm.pose.bones[f"hand_{x}"].tail).y for x in "LR")
+            s = min((arm.matrix_world @ bone(f"hand_{x}").tail).y for x in "LR")
         else:  # knee: highest knee
-            s = -max((arm.matrix_world @ arm.pose.bones[f"shin_{x}"].head).z for x in "LR")
+            s = -max((arm.matrix_world @ bone(f"shin_{x}").head).z for x in "LR")
         if score is None or s < score:
             best, score = f, s
     return best
@@ -99,6 +109,8 @@ def pick(act, how):
 
 for key, (clip, how, yaw_deg) in SHOTS.items():
     act = bpy.data.actions[clip]
+    if arm.animation_data is None:
+        arm.animation_data_create()
     arm.animation_data.action = act
     sc.frame_set(pick(act, how))
     lo, hi = bbox()
@@ -120,10 +132,10 @@ for key, (clip, how, yaw_deg) in SHOTS.items():
     for o in [o for o in sc.objects if o.type == "LIGHT"]:
         bpy.data.objects.remove(o)
     right = Vector((math.cos(yaw), math.sin(yaw), 0))
-    area("key", 650, 2.5, (1.0, 0.96, 0.9), c - fwd * 3 + right * 2.2 + Vector((0, 0, 2.2)), c)
-    area("fill", 220, 3.5, (0.85, 0.92, 1.0), c - fwd * 3 - right * 2.5 + Vector((0, 0, 0.6)), c)
-    area("rimL", 520, 1.2, (0.9, 1.0, 0.7), c + fwd * 2.5 - right * 1.6 + Vector((0, 0, 1.6)), c)
-    area("rimR", 520, 1.2, (1.0, 0.75, 0.6), c + fwd * 2.5 + right * 1.6 + Vector((0, 0, 1.6)), c)
+    area("key", 380, 2.5, (1.0, 0.96, 0.9), c - fwd * 3 + right * 2.2 + Vector((0, 0, 2.2)), c)
+    area("fill", 160, 3.5, (0.85, 0.92, 1.0), c - fwd * 3 - right * 2.5 + Vector((0, 0, 0.6)), c)
+    area("rimL", 260, 1.2, (0.9, 1.0, 0.7), c + fwd * 2.5 - right * 1.6 + Vector((0, 0, 1.6)), c)
+    area("rimR", 260, 1.2, (1.0, 0.75, 0.6), c + fwd * 2.5 + right * 1.6 + Vector((0, 0, 1.6)), c)
     sc.render.filepath = os.path.join(out_dir, f"{key}.webp")
     bpy.ops.render.render(write_still=True)
     print("RENDERED", key, sc.frame_current)
