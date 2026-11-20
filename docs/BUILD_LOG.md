@@ -477,3 +477,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - `build_coach_mesh.plant_hands`: two-bone IK pins each hand to one floor spot across both clips (elbow direction from
   the recording), then palms flat, fingers forward. `build_pushups()` stays as the fallback when no recording exists.
 - Verified with renders of both exported GLBs. Not verified on device.
+
+## 2026-11-20 — Recorded upper body for guard return and footwork
+
+- boxing_guard_return: the recorded stance (CMU 13_18, guard-fixed) for the whole clip; the lead arm replays the
+  recorded jab's own path out to ~55 % of its reach, holds, and returns straight back to guard (0.5 s / 0.25 s / 0.5 s).
+- footwork_forward / footwork_backward: keyed push-steps keep their legs and travel (planted feet), every bone above the
+  hips takes the recorded stance (breathing, shoulder and guard movement).
+- Footwork steps could not come from video: the stock clips either show only feet, or (Pexels 7187515) the rear heel
+  stays up the whole time so the planted foot can't be detected and the steps reconstruct wrongly.
+- Verified with renders of both exported GLBs. Not verified on device.

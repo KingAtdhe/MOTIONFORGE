@@ -1003,6 +1003,105 @@ for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
     guard_fix(bpy.data.actions[clip], _guard)
 print("guard fix done")
 
+
+# ---- recorded upper body for the two drills that have no clean recording of their own
+#      guard return: the recorded stance (13_18, guard-fixed) all clip long, the lead arm moves part of the way toward
+#      the recorded jab's extended pose and comes straight back to guard.
+#      footwork: the keyed push-steps keep their legs and travel (planted feet, no sliding); everything above the hips
+#      takes the recorded stance, so the guard breathes and shifts like the performer's instead of holding still.
+UPPER = ("spine", "chest", "neck", "head", "shoulder_L", "upper_arm_L", "forearm_L", "hand_L",
+         "shoulder_R", "upper_arm_R", "forearm_R", "hand_R")
+LEAD_ARM = ("shoulder_L", "upper_arm_L", "forearm_L", "hand_L")
+
+
+def sample(act):
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    out_ = []
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        out_.append({pb.name: (pb.rotation_quaternion.copy(), pb.location.copy()) for pb in arm.pose.bones})
+    return out_
+
+
+_stance = sample(bpy.data.actions["boxing_stance"])
+_jab = sample(bpy.data.actions["boxing_jab"])
+# the jab's most extended frame: largest lead-hand distance from the shoulder
+def _reach(i):
+    arm.animation_data.action = bpy.data.actions["boxing_jab"]
+    sc.frame_set(int(bpy.data.actions["boxing_jab"].frame_range[0]) + i)
+    return (Vector(arm.pose.bones["hand_L"].head) - Vector(arm.pose.bones["upper_arm_L"].head)).length
+_peak = max(range(len(_jab)), key=_reach)
+
+
+def _write(name, n, pose_at):
+    old_ = bpy.data.actions.get(name)
+    keep_legs = sample(old_) if old_ else None
+    if old_:
+        bpy.data.actions.remove(old_)
+    act = bpy.data.actions.new(name); act.use_fake_user = True
+    arm.animation_data.action = act
+    for f in range(n):
+        pose = pose_at(f, keep_legs)
+        for bn, (q, loc) in pose.items():
+            pb = arm.pose.bones[bn]
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = q; pb.location = loc
+            pb.keyframe_insert("rotation_quaternion", frame=f + 1)
+            pb.keyframe_insert("location", frame=f + 1)
+    act.frame_range = (1, n)
+    arm.animation_data.action = None
+
+
+_reaches = [_reach(i) for i in range(len(_jab))]
+_r0, _rp = _reaches[0], _reaches[_peak]
+# frame on the jab's way out where the hand has covered ~55 % of the reach: "slightly away from the face"
+_part = next(i for i in range(_peak + 1) if _reaches[i] >= _r0 + 0.55 * (_rp - _r0))
+
+
+def _guard_return(f, _old):
+    t = f / ta.FPS
+    base = dict(_stance[f % len(_stance)])
+    # out 0.5 s, hold 0.25 s, straight back 0.5 s along the same recorded path, settle in guard
+    if t < 0.5:
+        u = ta.ease(t / 0.5)
+    elif t < 0.75:
+        u = 1.0
+    elif t < 1.25:
+        u = 1.0 - ta.ease((t - 0.75) / 0.5)
+    else:
+        u = 0.0
+    g = u * _part
+    i0 = int(g); i1 = min(i0 + 1, len(_jab) - 1); k = g - i0
+    for bn in LEAD_ARM:
+        qa, qb = _jab[i0][bn][0], _jab[i1][bn][0]
+        if qa.dot(qb) < 0:
+            qb = -qb
+        qj = qa.slerp(qb, k)
+        # blend from the stance's own (breathing) guard into the jab path, so the start and end match the guard
+        qs = base[bn][0]
+        if qs.dot(qj) < 0:
+            qj = -qj
+        base[bn] = (qs.slerp(qj, min(1.0, u * 4.0)), base[bn][1])
+    return base
+
+
+_write("boxing_guard_return", int(round(1.4 * ta.FPS)) + 1, _guard_return)
+
+
+def _footwork(f, old):
+    pose = dict(old[min(f, len(old) - 1)])
+    st = _stance[f % len(_stance)]
+    for bn in UPPER:
+        pose[bn] = (st[bn][0], pose[bn][1])
+    return pose
+
+
+for _fw in ("footwork_forward", "footwork_backward"):
+    _n = int(bpy.data.actions[_fw].frame_range[1] - bpy.data.actions[_fw].frame_range[0]) + 1
+    _write(_fw, _n, _footwork)
+print("recorded upper body on guard_return / footwork")
+
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
 GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}
 
