@@ -511,3 +511,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Boxing: head kept 12 % (was 40 %) of the recorded chin tuck so the eyes look over the gloves; fists slightly lower.
 - Squat: the recorded hands-at-chin read as a guard; hands now held clasped at mid-chest.
 - Verified with exported-GLB renders and the inspector. Not verified on device.
+
+## 2026-11-20 — Pose clean-up for the muscular coaches
+
+- Recordings come from slim performers; on these bodies arms sank into the lats and legs pressed together.
+- Standing (idle, also the coach pictures): feet hip-width (thighs 4° out, feet counter-turned flat), arms 12–15° away
+  from the body, relaxed hands (grip 0.22 outside boxing).
+- Squat: head lifted (eyes ahead); hands held clasped in front of the sternum via two-bone IK relative to the chest.
+- Hip hinge: spine/chest keep 30–35 % of the recorded bend (flat back, bend from the hips); arms hang straight down.
+- March: arms 12–15° clear of the body.
+- Verified with exported-GLB renders of every clip, front and side. Not verified on device.

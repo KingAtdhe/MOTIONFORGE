@@ -1013,12 +1013,104 @@ print("guard fix done")
 
 # squat: the recorded performer holds her clasped hands at her chin, which reads as a boxing guard on the coach.
 # Same two-bone fix, hands lowered to the middle of the chest (clasped in front, the usual teaching position).
+def ik_hands(act, target_at):
+    """two-bone arm IK per frame toward target_at(side, shoulder_pos) (world); elbow keeps its bend direction,
+    the hand keeps its orientation."""
+    from mathutils import Matrix as _M
+    pbs = arm.pose.bones
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        for s_ in ("L", "R"):
+            ua, fa, hd = pbs[f"upper_arm_{s_}"], pbs[f"forearm_{s_}"], pbs[f"hand_{s_}"]
+            S, K = Vector(ua.head), Vector(fa.head)
+            l1, l2 = (K - S).length, (Vector(hd.head) - K).length
+            target = target_at(s_, S)
+            hand_m = hd.matrix.copy()
+            dvec = target - S
+            dist = min(dvec.length, l1 + l2 - 1e-4)
+            dn = dvec.normalized()
+            bend = (K - S) - dn * (K - S).dot(dn)
+            bend = bend.normalized() if bend.length > 1e-5 else Vector((0, 0.3, -1)).normalized()
+            a = (l1 * l1 + dist * dist - l2 * l2) / (2 * dist)
+            h = math.sqrt(max(l1 * l1 - a * a, 0.0))
+            K2 = S + dn * a + bend * h
+            for pb, tail in ((ua, K2), (fa, S + dn * dist)):
+                M = pb.matrix.copy()
+                cur = (Vector(pb.tail) - Vector(pb.head)).normalized()
+                q = cur.rotation_difference((tail - Vector(pb.head)).normalized())
+                pb.matrix = _M.Translation(M.translation) @ (q.to_matrix() @ M.to_3x3()).to_4x4()
+                bpy.context.view_layer.update()
+            hd.matrix = _M.Translation(Vector(hd.head)) @ hand_m.to_3x3().to_4x4()
+            bpy.context.view_layer.update()
+            for pb in (ua, fa, hd):
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+
+
+# ---- pose clean-up for the coaches' build. The recordings come from slim performers; on these very muscular bodies
+#      their arms sink into the lats and the legs press together. Small, constant world-space corrections:
+def spread(act, bones_deg):
+    """rotate each listed bone about the world forward axis (Y) at its head, every frame; positive = away from the
+    body's midline for that side. Feet get the opposite turn so the soles stay flat."""
+    from mathutils import Matrix as _M
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        for bn, deg in bones_deg:
+            sgn = -1.0 if bn.endswith("_L") else 1.0          # left side is +X: rotate about +Y by a negative angle
+            pb = arm.pose.bones[bn]
+            hd = Vector(pb.head)
+            R = _M.Translation(hd) @ _M.Rotation(math.radians(deg) * sgn, 4, "Y") @ _M.Translation(-hd)
+            pb.matrix = R @ pb.matrix
+            bpy.context.view_layer.update()
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+def straighten(act, bones_keep):
+    """keep only part of each bone's own (local) bend: a rounded back becomes a flat back, the bend stays at the hips."""
+    from mathutils import Quaternion
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    vals = {}
+    for f in range(a_, b_ + 1):
+        sc.frame_set(f)
+        vals[f] = {bn: arm.pose.bones[bn].rotation_quaternion.copy() for bn, _ in bones_keep}
+    for f, d in vals.items():
+        for bn, keep in bones_keep:
+            pb = arm.pose.bones[bn]
+            pb.rotation_quaternion = Quaternion().slerp(d[bn], keep)
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None
+
+
+_k = HEIGHT / 1.8
+_bulk = 1.0 if HEIGHT > 1.8 else 0.6                 # the male coach is much broader
+_legs = [("thigh_L", 4.0), ("thigh_R", 4.0), ("foot_L", -4.0), ("foot_R", -4.0)]
+_arms = [("upper_arm_L", 9.0 * _bulk + 3.0), ("upper_arm_R", 9.0 * _bulk + 3.0)]
+spread(bpy.data.actions["idle_neutral"], _legs + _arms)       # hip-width feet, arms hang clear of the body
+spread(bpy.data.actions["warmup_march"], _arms)
+# hip hinge: the recorded forward bend rounds the back and drops the head; a hinge keeps the back flat
+for clip in ("hip_hinge_down", "hip_hinge_up"):
+    straighten(bpy.data.actions[clip], [("spine", 0.35), ("chest", 0.3), ("neck", 0.4), ("head", 0.4)])
+    # arms hang straight down from the shoulders, slightly ahead of the legs
+    ik_hands(bpy.data.actions[clip], lambda s_, S: S + Vector(((0.04 if s_ == "L" else -0.04) * _k, -0.04 * _k, -0.62 * _k)))
+_k = HEIGHT / 1.8
 if "squat_down" in bpy.data.actions:
-    _sq = guard_targets(bpy.data.actions["squat_down"])
-    _sq_drop = {s_: 0.30 * HEIGHT / 1.8 for s_ in ("L", "R")}
+    # squat: hands clasped in front of the sternum all the way down and up (the recording holds them at the chin)
+    def _sq_target(s_, S):
+        ch = Vector(arm.pose.bones["chest"].head)
+        return ch + Vector(((0.05 if s_ == "L" else -0.05) * _k, -0.26 * _k, -0.10 * _k))
     for clip in ("squat_down", "squat_up"):
-        guard_fix(bpy.data.actions[clip], _sq, drop=_sq_drop)
+        straighten(bpy.data.actions[clip], [("neck", 0.35), ("head", 0.35)])    # eyes ahead, not at the floor
+        ik_hands(bpy.data.actions[clip], _sq_target)
     print("squat hands lowered")
+print("pose clean-up done")
 
 
 # ---- recorded upper body for the two drills that have no clean recording of their own
@@ -1121,7 +1213,7 @@ for _fw in ("footwork_forward", "footwork_backward"):
 print("recorded upper body on guard_return / footwork")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
-GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}
+GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}  # everything else: relaxed hands (below)
 
 
 def key_grip(act, amount):
@@ -1140,7 +1232,7 @@ def key_grip(act, amount):
 
 
 for act in bpy.data.actions:
-    amt = next((v for k, v in GRIP.items() if act.name.startswith(k)), 0.4)
+    amt = next((v for k, v in GRIP.items() if act.name.startswith(k)), 0.22)
     key_grip(act, amt)
 arm.animation_data.action = None
 
