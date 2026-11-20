@@ -567,6 +567,13 @@ MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to 
     "boxing_jab": ("13_18", 88, 104, False, 14),
     # cross (peak f33) from the same combination; the lead arm holds its guard pose from f15 (before the jab)
     "boxing_cross": ("13_18", 22, 42, False, 10),
+    # tracked from real-person stock videos with MediaPipe (tools/mocap, see assets/mocap/README.md)
+    "warmup_march": ("vid_march", 94, 275, True, 0),      # two full left-right cycles, looped
+    "squat_down": ("vid_squat", 6, 50, False, 0),          # standing -> bottom (video slowed to 0.6x)
+    "squat_up": ("vid_squat", 50, 88, False, 0),           # bottom -> standing
+    # only the flat-back first part of a forward bend (before it rounds into a toe touch), slowed; up = reversed
+    "hip_hinge_down": ("vid_hinge_down", 0, 54, False, 0),
+    "hip_hinge_up": ("vid_hinge_up", 0, 48, False, 0),
 }
 # (tried: CMU 13_29 squat softened toward standing — blending a deep squat's joint rotations doesn't give a natural
 #  shallow squat (knees shoot forward, hips stay under the body), so the squat stays hand-keyed with mocap-like timing)
@@ -851,7 +858,7 @@ def foot_lock(act, planted=False, pin_start=False):
 from mathutils import Matrix  # noqa: E402
 for act in list(bpy.data.actions):
     if not act.name.startswith("pushup_"):
-        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith("squat_"))
+        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith(("squat_", "hip_hinge_")))
 print("foot lock done")
 
 

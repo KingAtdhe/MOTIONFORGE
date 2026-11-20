@@ -10,3 +10,22 @@ restrictions on use (see CMU_READMEFIRST.txt). Extracted with `tools/blender/moc
 | 13_29.npz | subject 13 — squats | not used (too deep for the lesson) |
 | 22_14.npz | subject 22 — alternating squats | not used yet |
 | 111_28.npz (f10–100) | standing still | idle_neutral |
+
+## Video-tracked takes (vid_*.npz)
+
+Tracked from free stock videos with MediaPipe Pose Landmarker (heavy) on a workstation, then converted to the same
+joint format: `tools/mocap/video_pose.py` (landmarks) → `tools/mocap/landmarks_to_joints.py` (Z-up joints, 30 fps,
+smoothing, feet on the floor, optional slow-down / reverse). The videos themselves are not stored in the repo and no
+video frames ship in the app; only the joint positions below.
+
+| file | source video (licence) | conversion | used for |
+|---|---|---|---|
+| vid_march.npz | Pexels 6326808, man doing high-knee march, front view (Pexels licence, free use) | full clip, sigma 1.6 | warmup_march (f94–275, two cycles, looped) |
+| vid_squat.npz | Mixkit 52116, woman squatting in a gym (Mixkit Stock Video Free License) | src f64–110, 0.6x speed | squat_down (f6–50), squat_up (f50–88) |
+| vid_hinge_down.npz | Mixkit 52120, woman stretching on the street (Mixkit Stock Video Free License) | src f46–59 (flat-back start of the forward bend only), 0.3x | hip_hinge_down |
+| vid_hinge_up.npz | same | same frames reversed, 0.34x | hip_hinge_up |
+
+Tracked but not used: Pexels 4806552 shadowboxing (legs out of frame, punches toward the camera track poorly — CMU
+13_18 stays for the boxing clips), Pexels 8165998 standing (hands in pockets), Mixkit 52117 (figure too small),
+Mixkit 11766 push-ups (filmed head-on, legs hidden — the push-up stays procedural). Mixkit 40967 (sparring) and
+608 (runner filmed from behind) were not tracked: out of the lesson scope / unusable angle.

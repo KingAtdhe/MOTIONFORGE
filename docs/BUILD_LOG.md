@@ -450,3 +450,20 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   Squat check: anomalous stretched vertices 7 → 2.
 - Painted highlight streaks: `skin_cleanup.py` finds skin by hue/saturation, estimates the local skin colour with a
   masked blur and replaces pale/over-bright strokes inside skin areas (~3 % of each texture), keeping muscle shading.
+
+## 2026-11-20 — Exercise clips from real-person videos
+
+- New offline tooling `tools/mocap/`: `video_pose.py` (MediaPipe Pose Landmarker heavy, world landmarks) and
+  `landmarks_to_joints.py` (Z-up joint positions in the CMU format used by `mocap_retarget.py`, low-visibility
+  frames interpolated, resampled to 30 fps, Gaussian smoothing with extra smoothing on depth, lowest foot point kept
+  on the floor so the body really drops in squats, optional slow-down and reverse).
+- The heavy model is fetched by `.github/workflows/fetch-pose-model.yml` into the `tooling-models` prerelease
+  (tooling only, not bundled in the app).
+- warmup_march, squat_down/up and hip_hinge_down/up on both coaches are now retargeted from tracked stock videos
+  (sources and licences in `assets/mocap/README.md`) instead of hand-keyed curves. Feet are pinned for the squat and
+  hinge (`foot_lock(pin_start)`). New durations: march 6.03 s, squat 1.47/1.27 s, hinge 1.8/1.6 s.
+- Hinge uses only the flat-back first part of a forward bend (the rest of that video rounds into a toe touch) and
+  the rising phase is the lowering phase reversed. The squat performer holds her hands at chin height, as in the video.
+- Not converted: shadowboxing, push-up and standing videos (reasons in the mocap README). Boxing stays on CMU mocap;
+  push-up stays procedural.
+- Verified: renders of the exported GLBs for both coaches (squat bottom, hinge, march cycle). Not verified on device.
