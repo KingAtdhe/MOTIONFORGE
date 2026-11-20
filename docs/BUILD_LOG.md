@@ -487,3 +487,18 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Footwork steps could not come from video: the stock clips either show only feet, or (Pexels 7187515) the rear heel
   stays up the whole time so the planted foot can't be detected and the steps reconstruct wrongly.
 - Verified with renders of both exported GLBs. Not verified on device.
+
+## 2026-11-20 — Device review fixes (owner screen recording)
+
+- Guard: fists sat at eye level with the wrists at the jaw. GUARD_DROP raised to 0.13 / 0.18 m (× height/1.8): fists at
+  chin and cheekbone. Applied to stance, jab, cross, guard return and footwork (guard_fix now also runs on footwork).
+- Footwork: legs and travel now from CMU 15_13 (mirrored to orthodox) — lead foot steps ~25 cm in and back out with
+  real weight shift; upper body from the recorded stance guard. Backward = the drill started stepped-in.
+- Lesson stage: removed the giant exercise-name backdrop (words were cut off at the card edge). Stages and lesson tiles
+  use a soft vertical tint and an elliptical floor shadow.
+- Coach size: MODEL_ZOOM 1.38 → 1.62 (ModelViewer's camera sits 5 units from the model, so the coach filled only ~55 %
+  of the stage on device).
+- Colour: PBR Neutral tone mapping instead of AgX Punchy (greyed out the texture colours), ambient 24k → 38k,
+  ambient occlusion 0.8 → 0.45.
+- Navigation: default cross-fade showed both screens at once; new screens now fade in over a cleared background.
+- Not verified on device yet.

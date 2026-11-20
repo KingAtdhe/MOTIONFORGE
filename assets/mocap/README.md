@@ -43,3 +43,15 @@ Third batch: Pexels 4742661 used for the push-up (hands pinned to the floor in t
 Pixabay 13134 (good side-view push-ups, but on handles), Pexels 4804817 (push-up bars), 6893310 (filmed from the front-
 side, legs hidden), and three footwork clips (16908132, 9943379, 7187519) that only show the feet and shins, so there is
 no body to track. Footwork and guard return stay hand-keyed.
+
+## More CMU takes (2026-11-20)
+
+| file | CMU take | used for |
+|---|---|---|
+| 15_13_steps.npz | subject 15 — boxing, frames 70–145, mirrored left↔right (the performer stands southpaw) | footwork_forward (f5–48: lead foot steps in, back out) |
+| 15_13_steps_back.npz | same, frames 20–48 then 6–20 | footwork_backward (starts stepped in, retreats first) |
+
+Checked and not used: 22_14 / 23_14 / 13_30 / 14_14 squats (all go to full depth, sitting on the heels — the beginner
+squat stays from video), 14_06 (the "stretch" there is an overhead side bend, not a hip hinge), 14_20 / 13_31 "bend
+over" (toe touches), 20_06 soldiers march (walks forward; the warm-up is on the spot), 17_10 / 79_08 / 80_10 / 13_17
+(big lunging steps or standing still). CMU has no push-up.

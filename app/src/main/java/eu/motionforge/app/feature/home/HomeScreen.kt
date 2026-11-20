@@ -43,7 +43,6 @@ import eu.motionforge.app.core.design.CoachArt
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.LessonTile
 import eu.motionforge.app.core.design.MfColors
-import eu.motionforge.app.core.design.NameBackdrop
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.SectionHeader
 import eu.motionforge.app.core.design.accent
@@ -175,13 +174,6 @@ private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
         color = accent,
     ) {
         Box(Modifier.fillMaxSize()) {
-            NameBackdrop(
-                moves.take(2).joinToString(" ") { it.name.substringBefore(' ').substringBefore('-') },
-                Color.White,
-                Modifier.padding(start = 8.dp),
-                size = 150.sp,
-                alpha = 0.16f,
-            )
             CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().width(210.dp).padding(top = 14.dp))
             Column(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth(0.62f).padding(20.dp),

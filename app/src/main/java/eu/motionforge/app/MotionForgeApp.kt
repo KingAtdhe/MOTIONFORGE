@@ -29,6 +29,9 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -127,6 +130,12 @@ fun MotionForgeApp(
             navController = navController,
             startDestination = Routes.HOME,
             modifier = Modifier.padding(padding),
+            // the default cross-fade shows both screens on top of each other; the new screen fades in over a
+            // cleared background instead
+            enterTransition = { fadeIn(tween(170)) },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { fadeIn(tween(170)) },
+            popExitTransition = { ExitTransition.None },
         ) {
             composable(Routes.HOME) {
                 // An unfinished workout (the app was closed mid-session) is offered on Home; re-read on each visit.

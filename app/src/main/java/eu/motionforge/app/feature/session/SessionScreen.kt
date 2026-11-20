@@ -344,7 +344,7 @@ private fun SummaryStage(
     BackHandler(onBack = onClose)
 
     ScreenColumn(title = if (state.endedEarly) "Session ended" else "Session complete") {
-        CoachStage(state.plan.title, state.plan.type.accent, Modifier.fillMaxWidth().height(220.dp), backdropSize = 96.sp) {
+        CoachStage(state.plan.title, state.plan.type.accent, Modifier.fillMaxWidth().height(220.dp)) {
             CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().padding(top = 10.dp, end = 12.dp))
             Column(Modifier.align(Alignment.BottomStart).padding(20.dp).fillMaxWidth(0.6f)) {
                 Text(

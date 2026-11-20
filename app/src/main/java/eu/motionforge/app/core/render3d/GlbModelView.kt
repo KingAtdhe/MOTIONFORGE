@@ -112,8 +112,8 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
 
     /**
      * Image quality for a single character on a phone: 4× MSAA + FXAA against jagged edges, no dynamic
-     * resolution (it blurs the textures), ambient occlusion for depth in folds, AgX tone mapping so the
-     * bright rig doesn't flatten skin and black clothes.
+     * resolution (it blurs the textures), ambient occlusion for depth in folds, Khronos PBR Neutral tone
+     * mapping keeps the texture colours close to the artwork (AgX greyed them out on device).
      */
     private fun configureQuality() {
         val view = viewer.view
@@ -125,11 +125,11 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         view.dynamicResolutionOptions = view.dynamicResolutionOptions.apply { enabled = false }
         view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply {
             enabled = true
-            radius = 0.25f
-            intensity = 0.8f
+            radius = 0.2f
+            intensity = 0.45f
         }
         view.colorGrading = ColorGrading.Builder()
-            .toneMapper(ToneMapper.Agx(ToneMapper.Agx.AgxLook.PUNCHY))
+            .toneMapper(ToneMapper.PBRNeutralToneMapper())
             .build(viewer.engine)
     }
 
@@ -144,7 +144,7 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         // previous low key light. ModelViewer's own overhead sun stays on.
         val ambient = IndirectLight.Builder()
             .irradiance(1, floatArrayOf(0.95f, 0.95f, 1.0f))
-            .intensity(24_000f)
+            .intensity(38_000f)
             .build(engine)
         // ModelViewer's own sun points straight down at 100 klx and lit only heads and shoulders; tone it down
         // and tilt it to come from above the camera.
@@ -174,7 +174,7 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         val unitCube = FloatArray(16)
         tm.getTransform(tm.getInstance(asset.root), unitCube)
         // The unit cube only fills ~58 % of the view height with ModelViewer's 28 mm lens; scale about the
-        // cube centre (0, 0, -4) so the coach fills ~80 % and still fits lying down (push-up) in a portrait box.
+        // cube centre (0, 0, -4) so the coach fills ~75 % of the stage height (camera sits 5 units away) and still fits lying down.
         val zoom = FloatArray(16)
         android.opengl.Matrix.setIdentityM(zoom, 0)
         android.opengl.Matrix.translateM(zoom, 0, 0f, 0f, -4f)
@@ -190,7 +190,7 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
     }
 
     private companion object {
-        const val MODEL_ZOOM = 1.38f
+        const val MODEL_ZOOM = 1.62f
     }
 
     fun applyYaw(yawDegrees: Float) {

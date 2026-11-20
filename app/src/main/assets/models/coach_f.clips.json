@@ -55,12 +55,12 @@
     },
     {
       "name": "footwork_forward",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_backward",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

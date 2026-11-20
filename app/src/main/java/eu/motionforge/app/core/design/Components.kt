@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -46,35 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import eu.motionforge.app.core.pose.TrackingState
-
-// ---------------------------------------------------------------------------------------------- signature element
-
-/**
- * The exercise name stacked in very large display type, one word per line, in a faint tint of [color] — the coach
- * stands in front of it. Purely decorative: hidden from accessibility (the real title is elsewhere on screen).
- */
-@Composable
-fun NameBackdrop(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-    size: TextUnit = 132.sp,
-    alpha: Float = 0.13f,
-) {
-    val words = text.uppercase().split(' ', '-').filter { it.isNotBlank() }
-    Column(modifier.clip(RoundedCornerShape(0.dp)).clearAndSetSemantics {}) {
-        words.forEach { w ->
-            Text(
-                w,
-                style = TextStyle(fontFamily = DisplayFont, fontWeight = androidx.compose.ui.text.font.FontWeight.Black, fontSize = size, lineHeight = size * 0.86f, letterSpacing = (-0.01).em),
-                color = color.copy(alpha = alpha),
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Clip,
-            )
-        }
-    }
-}
 
 // ---------------------------------------------------------------------------------------------- surfaces
 
@@ -349,9 +321,9 @@ fun LessonTile(
                     .fillMaxWidth()
                     .height(artHeight)
                     .clip(RoundedCornerShape(17.dp))
-                    .background(accent.copy(alpha = 0.10f)),
+                    .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.05f), accent.copy(alpha = 0.16f)))),
             ) {
-                NameBackdrop(title, accent, Modifier.padding(start = 6.dp, top = 2.dp), size = 64.sp, alpha = 0.16f)
+                StageFloor(accent, Modifier.align(Alignment.BottomCenter))
                 CoachArt(artPath, Modifier.fillMaxSize().padding(top = 10.dp, bottom = 2.dp))
                 if (badge != null) {
                     Surface(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp), shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface) {
@@ -373,13 +345,29 @@ fun CoachStage(
     name: String,
     accent: Color,
     modifier: Modifier = Modifier,
-    backdropSize: TextUnit = 132.sp,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(modifier.clip(RoundedCornerShape(28.dp)).background(accent.copy(alpha = 0.08f))) {
-        NameBackdrop(name, accent, Modifier.padding(start = 12.dp, top = 8.dp), size = backdropSize)
+    Box(
+        modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.05f), accent.copy(alpha = 0.16f))))
+    ) {
+        StageFloor(accent, Modifier.align(Alignment.BottomCenter))
         content()
     }
+}
+
+/** Soft elliptical floor shadow so the coach stands on something instead of floating. */
+@Composable
+fun StageFloor(accent: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .padding(bottom = 18.dp)
+            .fillMaxWidth(0.62f)
+            .height(26.dp)
+            .clip(androidx.compose.foundation.shape.GenericShape { size, _ -> addOval(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height)) })
+            .background(Brush.radialGradient(listOf(accent.copy(alpha = 0.28f), Color.Transparent))),
+    )
 }
 
 fun formatClock(totalSeconds: Int): String {

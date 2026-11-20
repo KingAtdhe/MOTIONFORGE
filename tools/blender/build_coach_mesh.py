@@ -578,6 +578,12 @@ MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to 
     # hands are planted on the floor afterwards (plant_hands)
     "pushup_down": ("vid_pushup_down", 0, 43, False, 0),
     "pushup_up": ("vid_pushup_up", 0, 42, False, 0),
+    # CMU 15_13 push-step drill (frames 70-145, mirrored to an orthodox stance): lead foot steps in, rear follows,
+    # then back out. Legs and travel come from the recording; the upper body is replaced by the recorded guard
+    # below (the performer jabs while stepping, which the footwork lesson doesn't teach). Backward = the same drill
+    # started from the stepped-in position, so it retreats first.
+    "footwork_forward": ("15_13_steps", 5, 48, False, 0),
+    "footwork_backward": ("15_13_steps_back", 0, 43, False, 0),
 }
 # (tried: CMU 13_29 squat softened toward standing — blending a deep squat's joint rotations doesn't give a natural
 #  shallow squat (knees shoot forward, hips stay under the body), so the squat stays hand-keyed with mocap-like timing)
@@ -587,7 +593,7 @@ SOFTEN = {}
 HOLD = {"boxing_cross": ("L", 15)}
 # the performer stands bladed, so "hips forward" is ~45 deg off the punching line; turn the boxing takes so punches
 # go straight at the viewer's target (-Y), like the hand-keyed footwork / guard clips
-TURN = {"boxing_stance": -40.0, "boxing_jab": -40.0, "boxing_cross": -20.0}
+TURN = {"boxing_stance": -40.0, "boxing_jab": -40.0, "boxing_cross": -20.0, "footwork_forward": -40.0, "footwork_backward": -40.0}
 for clip, (take, f0, f1, loops, settle) in MOCAP.items():
     old_act = bpy.data.actions.get(clip)
     if old_act:
@@ -935,7 +941,7 @@ def foot_lock(act, planted=False, pin_start=False):
 from mathutils import Matrix  # noqa: E402
 for act in list(bpy.data.actions):
     if not act.name.startswith("pushup_"):
-        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith(("squat_", "hip_hinge_")))
+        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith(("squat_", "hip_hinge_")))  # footwork: planted-foot detection pins each landing
 print("foot lock done")
 
 
@@ -957,7 +963,8 @@ def guard_targets(ref):
 
 
 # the recorded boxer holds his fists at eyebrow height (rear one higher); a beginner guard sits at the chin
-GUARD_DROP = {"L": 0.04 * HEIGHT / 1.8, "R": 0.10 * HEIGHT / 1.8}
+# fists at chin / cheekbone height (the wrists sit ~9 cm below the knuckles of a closed fist held upright)
+GUARD_DROP = {"L": 0.13 * HEIGHT / 1.8, "R": 0.18 * HEIGHT / 1.8}
 
 
 def guard_fix(act, guard):
@@ -1007,8 +1014,8 @@ print("guard fix done")
 # ---- recorded upper body for the two drills that have no clean recording of their own
 #      guard return: the recorded stance (13_18, guard-fixed) all clip long, the lead arm moves part of the way toward
 #      the recorded jab's extended pose and comes straight back to guard.
-#      footwork: the keyed push-steps keep their legs and travel (planted feet, no sliding); everything above the hips
-#      takes the recorded stance, so the guard breathes and shifts like the performer's instead of holding still.
+#      footwork: the recorded push-steps (CMU 15_13) keep their legs and travel; everything above the hips takes the
+#      recorded stance guard.
 UPPER = ("spine", "chest", "neck", "head", "shoulder_L", "upper_arm_L", "forearm_L", "hand_L",
          "shoulder_R", "upper_arm_R", "forearm_R", "hand_R")
 LEAD_ARM = ("shoulder_L", "upper_arm_L", "forearm_L", "hand_L")
@@ -1100,6 +1107,7 @@ def _footwork(f, old):
 for _fw in ("footwork_forward", "footwork_backward"):
     _n = int(bpy.data.actions[_fw].frame_range[1] - bpy.data.actions[_fw].frame_range[0]) + 1
     _write(_fw, _n, _footwork)
+    guard_fix(bpy.data.actions[_fw], _guard)        # the drill crouches deeper than the stance: keep fists at the chin
 print("recorded upper body on guard_return / footwork")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
