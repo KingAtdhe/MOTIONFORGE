@@ -16,7 +16,16 @@ import java.nio.ByteOrder
 class DemoClipsTest {
 
     private val assets = File("src/main/assets")
-    private val manifest = ClipManifest.parse(File(assets, ClipManifest.TRAINER_MANIFEST_PATH).readText())
+
+    /** The clips every coach model must provide (the build exports exactly these). */
+    private val requiredClips = setOf(
+        "idle_neutral", "warmup_march", "squat_down", "squat_up", "hip_hinge_down", "hip_hinge_up",
+        "pushup_down", "pushup_up", "boxing_stance", "boxing_jab", "boxing_cross", "boxing_guard_return",
+        "footwork_forward", "footwork_backward",
+    )
+
+    /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */
+    private val bundled = eu.motionforge.app.core.model.Coach.entries.filter { File(assets, it.manifestPath).isFile }
 
     /** Reads animation names straight from the GLB's JSON chunk. */
     private fun glbAnimationNames(file: File): Set<String> {
@@ -32,7 +41,7 @@ class DemoClipsTest {
 
     @Test
     fun manifestMatchesTheExportedGlb() {
-        eu.motionforge.app.core.model.Coach.entries.forEach { coach ->
+        bundled.forEach { coach ->
             val m = ClipManifest.parse(File(assets, coach.manifestPath).readText())
             val glb = File(assets, m.assetPath)
             assertTrue("GLB missing for $coach: $glb", glb.exists())
@@ -42,13 +51,15 @@ class DemoClipsTest {
 
     @Test
     fun everyCoachHasTheSameClips() {
-        val sets = eu.motionforge.app.core.model.Coach.entries.map { ClipManifest.parse(File(assets, it.manifestPath).readText()).names }
-        sets.forEach { assertEquals(sets.first(), it) }
+        bundled.forEach { assertEquals(requiredClips, ClipManifest.parse(File(assets, it.manifestPath).readText()).names) }
     }
 
     @Test
     fun allClipsAreMarkedDraftUntilCoachReview() {
-        manifest.clips.forEach { assertEquals(it.name, ReviewStatus.DRAFT_PENDING_COACH_REVIEW, it.reviewStatus) }
+        bundled.forEach { coach ->
+            ClipManifest.parse(File(assets, coach.manifestPath).readText()).clips
+                .forEach { assertEquals(it.name, ReviewStatus.DRAFT_PENDING_COACH_REVIEW, it.reviewStatus) }
+        }
     }
 
     @Test
@@ -56,29 +67,29 @@ class DemoClipsTest {
         val pending = emptySet<String>()
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
         catalog.mapNotNull { it.demoAnimation }.forEach { clip ->
-            assertTrue("clip $clip neither exported nor known-pending", clip in manifest.names || clip in pending)
+            assertTrue("clip $clip neither exported nor known-pending", clip in requiredClips || clip in pending)
         }
     }
 
     @Test
     fun pushUpPlaysDownThenUp() {
-        assertEquals(listOf("pushup_down", "pushup_up"), DemoSequence.resolve("pushup_down", manifest.names))
+        assertEquals(listOf("pushup_down", "pushup_up"), DemoSequence.resolve("pushup_down", requiredClips))
     }
 
     @Test
     fun squatPlaysDownThenUp() {
-        assertEquals(listOf("squat_down", "squat_up"), DemoSequence.resolve("squat_down", manifest.names))
+        assertEquals(listOf("squat_down", "squat_up"), DemoSequence.resolve("squat_down", requiredClips))
     }
 
     @Test
     fun singleClipsPlayAlone() {
-        assertEquals(listOf("boxing_jab"), DemoSequence.resolve("boxing_jab", manifest.names))
+        assertEquals(listOf("boxing_jab"), DemoSequence.resolve("boxing_jab", requiredClips))
     }
 
     @Test
     fun missingClipGivesEmptySequence() {
-        assertEquals(emptyList<String>(), DemoSequence.resolve("not_a_clip_down", manifest.names))
-        assertEquals(emptyList<String>(), DemoSequence.resolve(null, manifest.names))
+        assertEquals(emptyList<String>(), DemoSequence.resolve("not_a_clip_down", requiredClips))
+        assertEquals(emptyList<String>(), DemoSequence.resolve(null, requiredClips))
     }
 
     @Test
@@ -122,13 +133,13 @@ class DemoClipsTest {
     @Test
     fun everyLessonHasA3dDemo() {
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
-        catalog.forEach { assertTrue("${it.id} has no demo", DemoSequence.resolve(it.demoAnimation, manifest.names).isNotEmpty()) }
+        catalog.forEach { assertTrue("${it.id} has no demo", DemoSequence.resolve(it.demoAnimation, requiredClips).isNotEmpty()) }
     }
 
     @Test
     fun everyLessonHasCoachArtForBothCoaches() {
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
-        eu.motionforge.app.core.model.Coach.entries.forEach { coach ->
+        bundled.forEach { coach ->
             assertTrue("${coach.heroArt} missing", File(assets, coach.heroArt).isFile)
             catalog.forEach { assertTrue("${coach.lessonArt(it.id)} missing", File(assets, coach.lessonArt(it.id)).isFile) }
         }

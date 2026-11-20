@@ -521,3 +521,14 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Hip hinge: spine/chest keep 30–35 % of the recorded bend (flat back, bend from the hips); arms hang straight down.
 - March: arms 12–15° clear of the body.
 - Verified with exported-GLB renders of every clip, front and side. Not verified on device.
+
+## 2026-11-20 — Current coaches removed
+
+- Owner decision: the Tripo coaches (female_athlete / muscular_man) are retired; new ones will be generated in Tripo
+  in an A-pose with leaner, rig-friendly proportions.
+- Removed: app models (coach_f/m .glb + clip manifests), coach pictures (thumbs/coach_f, coach_m), rigged sources,
+  exports and .blend files. Kept: the build pipeline, mocap/video clip data, trainer_avatar (MOTIONFORGE base rig),
+  and the inspection tools — the new models go through the same build.
+- Without a bundled coach the lesson page shows "The 3D demonstration for this lesson isn't ready yet. Follow the written
+  steps below."; coach pictures are omitted. Coach asset tests now apply to bundled coaches only; clip-sequence tests use
+  the fixed list of required clips.
