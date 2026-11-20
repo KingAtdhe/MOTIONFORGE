@@ -532,3 +532,13 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Without a bundled coach the lesson page shows "The 3D demonstration for this lesson isn't ready yet. Follow the written
   steps below."; coach pictures are omitted. Coach asset tests now apply to bundled coaches only; clip-sequence tests use
   the fixed list of required clips.
+
+## 2026-11-20 — New coaches from the owner's Tripo models
+
+- Female fitness coach and male boxing coach (Tripo FBX, T-pose, Mixamo skeleton, ~10k tris, 4K PBR maps), inspected
+  per docs/MESH_INSPECTION.md; only fixes: 4 inside-out eyelash strips flipped, a few pinholes closed.
+- Build changes: `import_tripo_fbx.py` (FBX -> rigged GLB + static GLB); joint measurement skipped with --rigged (joints
+  from the skeleton); `repair_mesh` keeps surface pieces (only enclosed fragments go); skin-streak clean-up off by default;
+  pose spread reduced for realistic builds (arms 5°, legs 3°).
+- Heights 1.68 m / 1.82 m. All 14 clips transferred; coach pictures re-rendered.
+- Verified: renders of every clip front/side and close-ups of guard, jab, squat, push-up, hinge. Not verified on device.

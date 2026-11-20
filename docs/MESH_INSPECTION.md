@@ -1,4 +1,31 @@
-# Coach mesh inspection (owner's rigged Tripo models)
+# Coach mesh inspection
+
+## 2026-11-20 — new Tripo coaches (FBX, Mixamo-named skeleton)
+
+Sources: `tripo_convert_90120ea2…fbx` (female fitness coach), `tripo_convert_56cf074a…fbx` (male boxing coach),
+converted with `tools/blender/import_tripo_fbx.py` to `assets/blender/rigged/coach_{f,m}_tripo.glb` (+ `_static.glb`).
+Tools: `inspect_any.py` (as imported), `inspect_welded_any.py` (seams welded in memory), `shells.py` (per piece:
+open edges, volume sign, share of faces pointing away from the nearest bone).
+
+| check | female | male | action |
+|---|---|---|---|
+| pose / transforms | T-pose; armature + mesh identity rotation/scale; 1.0 unit tall | same | scaled to 1.68 m / 1.82 m by the build, proportions unchanged |
+| size | 5 017 verts, 9 591 tris (quad-dominant) | 5 361 verts, 10 478 tris | none (light enough for phones) |
+| skeleton / weights | 65 Mixamo bones, 0 unweighted verts, ≤ 4 influences, sums = 1 | same | none |
+| duplicate verts / faces | 0 / 0 | 0 / 0 | none |
+| pieces | 30 (body, hands, head, hair, lashes, shoes, laces) | 16 | none — separate pieces by design |
+| winding | consistent | 1 conflict (2 faces), 5 edges shared by 3 faces (shoe) | left: tiny, inside a shoe |
+| normals | body/clothes/hands 89–99 % outward; **4 eyelash strips fully inward** (vanish with back-face culling) | body 92–100 % outward; no inward pieces | the 4 strips flipped outward; nothing else |
+| open edges | clothing hems and piece borders; 5 real pinholes | 11 pinholes | pinholes closed with existing vertices |
+| UVs | one map, all inside 0–1 | same | none |
+| textures | base 4K sRGB (bright, matte), normal 4K, roughness 4K (mean 0.65), metallic 4K (mean 0.03) | same (roughness 0.56) | resized to 2K; metallic below 0.5 set to 0; roughness lifted slightly (0.45 + 0.5·r); skin-streak clean-up **off** (none present) |
+| material | opaque, double-sided | same | none |
+
+Shape, proportions and UVs are unchanged; the build no longer deletes small surface pieces (only pieces fully enclosed
+by the body).
+
+## Earlier coaches (retired 2026-11-20)
+
 
 Sources: `assets/blender/rigged/man.glb`, `woman.glb`. Tools: `tools/blender/inspect_mesh.py` (as imported) and
 `tools/blender/inspect_welded.py` (seam splits welded on an in-memory copy, so real holes show up). Neither writes files.

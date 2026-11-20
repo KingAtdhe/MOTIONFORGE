@@ -73,61 +73,65 @@ def outer(z, side):
 
 # crotch: lowest height where the centre line (x ~ 0) has body
 zz = np.arange(0.30 * H, 0.65 * H, 0.004)
-crotch = next(z for z in zz if (np.abs(band(z, 0.003)[:, 0]) < 0.01).sum() > 3)
-J = {}
-for side, sgn in (("L", 1), ("R", -1)):
-    # arm: below the armpit the outermost piece is the arm
-    pts = []
-    for z in np.arange(0.44 * H, 0.75 * H, 0.01 * H):
-        r = outer(z, sgn)
-        if r and r[1] is not None and r[1] < 0.07:
-            pts.append(r[0])
-    pts = np.array(pts)
-    zt = pts[:, 2].max()
-    lo = pts[:, 2].min()
-    fit = lambda z: Vector(pts[np.argmin(np.abs(pts[:, 2] - z))])
-    shoulder_z = 0.815 * H
-    up = fit(zt)
-    top_dir = (up - fit(zt - 0.12 * H)).normalized()
-    sh = up + top_dir * ((shoulder_z - up.z) / max(top_dir.z, 0.3))
-    J[f"upper_arm_{side}"] = Vector((sh.x, sh.y * 0.5, shoulder_z))
-    J[f"forearm_{side}"] = fit(0.625 * H)
-    J[f"hand_{side}"] = fit(0.495 * H)
-    # fingertips: the hand hangs beside the thigh; it ends at the lowest height where the body still reaches
-    # further out than the thigh does below the hand
-    wz = J[f"hand_{side}"].z
-    below = band(wz - 0.13 * H * 0.85 / 0.85 * 0.9, 0.006)
-    thigh_out = (below[:, 0] * sgn).max() if len(below) else abs(J[f"hand_{side}"].x) - 0.05
-    tip_z = wz - 0.02
-    for z in np.arange(wz - 0.02, wz - 0.16, -0.004):
-        b_ = band(z, 0.003)
-        b_ = b_[b_[:, 0] * sgn > thigh_out + 0.008]
-        if len(b_) < 4:
-            break
-        tip_z = z
-    tip = band(tip_z, 0.012)
-    tip = tip[tip[:, 0] * sgn > thigh_out + 0.004]
-    J[f"hand_tip_{side}"] = Vector(tip.mean(0)) if len(tip) else fit(lo)
-    print("hand", side, "length", round(wz - tip_z, 3), "thigh_out", round(float(thigh_out), 3))
-    J[f"shoulder_{side}"] = Vector((0.03 * sgn, 0.0, shoulder_z + 0.01 * H))
-    # leg
-    leg = lambda z: Vector(outer(z, sgn)[0]) if outer(z, sgn) else None
-    k = leg(0.285 * H)
-    a = leg(0.055 * H)
-    hp = leg(crotch - 0.04 * H)
-    J[f"thigh_{side}"] = Vector((hp.x, hp.y, crotch + 0.045 * H))
-    J[f"shin_{side}"] = Vector((k.x, k.y - 0.01, 0.285 * H))
-    J[f"foot_{side}"] = Vector((a.x, a.y + 0.02, 0.05 * H))
-    foot = v[(v[:, 2] < 0.05 * H) & (v[:, 0] * sgn > 0.02)]
-    J[f"toe_{side}"] = Vector((a.x, foot[:, 1].min() + 0.05, 0.02 * H))
-    J[f"toe_tip_{side}"] = Vector((a.x, foot[:, 1].min(), 0.02 * H))
-neck = band(0.86 * H)
-J.update({"pelvis": Vector((0, 0, crotch + 0.07 * H)), "spine": Vector((0, 0, 0.62 * H)), "chest": Vector((0, 0, 0.72 * H)),
-          "neck": Vector((0, neck[:, 1].mean() if len(neck) else 0, 0.84 * H)), "head": Vector((0, 0, 0.885 * H)),
-          "head_top": Vector((0, 0, H))})
-print("crotch", round(crotch, 3), {k: tuple(round(c, 3) for c in J[k]) for k in ("upper_arm_L", "forearm_L", "hand_L", "hand_tip_L", "thigh_L", "shin_L", "foot_L")})
-
+# (light meshes have few vertices per band: wider band, and a fallback; with --rigged the joints come from the skeleton)
+crotch = next((z for z in zz if (np.abs(band(z, 0.006)[:, 0]) < 0.015).sum() > 3), 0.47 * H)
 RIGGED = args[args.index("--rigged") + 1] if "--rigged" in args else None
+J = {}
+# with --rigged the joints come from the owner's skeleton (rigged_coach.joints); measuring them on the mesh is only
+# needed for unrigged sources (and fails on light or T-posed meshes)
+if not RIGGED:
+    for side, sgn in (("L", 1), ("R", -1)):
+        # arm: below the armpit the outermost piece is the arm
+        pts = []
+        for z in np.arange(0.44 * H, 0.75 * H, 0.01 * H):
+            r = outer(z, sgn)
+            if r and r[1] is not None and r[1] < 0.07:
+                pts.append(r[0])
+        pts = np.array(pts)
+        zt = pts[:, 2].max()
+        lo = pts[:, 2].min()
+        fit = lambda z: Vector(pts[np.argmin(np.abs(pts[:, 2] - z))])
+        shoulder_z = 0.815 * H
+        up = fit(zt)
+        top_dir = (up - fit(zt - 0.12 * H)).normalized()
+        sh = up + top_dir * ((shoulder_z - up.z) / max(top_dir.z, 0.3))
+        J[f"upper_arm_{side}"] = Vector((sh.x, sh.y * 0.5, shoulder_z))
+        J[f"forearm_{side}"] = fit(0.625 * H)
+        J[f"hand_{side}"] = fit(0.495 * H)
+        # fingertips: the hand hangs beside the thigh; it ends at the lowest height where the body still reaches
+        # further out than the thigh does below the hand
+        wz = J[f"hand_{side}"].z
+        below = band(wz - 0.13 * H * 0.85 / 0.85 * 0.9, 0.006)
+        thigh_out = (below[:, 0] * sgn).max() if len(below) else abs(J[f"hand_{side}"].x) - 0.05
+        tip_z = wz - 0.02
+        for z in np.arange(wz - 0.02, wz - 0.16, -0.004):
+            b_ = band(z, 0.003)
+            b_ = b_[b_[:, 0] * sgn > thigh_out + 0.008]
+            if len(b_) < 4:
+                break
+            tip_z = z
+        tip = band(tip_z, 0.012)
+        tip = tip[tip[:, 0] * sgn > thigh_out + 0.004]
+        J[f"hand_tip_{side}"] = Vector(tip.mean(0)) if len(tip) else fit(lo)
+        print("hand", side, "length", round(wz - tip_z, 3), "thigh_out", round(float(thigh_out), 3))
+        J[f"shoulder_{side}"] = Vector((0.03 * sgn, 0.0, shoulder_z + 0.01 * H))
+        # leg
+        leg = lambda z: Vector(outer(z, sgn)[0]) if outer(z, sgn) else None
+        k = leg(0.285 * H)
+        a = leg(0.055 * H)
+        hp = leg(crotch - 0.04 * H)
+        J[f"thigh_{side}"] = Vector((hp.x, hp.y, crotch + 0.045 * H))
+        J[f"shin_{side}"] = Vector((k.x, k.y - 0.01, 0.285 * H))
+        J[f"foot_{side}"] = Vector((a.x, a.y + 0.02, 0.05 * H))
+        foot = v[(v[:, 2] < 0.05 * H) & (v[:, 0] * sgn > 0.02)]
+        J[f"toe_{side}"] = Vector((a.x, foot[:, 1].min() + 0.05, 0.02 * H))
+        J[f"toe_tip_{side}"] = Vector((a.x, foot[:, 1].min(), 0.02 * H))
+    neck = band(0.86 * H)
+    J.update({"pelvis": Vector((0, 0, crotch + 0.07 * H)), "spine": Vector((0, 0, 0.62 * H)), "chest": Vector((0, 0, 0.72 * H)),
+              "neck": Vector((0, neck[:, 1].mean() if len(neck) else 0, 0.84 * H)), "head": Vector((0, 0, 0.885 * H)),
+              "head_top": Vector((0, 0, H))})
+    print("crotch", round(crotch, 3), {k: tuple(round(c, 3) for c in J[k]) for k in ("upper_arm_L", "forearm_L", "hand_L", "hand_tip_L", "thigh_L", "shin_L", "foot_L")})
+
 if RIGGED:
     import rigged_coach as rc  # noqa: E402
     mx_arm, mx_mesh = rc.load(RIGGED, HEIGHT)
@@ -1090,9 +1094,9 @@ def straighten(act, bones_keep):
 
 
 _k = HEIGHT / 1.8
-_bulk = 1.0 if HEIGHT > 1.8 else 0.6                 # the male coach is much broader
-_legs = [("thigh_L", 4.0), ("thigh_R", 4.0), ("foot_L", -4.0), ("foot_R", -4.0)]
-_arms = [("upper_arm_L", 9.0 * _bulk + 3.0), ("upper_arm_R", 9.0 * _bulk + 3.0)]
+# (the 2026-11 coaches have realistic athletic builds; the old bodybuilder coaches needed 12-15 degrees)
+_legs = [("thigh_L", 3.0), ("thigh_R", 3.0), ("foot_L", -3.0), ("foot_R", -3.0)]
+_arms = [("upper_arm_L", 5.0), ("upper_arm_R", 5.0)]
 spread(bpy.data.actions["idle_neutral"], _legs + _arms)       # hip-width feet, arms hang clear of the body
 spread(bpy.data.actions["warmup_march"], _arms)
 # hip hinge: the recorded forward bend rounds the back and drops the head; a hinge keeps the back flat

@@ -184,7 +184,7 @@ def transfer(src_arm, dst_arm, act, scene, name):
     return new
 
 
-def prepare_textures(mesh, res=2048, clean_skin=True):
+def prepare_textures(mesh, res=2048, clean_skin=False):
     """Phone-sized textures; the source roughness is near-mirror (reads as oily plastic) -> remap to skin/fabric."""
     import numpy as np
     for mat in mesh.data.materials:
@@ -332,9 +332,33 @@ def strip_hand_leaks(mesh):
     print("hand-weight leaks removed on", fixed, "vertices")
 
 
+def _enclosed(comp, bm):
+    """True if the piece sits inside the rest of the body: rays from its centre in six directions all hit other
+    geometry an odd number of times. Eyelashes, brows, laces and other surface parts are outside and are kept."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    ids = {f.index for f in comp}
+    others = [[v.co.copy() for v in f.verts] for f in bm.faces if f.index not in ids]
+    verts, polys = [], []
+    for fv in others:
+        polys.append(list(range(len(verts), len(verts) + len(fv)))); verts.extend(fv)
+    tree = BVHTree.FromPolygons(verts, polys)
+    c = sum((f.calc_center_median() for f in comp), Vector()) / len(comp)
+    for d in (Vector((1, 0, 0)), Vector((-1, 0, 0)), Vector((0, 1, 0)), Vector((0, -1, 0)), Vector((0, 0, 1)), Vector((0, 0, -1))):
+        hits, p = 0, c.copy()
+        for _ in range(50):
+            loc, _n, _i, _d = tree.ray_cast(p, d)
+            if loc is None:
+                break
+            hits += 1; p = loc + d * 1e-5
+        if hits % 2 == 0:
+            return False
+    return True
+
+
 def repair_mesh(mesh):
     """Minimal, shape-preserving repair of the imported coach mesh (see docs/MESH_INSPECTION.md):
-    - delete tiny disconnected fragments (< 40 faces) that sit inside the body,
+    - delete tiny disconnected fragments (< 40 faces) that sit fully inside the body (surface parts are kept),
     - close pinholes: boundary loops of <= 8 edges that are real holes (not UV-seam splits), using only the existing
       vertices, so no vertex moves; the new corners take UVs from neighbouring faces, skin weights are unchanged.
     Normals are left as imported (consistent winding, outward, custom split normals kept)."""
@@ -363,7 +387,7 @@ def repair_mesh(mesh):
                 for h in pos_faces[key(v.co)]:
                     if h.index not in seen:
                         st.append(h)
-        if len(comp) < 40:
+        if len(comp) < 40 and _enclosed(comp, bm):
             frags.append(comp)
     dead = {f for comp in frags for f in comp}
     if dead:
