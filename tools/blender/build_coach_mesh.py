@@ -976,6 +976,9 @@ if RIGGED:
     if not os.environ.get("KEEP_SRC"):
         for n in names:
             bpy.data.actions.remove(bpy.data.actions["src_" + n])
+    rc.strip_hand_leaks(mx_mesh)
+    if "--fix-shorts" in args:
+        rc.fix_shorts(mx_mesh, mx_arm)
     rc.prepare_textures(mx_mesh)
     print("transferred", len(names), "clips to the rigged coach")
 

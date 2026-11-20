@@ -439,3 +439,14 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Also: guard lowered to the chin (recorded boxer held fists at eyebrow height), boxing head/neck bend kept at 40 %
   so the face isn't buried behind the guard; thumbnails rendered with standard colour (AgX bleached the skin), hero
   picture now the relaxed standing pose. GLBs ~4.5 MB each.
+
+## Pocket fins and skin streaks (2026-11-20)
+- Pocket "fins" on the male coach: Tripo's skinning leaked small finger/hand weights onto the shorts where the
+  hands rest against the thighs, so those patches followed the hands whenever the arms moved. `strip_hand_leaks`
+  drops hand/finger weights from any vertex that mostly belongs to legs/hips/spine (1329 verts on the male, 0 on the
+  female). `fix_shorts` (male, `--fix-shorts`): shorts cloth (found by texture colour, excluding the gloves) above the
+  knee moves off the shin bones onto the thigh, the hip-side panels ride 70 % with the pelvis, and pelvis/thigh weights
+  are blended with spatial neighbours (the mesh is split at every UV seam, so neighbours by distance).
+  Squat check: anomalous stretched vertices 7 → 2.
+- Painted highlight streaks: `skin_cleanup.py` finds skin by hue/saturation, estimates the local skin colour with a
+  masked blur and replaces pale/over-bright strokes inside skin areas (~3 % of each texture), keeping muscle shading.

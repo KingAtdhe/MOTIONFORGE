@@ -184,7 +184,7 @@ def transfer(src_arm, dst_arm, act, scene, name):
     return new
 
 
-def prepare_textures(mesh, res=2048):
+def prepare_textures(mesh, res=2048, clean_skin=True):
     """Phone-sized textures; the source roughness is near-mirror (reads as oily plastic) -> remap to skin/fabric."""
     import numpy as np
     for mat in mesh.data.materials:
@@ -196,6 +196,18 @@ def prepare_textures(mesh, res=2048):
                 img = n.image
                 if img.size[0] > res:
                     img.scale(res, res)
+                feeds_base = any(l.to_socket.name == "Base Color" for l in n.outputs[0].links)
+                if feeds_base and clean_skin:
+                    import skin_cleanup
+                    w, h = img.size
+                    px = np.array(img.pixels[:], np.float32).reshape(h, w, 4)
+                    # 8-bit images hand back their stored (sRGB-encoded) values; float images are linear
+                    lin = px[..., :3]
+                    srgb = lin if not img.is_float else np.where(lin <= 0.0031308, 12.92 * lin, 1.055 * np.power(np.clip(lin, 0, None), 1 / 2.4) - 0.055)
+                    srgb, frac = skin_cleanup.clean(srgb)
+                    px[..., :3] = srgb if not img.is_float else np.where(srgb <= 0.04045, srgb / 12.92, np.power((srgb + 0.055) / 1.055, 2.4))
+                    img.pixels[:] = px.ravel()
+                    print("skin highlight streaks removed:", round(frac * 100, 2), "% of texture")
                 feeds_rough = any(l.to_socket.name in ("Roughness",) or (l.to_node.type == "SEPARATE_COLOR") for l in n.outputs[0].links)
                 if feeds_rough and img.colorspace_settings.name != "sRGB":
                     px = np.array(img.pixels[:], np.float32).reshape(-1, 4)
@@ -207,3 +219,110 @@ def prepare_textures(mesh, res=2048):
 
 def bn_is_root(arm, name):
     return arm.data.bones[name].parent is None
+
+
+def fix_shorts(mesh, arm, radius=0.04, iterations=4):
+    """Loose shorts: Tripo's skin weights hand the lower shorts and cargo pockets partly to the shin bones, so they
+    swing out with the lower leg in a deep squat. Cloth above the knee (found by texture colour: not skin) is moved
+    onto the thigh, then the pelvis/thigh weights of that cloth are blended with its spatial neighbours (the mesh is
+    split at every UV seam, so neighbours are found by distance, not edges)."""
+    import numpy as np
+    from mathutils.kdtree import KDTree
+    import skin_cleanup
+    mat = mesh.data.materials[0]
+    img = next(n.image for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and any(l.to_socket.name == "Base Color" for l in n.outputs[0].links))
+    w, h = img.size
+    px = np.array(img.pixels[:], np.float32).reshape(h, w, 4)[..., :3]
+    uv = mesh.data.uv_layers.active.data
+    nv = len(mesh.data.vertices)
+    vuv = np.zeros((nv, 2))
+    cnt = np.zeros(nv)
+    for loop in mesh.data.loops:
+        vuv[loop.vertex_index] += uv[loop.index].uv
+        cnt[loop.vertex_index] += 1
+    vuv /= np.maximum(cnt, 1)[:, None]
+    xi = np.clip((vuv[:, 0] % 1.0) * (w - 1), 0, w - 1).astype(int)
+    yi = np.clip((vuv[:, 1] % 1.0) * (h - 1), 0, h - 1).astype(int)
+    col = px[yi, xi]
+    hh, ss, vv = skin_cleanup._hsv(col)
+    skin = (hh > 0.015) & (hh < 0.11) & (ss > 0.42) & (vv > 0.30)
+    co = np.array([v.co[:] for v in mesh.data.vertices])
+    B = arm.data.bones
+    knee = (B[P + "LeftLeg"].head_local.z + B[P + "RightLeg"].head_local.z) / 2
+    hipz = B[P + "Hips"].head_local.z
+    names = [g.name for g in mesh.vertex_groups]
+    gi = {n: i for i, n in enumerate(names)}
+    Wt = np.zeros((nv, len(names)), np.float32)
+    for v in mesh.data.vertices:
+        for g in v.groups:
+            Wt[v.index, g.group] = g.weight
+    band = (~skin) & (co[:, 2] > knee - 0.06) & (co[:, 2] < hipz + 0.06)
+    # the hands (dark gloves) hang at shorts height in the rest pose: anything on an arm bone is not shorts
+    arm_cols = [i for i, n in enumerate(names) if any(k in n for k in ("Arm", "Hand", "Shoulder"))]
+    band &= Wt[:, arm_cols].sum(1) < 0.02
+    upper = band & (co[:, 2] > knee + 0.10)              # leave the hem round the knee to Tripo's weights
+    for side in ("Left", "Right"):
+        leg, up, foot = gi.get(P + side + "Leg"), gi.get(P + side + "UpLeg"), gi.get(P + side + "Foot")
+        for src in (leg, foot):
+            if src is None or up is None:
+                continue
+            Wt[upper, up] += Wt[upper, src]
+            Wt[upper, src] = 0
+    # the side of the shorts round the hip (pockets, flaps) rides with the pelvis more than with the thigh, so
+    # it doesn't flare out when the thigh lifts or swings out
+    upz = (B[P + "LeftUpLeg"].head_local.z + B[P + "RightUpLeg"].head_local.z) / 2
+    hw = abs(B[P + "LeftUpLeg"].head_local.x)
+    t = np.clip((co[:, 2] - (upz - 0.16)) / 0.20, 0, 1) * np.clip((np.abs(co[:, 0]) - 0.6 * hw) / (0.6 * hw), 0, 1)
+    t = (t * t * (3 - 2 * t)) * band
+    hips_i = gi[P + "Hips"]
+    onehot = np.zeros_like(Wt)
+    onehot[:, hips_i] = 1.0
+    Wt = Wt * (1 - 0.7 * t[:, None]) + onehot * (0.7 * t[:, None])
+    kd = KDTree(nv)
+    for i, c in enumerate(co):
+        kd.insert(c, i)
+    kd.balance()
+    idx = np.nonzero(band)[0]
+    nbrs = [np.array([j for (_, j, _) in kd.find_range(co[i], radius) if band[j]] or [i]) for i in idx]
+    keep = [gi[n] for n in names if n.endswith(("Hips", "UpLeg", "Spine"))]
+    for _ in range(iterations):
+        new = Wt.copy()
+        for k, i in enumerate(idx):
+            nb = nbrs[k]
+            new[i, keep] = Wt[nb][:, keep].mean(0)
+        Wt = new
+    Wt[band] /= np.maximum(Wt[band].sum(1, keepdims=True), 1e-6)
+    for n, g_i in gi.items():
+        g = mesh.vertex_groups[n]
+        for i in idx:
+            val = float(Wt[i, g_i])
+            if val > 1e-4:
+                g.add([int(i)], val, "REPLACE")
+            else:
+                g.remove([int(i)])
+    print("shorts weights fixed on", len(idx), "cloth vertices")
+
+
+def strip_hand_leaks(mesh):
+    """In the rest pose the hands touch the thighs, and the auto-skinning leaked small finger/hand weights onto the
+    shorts/leggings there; when the arms lift those patches are dragged after the hands (fins). Any vertex that
+    mostly belongs to the legs, hips or spine drops its hand/finger weights."""
+    names = [g.name for g in mesh.vertex_groups]
+    hand = {i for i, n in enumerate(names) if "Hand" in n}
+    body = {i for i, n in enumerate(names) if n.endswith(("UpLeg", "Leg", "Hips", "Spine", "Spine1", "Foot"))}
+    fixed = 0
+    for v in mesh.data.vertices:
+        ws = {g.group: g.weight for g in v.groups}
+        if not ws:
+            continue
+        top = max(ws, key=ws.get)
+        hw = sum(w for g, w in ws.items() if g in hand)
+        if top in body and hw > 0:
+            rest = sum(w for g, w in ws.items() if g not in hand)
+            for g in list(ws):
+                if g in hand:
+                    mesh.vertex_groups[g].remove([v.index])
+                else:
+                    mesh.vertex_groups[g].add([v.index], ws[g] / max(rest, 1e-6), "REPLACE")
+            fixed += 1
+    print("hand-weight leaks removed on", fixed, "vertices")
