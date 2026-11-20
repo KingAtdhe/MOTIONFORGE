@@ -3,6 +3,8 @@ name: Fetch offline pose model
 # video-to-animation pipeline (tools/mocap). Not bundled in the app.
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/fetch-pose-model.yml']
 permissions:
   contents: write
 jobs:
