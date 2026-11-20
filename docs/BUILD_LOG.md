@@ -414,3 +414,16 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Signature: the exercise name set huge and faint behind the coach — on Home's "Today" block, lesson cards,
   the session summary, and live behind the 3D coach (Filament view now renders with a transparent background).
 - Copy: sentence-case labels, no "A · B" strings, plain-language lengths ("2 min").
+
+## Coaches closer to the owner's source models (2026-11-20)
+- Owner compared the app coaches with her Tripo originals: "chunky and all over the place".
+- Found: rest shape was within 1 mm of the source, but (1) the texture was re-baked onto a new UV layout at 2K
+  from a 30k-triangle mesh (soft, colour-graded), (2) loose shorts/flanks tore into fins in deep poses (patchy heat
+  weights), (3) my mocap squat check had silently rendered the hand-keyed clip — the softened mocap squat was
+  actually broken (knees shooting forward, a foot lifting).
+- Fixes: 90k triangles; the source's own UVs and base-colour/roughness textures are kept (2K), only the normal map
+  is re-baked (detail survives decimation); no skin colour grading. Pelvis/shorts weights rebuilt from geometry
+  (long hips→thigh ramp, left/right blend), Laplacian weight smoothing in pelvis, flanks and armpits; the waist now
+  takes half the hip-to-ribcage twist. Squat back to hand-keyed (mocap rejected, see comment) with natural timing:
+  eased descent with a small settle, quicker drive up, arms trailing the hips, breathing; feet pinned, knees over toes.
+- GLBs now ~9.3 MB each. Validator 0 errors.

@@ -21,7 +21,10 @@ DIRS = {
     "thigh_R": ("RightUpLeg", "RightLeg"), "shin_R": ("RightLeg", "RightFoot"), "foot_R": ("RightFoot", "RightToeBase"),
 }
 # bones that also take the recorded left-right axis (full orientation)
-FRAMES = {"hips": (("Hips", "Spine"), ("RightUpLeg", "LeftUpLeg")), "chest": (("Spine1", "Neck1"), ("RightArm", "LeftArm"))}
+FRAMES = {"hips": (("Hips", "Spine"), ("RightUpLeg", "LeftUpLeg")), "chest": (("Spine1", "Neck1"), ("RightArm", "LeftArm")),
+          # the waist takes half of the hips-to-ribcage twist, so a punch's torso rotation is spread over two joints
+          # instead of wringing the skin at one ("candy wrapper")
+          "spine": (("Hips", "Spine1"), ("MIX", "MIX"))}
 
 
 def _frame(up, side):
@@ -74,7 +77,7 @@ def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2,
     for bn, ((a, b_), (sa, sb)) in FRAMES.items():
         bone = bones[bn]
         upr = Vector(bone.tail_local) - Vector(bone.head_local)
-        sider = Vector(bones[rig_side[1]].head_local) - Vector(bones[rig_side[0]].head_local) if bn == "hips" else \
+        sider = Vector(bones[rig_side[1]].head_local) - Vector(bones[rig_side[0]].head_local) if bn in ("hips", "spine") else \
             Vector(bones["upper_arm_L"].head_local) - Vector(bones["upper_arm_R"].head_local)
         rf[bn] = _frame(upr, sider)
 
@@ -95,7 +98,12 @@ def retarget(arm, data, f0, f1, name, rig_side=("thigh_R", "thigh_L"), smooth=2,
             inherit = pose[par.name] @ rest[par.name].inverted() @ rest[b.name]
             if b.name in FRAMES:
                 (a, b_), (sa, sb) = FRAMES[b.name]
-                F = _frame(V(f, b_) - V(f, a), V(f, sb) - V(f, sa))
+                if sa == "MIX":
+                    hs = (V(f, "LeftUpLeg") - V(f, "RightUpLeg")).normalized()
+                    cs = (V(f, "LeftArm") - V(f, "RightArm")).normalized()
+                    F = _frame(V(f, b_) - V(f, a), hs + cs)
+                else:
+                    F = _frame(V(f, b_) - V(f, a), V(f, sb) - V(f, sa))
                 D = F @ rf[b.name].transposed()
                 rot = D @ rest[b.name].to_3x3()
                 loc = V(f, "Hips") if b.name == "hips" else inherit.translation

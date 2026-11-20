@@ -16,7 +16,7 @@ os.makedirs(out_dir, exist_ok=True)
 # exercise id -> (clip, frame picker, camera yaw in degrees; 0 = front)
 SHOTS = {
     "standing_mobility_warmup": ("warmup_march", "knee", 60),
-    "bodyweight_squat": ("squat_down", "end", 35),
+    "bodyweight_squat": ("squat_down", "end", 65),
     "hip_hinge": ("hip_hinge_down", "end", 80),
     "push_up": ("pushup_down", "start", 70),
     "boxing_stance": ("boxing_stance", 0.3, 30),

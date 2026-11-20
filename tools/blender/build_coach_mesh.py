@@ -16,7 +16,10 @@ sys.path.insert(0, HERE)
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 args = sys.argv[1:]
 SRC, NAME, HEIGHT = args[0], args[1], float(args[2])
-TRIS = int(args[args.index("--tris") + 1]) if "--tris" in args else 30000
+TRIS = int(args[args.index("--tris") + 1]) if "--tris" in args else 90000
+# Keep the source model's own UV layout and texture (crisp, colours exactly as the owner's model); only the normal map
+# is re-baked so the high-res surface detail survives decimation. --rebake restores the old full re-bake.
+KEEP_UV = "--rebake" not in args
 RES = int(args[args.index("--res") + 1]) if "--res" in args else 2048
 WORK = os.path.join("/tmp", "coach_" + NAME)
 os.makedirs(WORK, exist_ok=True)
@@ -143,14 +146,18 @@ dec.ratio = TRIS / len(hi.data.polygons) / (1 if all(len(p.vertices) == 3 for p 
 bpy.ops.object.modifier_apply(modifier=dec.name)
 bpy.ops.object.shade_smooth()
 print("LO tris", sum(len(p.vertices) - 2 for p in lo.data.polygons))
-while lo.data.uv_layers:
-    lo.data.uv_layers.remove(lo.data.uv_layers[0])
-lo.data.uv_layers.new(name="UVMap")
-bpy.ops.object.mode_set(mode="EDIT")
-bpy.ops.mesh.select_all(action="SELECT")
-bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.004)
-bpy.ops.uv.pack_islands(margin=0.003, rotate=True)
-bpy.ops.object.mode_set(mode="OBJECT")
+if not KEEP_UV:
+    while lo.data.uv_layers:
+        lo.data.uv_layers.remove(lo.data.uv_layers[0])
+    lo.data.uv_layers.new(name="UVMap")
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.004)
+    bpy.ops.uv.pack_islands(margin=0.003, rotate=True)
+    bpy.ops.object.mode_set(mode="OBJECT")
+else:
+    while len(lo.data.uv_layers) > 1:
+        lo.data.uv_layers.remove(lo.data.uv_layers[-1])
 
 # ---------------------------------------------------------------- bake hi -> lo
 sc = bpy.context.scene
@@ -191,14 +198,50 @@ def bake(kind, fname, colorspace="sRGB", **kw):
 sc.render.bake.use_pass_direct = False
 sc.render.bake.use_pass_indirect = False
 sc.render.bake.use_pass_color = True
-bake("DIFFUSE", "base.png")
-bake("ROUGHNESS", "rough.png", "Non-Color")
-bake("NORMAL", "normal.png", "Non-Color", normal_space="TANGENT")
+def source_image(socket_name):
+    """The source material's texture feeding a Principled input (glTF import), resized to RES."""
+    def walk(sock):
+        for l in sock.links:
+            n = l.from_node
+            if n.type == "TEX_IMAGE":
+                return n.image
+            for i in n.inputs:
+                r = walk(i)
+                if r:
+                    return r
+        return None
+    img = walk(hbs.inputs[socket_name])
+    cp = img.copy()
+    cp.scale(RES, RES)
+    return cp
+
+
+if KEEP_UV:
+    base = source_image("Base Color")
+    base.name = "base.png"
+    base.filepath_raw = os.path.join(WORK, "base.png")
+    base.file_format = "PNG"
+    base.save()
+    out["base.png"] = base
+    mr_src = source_image("Roughness")       # glTF metallicRoughness: roughness in G
+    rpx = np.array(mr_src.pixels[:], np.float32).reshape(RES, RES, 4)
+    rough = bpy.data.images.new("rough.png", RES, RES)
+    rough.colorspace_settings.name = "Non-Color"
+    rp = np.zeros_like(rpx)
+    rp[..., 0] = rp[..., 1] = rp[..., 2] = rpx[..., 1]
+    rp[..., 3] = 1
+    rough.pixels[:] = rp.ravel()
+    out["rough.png"] = rough
+    bake("NORMAL", "normal.png", "Non-Color", normal_space="TANGENT")
+else:
+    bake("DIFFUSE", "base.png")
+    bake("ROUGHNESS", "rough.png", "Non-Color")
+    bake("NORMAL", "normal.png", "Non-Color", normal_space="TANGENT")
 
 # ---- colour: the generated texture is much darker than the owner's sheet; grade skin to the sheet's skin tone and
 #      lift the dark fabric a little so the coach reads clearly in the app
 SKIN = {"coach_f": (0.847, 0.494, 0.345), "coach_m": (0.702, 0.388, 0.255)}.get(NAME)
-if SKIN and "--no-grade" not in args:
+if SKIN and "--no-grade" not in args and not KEEP_UV:
     img = out["base.png"]
     px = np.array(img.pixels[:], np.float32).reshape(RES, RES, 4)
     rgb = px[..., :3]
@@ -352,6 +395,102 @@ for vv in lo.data.vertices:                                                 # an
     if not any(g.weight > 0.01 for g in vv.groups):
         lo.vertex_groups["head" if vv.co.z > head_z else ("chest" if vv.co.z > J["chest"].z else "spine")].add([vv.index], 1.0, "REPLACE")
 print("weight clean-up changed", changed)
+
+
+# ---- regional weight smoothing (Laplacian, along mesh edges). Heat weights leave hard steps where the shorts meet the
+#      thighs, along the flanks and in the armpits; with linear-blend skinning those steps turn into spikes, folds and
+#      torn-looking creases in a deep squat or a twisting punch. Smooth hard in those bands only (hands, fingers and
+#      head keep their sharp, deliberate weights), feathered at the band edges so no new seam appears.
+def smooth_bands(bands):
+    nv = len(lo.data.vertices)
+    names = [g.name for g in lo.vertex_groups]
+    Wt = np.zeros((nv, len(names)), np.float32)
+    for vv in lo.data.vertices:
+        for g in vv.groups:
+            Wt[vv.index, g.group] = g.weight
+    ed = np.array([e.vertices[:] for e in lo.data.edges], np.int64)
+    deg = np.bincount(ed.ravel(), minlength=nv).astype(np.float32)
+    co = np.array([vv.co[:] for vv in lo.data.vertices], np.float32)
+    frozen = [i for i, n in enumerate(names) if n.startswith(("hand_", "fingers_", "fingertips_", "head", "foot_"))]
+    for (z0, z1, feather, repeat, factor, xmin) in bands:
+        z = co[:, 2] / H
+        m = np.clip(np.minimum(z - z0, z1 - z) / feather, 0, 1)
+        if xmin:
+            m *= np.clip((np.abs(co[:, 0]) / H - xmin) / 0.02, 0, 1)
+        touches_frozen = Wt[:, frozen].sum(1) > 0.05
+        m[touches_frozen] = 0
+        m = (m * m * (3 - 2 * m) * factor)[:, None]
+        for _ in range(repeat):
+            acc = np.zeros_like(Wt)
+            np.add.at(acc, ed[:, 0], Wt[ed[:, 1]])
+            np.add.at(acc, ed[:, 1], Wt[ed[:, 0]])
+            avg = acc / np.maximum(deg, 1)[:, None]
+            Wt = Wt * (1 - m) + avg * m
+    Wt /= np.maximum(Wt.sum(1, keepdims=True), 1e-6)
+    for gi, n in enumerate(names):
+        g = lo.vertex_groups[n]
+        col = Wt[:, gi]
+        idx = np.nonzero(col > 1e-4)[0]
+        g.remove(list(range(nv)))
+        for i in idx:
+            g.add([int(i)], float(col[i]), "REPLACE")
+
+
+# ---- pelvis and shorts: rebuild hips/thigh weights from geometry. Heat weights give the loose shorts, pockets and
+#      flaps (often separate shells) patchy hips/thigh splits that tear into spikes when the thigh flexes. Here the
+#      thigh share rises smoothly with distance below the hip joint, and left/right blend across the midline, like
+#      cloth following the leg. Arm/hand vertices hanging at this height are left alone.
+def pelvis_weights():
+    hz = (J["thigh_L"].z + J["thigh_R"].z) / 2
+    hw = abs(J["thigh_L"].x - J["thigh_R"].x) / 2
+    gh = lo.vertex_groups["hips"]
+    gl, gr = lo.vertex_groups["thigh_L"], lo.vertex_groups["thigh_R"]
+    gs = lo.vertex_groups["spine"]
+    arm_idx = {lo.vertex_groups[n].index for n in lo.vertex_groups.keys() if n.startswith(("upper_arm", "forearm", "hand", "finger", "shin", "foot"))}
+    top, bottom = hz + 0.05 * H, hz - 0.25 * H          # long, gentle ramp: no fins on the shorts in a deep squat
+    knee = (J["shin_L"].z + J["shin_R"].z) / 2
+    n = 0
+    for vv in lo.data.vertices:
+        z = vv.co.z
+        if z > top + 0.03 * H or z < knee + 0.03 * H:          # whole shorts down to just above the knee
+            continue
+        if sum(g.weight for g in vv.groups if g.group in arm_idx) > 0.05:
+            continue
+        t = _ss(top, bottom, z)                                 # 0 at the waist .. 1 well down the thigh
+        side = _ss(-0.35 * hw, 0.35 * hw, vv.co.x)              # 0 = right leg .. 1 = left leg
+        wth = t
+        whips = 1 - t
+        # keep a little of any spine weight already at the waistband
+        wsp = 0.0
+        for g in vv.groups:
+            if g.group == gs.index:
+                wsp = g.weight * (1 - t)
+        tot = wth + whips + wsp
+        for g in list(vv.groups):
+            if lo.vertex_groups[g.group].name not in ("hips", "thigh_L", "thigh_R", "spine"):
+                lo.vertex_groups[g.group].remove([vv.index])
+        gh.add([vv.index], whips / tot, "REPLACE")
+        gs.add([vv.index], wsp / tot, "REPLACE")
+        gl.add([vv.index], wth * side / tot, "REPLACE")
+        gr.add([vv.index], wth * (1 - side) / tot, "REPLACE")
+        n += 1
+    print("pelvis weights rebuilt", n)
+
+
+def _ss(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+pelvis_weights()
+
+# (z from, z to [fraction of height], feather, iterations, strength, min |x| or 0)
+smooth_bands([
+    (0.34, 0.60, 0.04, 30, 0.6, 0),        # pelvis, shorts, upper thighs
+    (0.55, 0.80, 0.04, 14, 0.5, 0),        # flanks / ribcage twist
+    (0.68, 0.86, 0.03, 14, 0.5, 0.075),    # shoulders and armpits
+])
+print("regional smoothing done")
 bpy.ops.object.select_all(action="DESELECT")
 bpy.context.view_layer.objects.active = lo
 lo.select_set(True)
@@ -421,13 +560,12 @@ MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to 
     "boxing_jab": ("13_18", 88, 104, False, 14),
     # cross (peak f33) from the same combination; the lead arm holds its guard pose from f15 (before the jab)
     "boxing_cross": ("13_18", 22, 42, False, 10),
-    # bodyweight squat with hands on hips (subject 13); recorded to full depth, softened below (SOFTEN)
-    "squat_down": ("13_29", 1036, 1090, False, 0),
-    "squat_up": ("13_29", 1090, 1128, False, 0),
 }
+# (tried: CMU 13_29 squat softened toward standing — blending a deep squat's joint rotations doesn't give a natural
+#  shallow squat (knees shoot forward, hips stay under the body), so the squat stays hand-keyed with mocap-like timing)
 # blend recorded poses toward the standing frame: keeps the performer's timing, balance and torso/hip coordination
 # but at a beginner depth (knees ~95 deg instead of a full deep squat). value: (amount kept, standing frame)
-SOFTEN = {"squat_down": (0.56, "first"), "squat_up": (0.56, "last")}
+SOFTEN = {}
 HOLD = {"boxing_cross": ("L", 15)}
 # the performer stands bladed, so "hips forward" is ~45 deg off the punching line; turn the boxing takes so punches
 # go straight at the viewer's target (-Y), like the hand-keyed footwork / guard clips
@@ -588,7 +726,7 @@ build_pushups()
 # ---- foot lock: while a foot is on the floor and nearly still, pin it where it landed (removes foot skating
 #      from retargeted mocap and from hand-keyed hip motion); two-bone analytic IK on thigh/shin, foot keeps its
 #      world orientation.
-def foot_lock(act, planted=False):
+def foot_lock(act, planted=False, pin_start=False):
     arm.animation_data.action = act
     a_, b_ = [int(x) for x in act.frame_range]
     frames = list(range(a_, b_ + 1))
@@ -618,7 +756,7 @@ def foot_lock(act, planted=False):
         contact = []
         for i in range(n):
             v = (P[min(i + 1, n - 1)] - P[max(i - 1, 0)]).xy.length / (2 / ta.FPS)
-            contact.append(planted or (P[i].z < ground + 0.03 and v < 0.45))
+            contact.append(planted or pin_start or (P[i].z < ground + 0.03 and v < 0.45))
         # segments
         segs, i = [], 0
         while i < n:
@@ -635,10 +773,12 @@ def foot_lock(act, planted=False):
         weight = [0.0] * n
         for (i0, i1) in segs:
             anchor = (sum(P, Vector()) / n) if planted else P[(i0 + i1) // 2].copy()
+            if pin_start:                                   # squats: both feet stay exactly where they started
+                anchor = P[0].copy() if act.name.endswith("_down") else P[-1].copy()
             if planted:
                 anchor.z = 0
             for k in range(i0, i1 + 1):
-                target[k] = Vector((anchor.x, anchor.y, min(P[k].z, ground + 0.006) if planted else P[k].z))
+                target[k] = Vector((anchor.x, anchor.y, min(P[k].z, ground + 0.006) if planted else (anchor.z if pin_start else P[k].z)))
                 weight[k] = 1.0
             for k in range(1, 4):                                   # blend in / out over 3 frames
                 for kk, w in ((i0 - k, 1 - k / 4), (i1 + k, 1 - k / 4)):
@@ -658,6 +798,9 @@ def foot_lock(act, planted=False):
             dist = min(dvec.length, l1 + l2 - 1e-4)
             dn = dvec.normalized()
             bend = (K - Hp) - dn * (K - Hp).dot(dn)                     # keep the knee's bend direction
+            if pin_start:                                               # squat: knees track over the toes
+                want = Vector((0.28 if s_ == "L" else -0.28, -1.0, 0.0))
+                bend = want - dn * want.dot(dn)
             if bend.length < 1e-5:
                 bend = Vector((0, -1, 0))
             bend.normalize()
@@ -680,7 +823,7 @@ def foot_lock(act, planted=False):
 from mathutils import Matrix  # noqa: E402
 for act in list(bpy.data.actions):
     if not act.name.startswith("pushup_"):
-        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"))
+        foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith("squat_"))
 print("foot lock done")
 
 

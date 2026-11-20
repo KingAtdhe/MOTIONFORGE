@@ -299,10 +299,32 @@ def clip_specs():
         return merge(arms_down(), {"chest": [("X", 1.2 * b)], "spine": [("X", 0.6 * b)], "head": [("X", -0.6 * b)]})
 
     def squat_down(t):
-        return squat(ease(t / 1.6))
+        # controlled descent: gentle start, steady middle, decelerating into the bottom with a tiny settle; the arms
+        # trail the hips slightly (they rise as a counterweight once the hips are moving back)
+        x = min(1.0, t / 1.7)
+        d = x * x * (3 - 2 * x)
+        d = min(1.0, d * 1.02) if x < 0.95 else 1.0 - 0.015 * math.sin(math.pi * (x - 0.95) / 0.05)
+        return breathe(squat_lag(d, x), t)
 
     def squat_up(t):
-        return squat(1 - ease(t / 1.6))
+        # drive up: quicker out of the bottom, easing into a tall finish
+        x = min(1.0, t / 1.3)
+        d = 1 - (1 - (1 - x) ** 2) ** 1.2
+        return breathe(squat_lag(d, 1 - x), t)
+
+    def squat_lag(d, x):
+        pose = squat(d)
+        lag = max(0.0, min(1.0, d * 1.15 - 0.08))              # arms a beat behind the hips
+        for s_ in ("L", "R"):
+            pose[f"upper_arm_{s_}"] = squat(lag)[f"upper_arm_{s_}"]
+        return pose
+
+    def breathe(pose, t):
+        b = math.sin(2 * math.pi * t / 3.4)
+        out = dict(pose)
+        out["chest"] = list(pose.get("chest", [])) + [("X", 0.8 * b)]
+        out["head"] = list(pose.get("head", [])) + [("X", -0.5 * b)]
+        return out
 
     def stance_clip(t):
         # gentle, relaxed sway in stance (weight stays centred)
@@ -418,8 +440,8 @@ def clip_specs():
         ("hip_hinge_down", 1.6, lambda t: hinge_pose(ease(t / 1.6))),
         ("hip_hinge_up", 1.4, lambda t: hinge_pose(1 - ease(t / 1.4))),
         ("idle_neutral", 3.0, idle),
-        ("squat_down", 1.6, squat_down),
-        ("squat_up", 1.6, squat_up),
+        ("squat_down", 1.7, squat_down),
+        ("squat_up", 1.3, squat_up),
         ("boxing_stance", 2.4, stance_clip),
         ("boxing_jab", 1.0, jab),
         ("boxing_cross", 1.1, cross),
