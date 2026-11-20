@@ -1,0 +1,19 @@
+name: Fetch offline pose model
+# Tooling only: fetches the MediaPipe heavy pose model for the offline
+# video-to-animation pipeline (tools/mocap). Not bundled in the app.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download model
+        run: curl -fsSL -o pose_landmarker_heavy.task https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task
+      - name: Publish to tooling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view tooling-models -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create tooling-models -R "$GITHUB_REPOSITORY" --title "Tooling models" --notes "Offline tooling models (not shipped in the app)." --prerelease
+          gh release upload tooling-models pose_landmarker_heavy.task -R "$GITHUB_REPOSITORY" --clobber
