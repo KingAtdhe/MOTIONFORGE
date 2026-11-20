@@ -2,6 +2,7 @@ package eu.motionforge.app
 
 import android.app.Application
 import android.content.Context
+import eu.motionforge.app.data.ActiveSessionStore
 import eu.motionforge.app.data.ClipManifestRepository
 import eu.motionforge.app.data.ExerciseRepository
 import eu.motionforge.app.data.SessionRepository
@@ -13,6 +14,7 @@ class AppContainer(context: Context) {
     val preferences: UserPreferencesRepository by lazy { UserPreferencesRepository(context) }
     val sessions: SessionRepository by lazy { SessionRepository(context) }
     val clips: ClipManifestRepository by lazy { ClipManifestRepository(context) }
+    val activeSession: ActiveSessionStore by lazy { ActiveSessionStore(context) }
 }
 
 class MotionForgeApplication : Application() {

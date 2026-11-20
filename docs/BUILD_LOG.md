@@ -387,3 +387,15 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   tone mapping; ModelViewer's overhead 100 klx sun reduced to 45 klx and tilted to the front; ambient lowered so
   the key light shapes the body; roughness remapped to 0.45–0.95; bake cage 2 cm / rays 6 cm; tangents exported
   (degenerate ones patched in `fix_tangents`). Validator: 0 errors. Needs a device check.
+
+## Workouts survive the app being closed (2026-11-20)
+- `SessionSnapshot` (pure Kotlin, JSON) + `ActiveSessionStore` (app-private `noBackupFilesDir/active_session.json`,
+  atomic tmp+rename, epoch guard so a late background write can't revive a saved/discarded session). Only
+  timer/step/result numbers are stored — no camera data.
+- `SessionViewModel` writes the latest state on every change (conflated, IO), restores it when Android reopens
+  the session screen, and continues **paused** (closed-app time is not counted) with a "Picked up where you left
+  off" note. Cleared on save, Done/Discard, starting another session, or Reset app data; expires after 24 h.
+- Home shows an "Unfinished workout" card (Resume / Discard) or "Workout not saved yet" (Review & save).
+- Tests: SessionSnapshotTest (round trip, resume paused, finished stays finished, rejects bad/tampered data,
+  24 h expiry) — 17/17 session tests pass locally. Process-death behaviour still needs a device check
+  (Developer options → "Don't keep activities", or `adb shell am kill`).

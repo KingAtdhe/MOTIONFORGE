@@ -48,7 +48,9 @@ import eu.motionforge.app.core.model.TrainingCategory
 import eu.motionforge.app.data.UserPreferences
 import eu.motionforge.app.feature.catalog.CatalogUiState
 import eu.motionforge.app.feature.catalog.LessonSuggestions
+import eu.motionforge.app.feature.session.SessionPhase
 import eu.motionforge.app.feature.session.SessionPlan
+import eu.motionforge.app.feature.session.SessionSnapshot
 import eu.motionforge.app.feature.session.SessionPlanner
 import eu.motionforge.app.feature.session.SessionStep
 
@@ -61,6 +63,9 @@ fun HomeScreen(
     onStartQuickSession: () -> Unit,
     sessionsThisWeek: Int?,
     onRetry: () -> Unit,
+    unfinished: SessionSnapshot? = null,
+    onResumeUnfinished: (SessionSnapshot) -> Unit = {},
+    onDiscardUnfinished: () -> Unit = {},
 ) {
     val coach = preferences.coach
     Column(
@@ -81,6 +86,8 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        if (unfinished != null) UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished)
 
         when (catalog) {
             CatalogUiState.Loading -> Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,4 +224,33 @@ private fun HomeTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) ->
         modifier = Modifier.width(170.dp),
         eyebrow = eyebrow,
     )
+}
+
+@Composable
+private fun UnfinishedCard(snap: SessionSnapshot, onResume: (SessionSnapshot) -> Unit, onDiscard: () -> Unit) {
+    val st = snap.state
+    val finished = st.phase == SessionPhase.FINISHED
+    val accent = st.plan.type.accent
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MfColors.PanelRaised,
+        border = BorderStroke(1.dp, accent),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Eyebrow(if (finished) "Workout not saved yet" else "Unfinished workout", color = accent)
+            Text(st.plan.title.uppercase(), style = MaterialTheme.typography.titleLarge)
+            val done = st.results.size
+            Text(
+                if (finished) "You finished it but the app closed before saving."
+                else "$done of ${st.plan.workCount} exercises done · paused when the app closed.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                androidx.compose.material3.Button(onClick = { onResume(snap) }) { Text(if (finished) "Review & save" else "Resume") }
+                OutlinedButton(onClick = onDiscard) { Text("Discard") }
+            }
+        }
+    }
 }

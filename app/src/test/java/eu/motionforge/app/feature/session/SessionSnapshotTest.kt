@@ -1,0 +1,66 @@
+package eu.motionforge.app.feature.session
+
+import eu.motionforge.app.core.model.TrainingCategory
+import eu.motionforge.app.core.movement.BoxingDrill
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class SessionSnapshotTest {
+    private val plan = SessionPlan(
+        "Quick boxing", TrainingCategory.FIGHTING_FUNDAMENTALS,
+        listOf(
+            SessionStep.Work("boxing_stance", "Boxing stance", 40, countsReps = false, formDrill = BoxingDrill.STANCE),
+            SessionStep.Rest(15, "Jab"),
+            SessionStep.Work("bodyweight_squat", "Squat", 30, countsReps = true),
+        ),
+    )
+
+    private fun midway(): SessionState {
+        var s = SessionEngine.reduce(SessionState(plan), SessionEvent.Start(cameraUsed = true))
+        repeat(45) { s = SessionEngine.reduce(s, SessionEvent.Tick(tracking = it % 2 == 0)) }
+        return s
+    }
+
+    @Test
+    fun roundTripKeepsEverything() {
+        val s = midway()
+        val snap = SessionSnapshot("quick", s, 1_000L, 2_000L)
+        val back = SessionSnapshot.decode(SessionSnapshot.encode(snap))
+        assertEquals(snap, back)
+    }
+
+    @Test
+    fun runningSessionComesBackPaused() {
+        val snap = SessionSnapshot("quick", midway(), 0, 0)
+        assertEquals(SessionPhase.RUNNING, snap.state.phase)
+        val r = snap.restoredState()
+        assertEquals(SessionPhase.PAUSED, r.phase)
+        assertEquals(snap.state.results, r.results)
+        assertEquals(snap.state.remainingInStep, r.remainingInStep)
+    }
+
+    @Test
+    fun finishedUnsavedStaysFinished() {
+        val s = SessionEngine.reduce(midway(), SessionEvent.Stop)
+        assertEquals(SessionPhase.FINISHED, SessionSnapshot("quick", s, 0, 0).restoredState().phase)
+    }
+
+    @Test
+    fun rejectsGarbageAndTampering() {
+        assertNull(SessionSnapshot.decode("not json"))
+        assertNull(SessionSnapshot.decode("{}"))
+        val good = SessionSnapshot.encode(SessionSnapshot("quick", midway(), 0, 0))
+        assertNull(SessionSnapshot.decode(good.replace("\"stepIndex\":1", "\"stepIndex\":9")))
+        assertNull(SessionSnapshot.decode(good.replace("\"version\":1", "\"version\":99")))
+    }
+
+    @Test
+    fun expiresAfterADay() {
+        val snap = SessionSnapshot("quick", midway(), 0, 1_000_000L)
+        assertFalse(snap.isExpired(1_000_000L + 60_000))
+        assertTrue(snap.isExpired(1_000_000L + SessionSnapshot.MAX_AGE_MILLIS + 1))
+    }
+}

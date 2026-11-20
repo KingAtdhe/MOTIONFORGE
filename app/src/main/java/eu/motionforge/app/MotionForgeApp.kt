@@ -13,7 +13,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import eu.motionforge.app.feature.session.SessionSnapshot
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +66,7 @@ object Routes {
     fun lesson(id: String) = "lesson/$id"
     fun quickSession() = "session/quick"
     fun lessonSession(id: String) = "session/lesson-$id"
+    fun session(planKey: String) = "session/$planKey"
 }
 
 private data class TopLevelDestination(val route: String, val label: String, val icon: ImageVector)
@@ -120,6 +128,9 @@ fun MotionForgeApp(
             modifier = Modifier.padding(padding),
         ) {
             composable(Routes.HOME) {
+                // An unfinished workout (the app was closed mid-session) is offered on Home; re-read on each visit.
+                var unfinished by remember { mutableStateOf<SessionSnapshot?>(null) }
+                LaunchedEffect(Unit) { unfinished = withContext(Dispatchers.IO) { container.activeSession.read() } }
                 HomeScreen(
                     preferences = preferences,
                     catalog = catalog,
@@ -128,7 +139,16 @@ fun MotionForgeApp(
                         catalogViewModel.setCategory(category)
                         navController.navigateTopLevel(Routes.TRAIN)
                     },
-                    onStartQuickSession = { navController.navigate(Routes.quickSession()) },
+                    onStartQuickSession = {
+                        container.activeSession.clear()
+                        navController.navigate(Routes.quickSession())
+                    },
+                    unfinished = unfinished,
+                    onResumeUnfinished = { navController.navigate(Routes.session(it.planKey)) },
+                    onDiscardUnfinished = {
+                        container.activeSession.clear()
+                        unfinished = null
+                    },
                     sessionsThisWeek = sessionsThisWeek,
                     onRetry = catalogViewModel::load,
                 )
@@ -146,7 +166,10 @@ fun MotionForgeApp(
                 )
             }
             composable(Routes.PROGRESS) {
-                ProgressScreen(history = history, coach = preferences.coach, onStartSession = { navController.navigate(Routes.quickSession()) })
+                ProgressScreen(history = history, coach = preferences.coach, onStartSession = {
+                    container.activeSession.clear()
+                    navController.navigate(Routes.quickSession())
+                })
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -164,7 +187,10 @@ fun MotionForgeApp(
                     catalog = catalog,
                     onBack = { navController.popBackStack() },
                     onViewed = catalogViewModel::markViewed,
-                    onStartPractice = { navController.navigate(Routes.lessonSession(it)) },
+                    onStartPractice = {
+                        container.activeSession.clear()
+                        navController.navigate(Routes.lessonSession(it))
+                    },
                     onRetry = catalogViewModel::load,
                 )
             }
@@ -186,7 +212,11 @@ fun MotionForgeApp(
                         Text(if (catalog is CatalogUiState.Loading) "Loading…" else "This session isn't available.")
                     }
                 } else {
-                    val sessionViewModel: SessionViewModel = viewModel(key = "session-$planArg") { SessionViewModel(plan, container.sessions) }
+                    val sessionViewModel: SessionViewModel = viewModel(key = "session-$planArg") {
+                        // Android may have closed the app mid-workout and reopened this screen: carry on from disk.
+                        val restored = container.activeSession.read()?.takeIf { it.planKey == planArg }
+                        SessionViewModel(plan, container.sessions, container.activeSession, planArg, restored)
+                    }
                     SessionScreen(
                         viewModel = sessionViewModel,
                         exercisesById = ready.exercises.associateBy { it.id },

@@ -101,7 +101,12 @@ fun SessionScreen(
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
             RunningStage(state, tracking, form, exercisesById, viewModel)
         }
-        SessionPhase.FINISHED -> SummaryStage(state, save, coach, onSave = viewModel::saveSession, onClose = onClose, onOpenProgress = onOpenProgress)
+        SessionPhase.FINISHED -> SummaryStage(
+            state, save, coach,
+            onSave = viewModel::saveSession,
+            onClose = { viewModel.onClosed(); onClose() },
+            onOpenProgress = { viewModel.onClosed(); onOpenProgress() },
+        )
     }
 }
 
@@ -192,6 +197,24 @@ private fun RunningStage(
             modifier = Modifier.fillMaxWidth(),
             color = accent,
         )
+        var showRestored by rememberSaveable { mutableStateOf(viewModel.wasRestored) }
+        LaunchedEffect(paused) { if (!paused) showRestored = false }
+        if (showRestored && paused) {
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MfColors.PanelRaised,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MfColors.Caution),
+                modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+            ) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    Eyebrow("Picked up where you left off", color = MfColors.Caution)
+                    Text(
+                        "The app was closed during your workout. Everything you'd done is kept; time while it was closed isn't counted. Press Resume when you're ready.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
         when (step) {
             is SessionStep.Work -> {
                 Eyebrow("Exercise ${state.workIndex} of ${state.plan.workCount}", color = accent)

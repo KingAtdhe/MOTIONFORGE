@@ -2,6 +2,7 @@ package eu.motionforge.app
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.motionforge.app.data.ActiveSessionStore
 import eu.motionforge.app.data.SessionRepository
 import eu.motionforge.app.data.UserPreferences
 import eu.motionforge.app.data.UserPreferencesRepository
@@ -23,6 +24,7 @@ sealed interface AppUiState {
 class AppViewModel(
     private val preferences: UserPreferencesRepository,
     private val sessions: SessionRepository,
+    private val activeSession: ActiveSessionStore? = null,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(0)
@@ -34,6 +36,7 @@ class AppViewModel(
     fun resetAllData() {
         viewModelScope.launch {
             sessions.deleteAll()
+            activeSession?.clear()
             preferences.clearAll()
             session.value += 1
         }
