@@ -645,7 +645,7 @@ def lift_head(act, keep=0.4):
 
 
 for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
-    lift_head(bpy.data.actions[clip])
+    lift_head(bpy.data.actions[clip], keep=0.12)   # head up: eyes look over the gloves instead of hiding behind them
 
 for clip, (keep, ref) in SOFTEN.items():
     soften(bpy.data.actions[clip], keep, ref)
@@ -964,10 +964,11 @@ def guard_targets(ref):
 
 # the recorded boxer holds his fists at eyebrow height (rear one higher); a beginner guard sits at the chin
 # fists at chin / cheekbone height (the wrists sit ~9 cm below the knuckles of a closed fist held upright)
-GUARD_DROP = {"L": 0.13 * HEIGHT / 1.8, "R": 0.18 * HEIGHT / 1.8}
+GUARD_DROP = {"L": 0.15 * HEIGHT / 1.8, "R": 0.19 * HEIGHT / 1.8}
 
 
-def guard_fix(act, guard):
+def guard_fix(act, guard, drop=None):
+    drop = drop or GUARD_DROP
     pbs = arm.pose.bones
     arm.animation_data.action = act
     a_, b_ = [int(x) for x in act.frame_range]
@@ -982,7 +983,7 @@ def guard_fix(act, guard):
             w = w * w * (3 - 2 * w)
             if w < 0.01:
                 continue
-            target = W.lerp(pbs["head"].matrix @ guard[s_] - Vector((0, 0, GUARD_DROP[s_])), w)
+            target = W.lerp(pbs["head"].matrix @ guard[s_] - Vector((0, 0, drop[s_])), w)
             hand_m = hd.matrix.copy()
             dvec = target - S
             dist = min(dvec.length, l1 + l2 - 1e-4)
@@ -1009,6 +1010,15 @@ _guard = guard_targets(bpy.data.actions["boxing_stance"])
 for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
     guard_fix(bpy.data.actions[clip], _guard)
 print("guard fix done")
+
+# squat: the recorded performer holds her clasped hands at her chin, which reads as a boxing guard on the coach.
+# Same two-bone fix, hands lowered to the middle of the chest (clasped in front, the usual teaching position).
+if "squat_down" in bpy.data.actions:
+    _sq = guard_targets(bpy.data.actions["squat_down"])
+    _sq_drop = {s_: 0.30 * HEIGHT / 1.8 for s_ in ("L", "R")}
+    for clip in ("squat_down", "squat_up"):
+        guard_fix(bpy.data.actions[clip], _sq, drop=_sq_drop)
+    print("squat hands lowered")
 
 
 # ---- recorded upper body for the two drills that have no clean recording of their own
@@ -1167,6 +1177,7 @@ if RIGGED:
     if not os.environ.get("KEEP_SRC"):
         for n in names:
             bpy.data.actions.remove(bpy.data.actions["src_" + n])
+    rc.repair_mesh(mx_mesh)
     rc.strip_hand_leaks(mx_mesh)
     if "--fix-shorts" in args:
         rc.fix_shorts(mx_mesh, mx_arm)

@@ -212,8 +212,12 @@ def prepare_textures(mesh, res=2048, clean_skin=True):
                 if feeds_rough and img.colorspace_settings.name != "sRGB":
                     px = np.array(img.pixels[:], np.float32).reshape(-1, 4)
                     px[:, 1] = 0.45 + 0.50 * np.clip(px[:, 1], 0, 1)
+                    # metallic (B): the source paints ~16 % metal over skin and fabric, which darkens them and reads as
+                    # plastic on a phone (no reflections to show). Only the few genuinely metal bits (> 0.5) stay metal.
+                    before = float(px[:, 2].mean())
+                    px[:, 2] = np.where(px[:, 2] > 0.5, px[:, 2], 0.0)
                     img.pixels[:] = px.ravel()
-                    print("roughness remapped on", img.name)
+                    print("roughness remapped on", img.name, "| metallic mean", round(before, 3), "->", round(float(px[:, 2].mean()), 3))
                 img.pack()
 
 
@@ -326,3 +330,97 @@ def strip_hand_leaks(mesh):
                     mesh.vertex_groups[g].add([v.index], ws[g] / max(rest, 1e-6), "REPLACE")
             fixed += 1
     print("hand-weight leaks removed on", fixed, "vertices")
+
+
+def repair_mesh(mesh):
+    """Minimal, shape-preserving repair of the imported coach mesh (see docs/MESH_INSPECTION.md):
+    - delete tiny disconnected fragments (< 40 faces) that sit inside the body,
+    - close pinholes: boundary loops of <= 8 edges that are real holes (not UV-seam splits), using only the existing
+      vertices, so no vertex moves; the new corners take UVs from neighbouring faces, skin weights are unchanged.
+    Normals are left as imported (consistent winding, outward, custom split normals kept)."""
+    import bmesh
+    from collections import defaultdict
+    me = mesh.data
+    bm = bmesh.new(); bm.from_mesh(me)
+    uv = bm.loops.layers.uv.active
+    key = lambda co: (round(co.x, 6), round(co.y, 6), round(co.z, 6))
+    # fragments: connectivity through shared positions (seam splits count as connected)
+    pos_faces = defaultdict(list)
+    for f in bm.faces:
+        for v in f.verts:
+            pos_faces[key(v.co)].append(f)
+    seen, frags = set(), []
+    for f in bm.faces:
+        if f.index in seen:
+            continue
+        st, comp = [f], []
+        while st:
+            g = st.pop()
+            if g.index in seen:
+                continue
+            seen.add(g.index); comp.append(g)
+            for v in g.verts:
+                for h in pos_faces[key(v.co)]:
+                    if h.index not in seen:
+                        st.append(h)
+        if len(comp) < 40:
+            frags.append(comp)
+    dead = {f for comp in frags for f in comp}
+    if dead:
+        bmesh.ops.delete(bm, geom=list(dead), context="FACES")
+    # pinholes: boundary edges with no coincident partner edge are real holes
+    bnd = [e for e in bm.edges if e.is_boundary]
+    ekey = lambda e: tuple(sorted((key(e.verts[0].co), key(e.verts[1].co))))
+    count = defaultdict(int)
+    for e in bnd:
+        count[ekey(e)] += 1
+    holes = [e for e in bnd if count[ekey(e)] == 1]
+    adj = defaultdict(list)
+    for e in holes:
+        a, b = key(e.verts[0].co), key(e.verts[1].co)
+        adj[a].append((b, e)); adj[b].append((a, e))
+    used, filled = set(), 0
+    for e0 in holes:
+        if e0 in used:
+            continue
+        # walk the loop by positions
+        start = key(e0.verts[0].co); cur, prev_e = key(e0.verts[1].co), e0
+        ring = [start]; edges = [e0]; ok = True
+        while cur != start:
+            ring.append(cur)
+            nxt = [(p, e) for p, e in adj[cur] if e is not prev_e]
+            if len(nxt) != 1 or len(ring) > 8:
+                ok = False; break
+            cur, prev_e = nxt[0]; edges.append(prev_e)
+        used.update(edges)
+        if not ok or len(ring) < 3:
+            continue
+        # one existing vertex per ring position (from the hole edges themselves)
+        pick = {}
+        for e in edges:
+            for v in e.verts:
+                pick.setdefault(key(v.co), v)
+        verts = [pick[k] for k in ring]
+        try:
+            f = bm.faces.new(verts)
+        except ValueError:
+            continue
+        if f.calc_area() < 1e-9:            # a sliver crack, not a hole: nothing to close
+            bm.faces.remove(f)
+            continue
+        # winding opposite to the neighbour along the first hole edge
+        ne = edges[0]; nf = ne.link_faces[0] if ne.link_faces[0] is not f else ne.link_faces[1]
+        def fwd(face):
+            vs = list(face.verts); i = vs.index(ne.verts[0]) if ne.verts[0] in vs else None
+            return None if i is None else vs[(i + 1) % len(vs)] == ne.verts[1]
+        if fwd(f) is not None and fwd(f) == fwd(nf):
+            f.normal_flip()
+        f.material_index = nf.material_index; f.smooth = True
+        if uv:
+            for l in f.loops:
+                src = next((ll for ll in l.vert.link_loops if ll.face is not f), None)
+                if src:
+                    l[uv].uv = src[uv].uv.copy()
+        filled += 1
+    bm.to_mesh(me); bm.free(); me.update()
+    print(f"mesh repair: removed {len(frags)} fragment(s) ({len(dead)} faces), closed {filled} pinholes")

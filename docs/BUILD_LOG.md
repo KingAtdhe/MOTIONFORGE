@@ -502,3 +502,12 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   ambient occlusion 0.8 → 0.45.
 - Navigation: default cross-fade showed both screens at once; new screens now fade in over a cleared background.
 - Not verified on device yet.
+
+## 2026-11-20 — Mesh inspection and minimal repair; guard head, squat hands
+
+- Inspected both rigged meshes (docs/MESH_INSPECTION.md). Repairs limited to: removing an 8-face internal fragment
+  (man), closing real pinholes with existing vertices (man 4, woman 2), and zeroing the ~16 % metallic painted over skin
+  and fabric (genuine metal kept). Normals, shape and proportions unchanged.
+- Boxing: head kept 12 % (was 40 %) of the recorded chin tuck so the eyes look over the gloves; fists slightly lower.
+- Squat: the recorded hands-at-chin read as a guard; hands now held clasped at mid-chest.
+- Verified with exported-GLB renders and the inspector. Not verified on device.
