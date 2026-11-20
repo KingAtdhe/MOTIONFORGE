@@ -399,3 +399,18 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Tests: SessionSnapshotTest (round trip, resume paused, finished stays finished, rejects bad/tampered data,
   24 h expiry) — 17/17 session tests pass locally. Process-death behaviour still needs a device check
   (Developer options → "Don't keep activities", or `adb shell am kill`).
+
+## More natural motion + new visual identity (2026-11-20)
+- Owner: animations "too stiff", app needs a professional, unique redesign.
+- Squat is now motion capture (CMU 13_29 f1036–1128, arms reaching forward for balance), softened 44 % toward
+  standing (`SOFTEN`) so the knees bottom out near 95° instead of a full deep squat — the performer's timing,
+  hip-back/torso-lean coordination and balance are kept.
+- March rebuilt as a layered gait cycle (75 steps/min): knee rises with a held top and quicker drop (~95° knee),
+  pelvis shifts over and drops toward the standing leg, ribcage counter-rotates, bent-elbow arm swing trailing the
+  shoulder, head level, small landing dip, breathing.
+- Identity: light cool "gym floor" ground (#ECEFF3), white surfaces, ink type; cobalt = fitness/primary,
+  glove red = fighting; workout screen runs on a dark "night" scheme. Fonts: Big Shoulders Display (headings,
+  numbers) + Schibsted Grotesk (text), both SIL OFL (licences in assets/licenses). Barlow removed.
+- Signature: the exercise name set huge and faint behind the coach — on Home's "Today" block, lesson cards,
+  the session summary, and live behind the 3D coach (Filament view now renders with a transparent background).
+- Copy: sentence-case labels, no "A · B" strings, plain-language lengths ("2 min").

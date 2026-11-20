@@ -69,7 +69,7 @@ fun PoseCameraPane(
         engine?.let { PoseFrameAnalyzer(it, previewMirrored = mirrored, onError = { }) }
     }
 
-    Box(modifier.background(MfColors.Ink)) {
+    Box(modifier.background(MfColors.Night)) {
         val error = cameraError
         if (error == null) {
             CameraPreview(

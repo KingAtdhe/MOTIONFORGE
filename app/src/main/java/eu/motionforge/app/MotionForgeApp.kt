@@ -99,7 +99,8 @@ fun MotionForgeApp(
     val filter by catalogViewModel.filter.collectAsStateWithLifecycle()
 
     val history by container.sessions.history.collectAsStateWithLifecycle(initialValue = null)
-    val sessionsThisWeek = history?.let { ProgressStats.summarize(it, LocalDate.now(), ZoneId.systemDefault()).sessionsThisWeek }
+    val weekSummary = history?.let { ProgressStats.summarize(it, LocalDate.now(), ZoneId.systemDefault()) }
+    val sessionsThisWeek = weekSummary?.sessionsThisWeek
 
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
@@ -150,6 +151,7 @@ fun MotionForgeApp(
                         unfinished = null
                     },
                     sessionsThisWeek = sessionsThisWeek,
+                    trainedDaysThisWeek = weekSummary?.trainedDaysThisWeek.orEmpty(),
                     onRetry = catalogViewModel::load,
                 )
             }

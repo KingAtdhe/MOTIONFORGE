@@ -1,6 +1,12 @@
 package eu.motionforge.app.feature.lesson
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import eu.motionforge.app.core.design.formatLength
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -75,20 +81,32 @@ fun LessonDetailScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice: (String) -> Unit) {
-    ScreenColumn(title = exercise.name, onBack = onBack) {
-        Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        androidx.compose.material3.IconButton(onClick = onBack) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
         TrainerDemo(exercise)
+        Column(Modifier.padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(exercise.name, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
+            Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FactChip(exercise.category.displayName)
             FactChip(exercise.level.displayName)
-            FactChip("${exercise.durationSeconds} s")
-            FactChip("Camera: ${exercise.recommendedView.displayName}")
+            FactChip(formatLength(exercise.durationSeconds))
+            FactChip("Camera: ${exercise.recommendedView.displayName.lowercase()}")
         }
 
         if (exercise.reviewStatus == ReviewStatus.DRAFT_PENDING_COACH_REVIEW) {
             Text(
-                "Draft instructions — pending review by a qualified coach.",
-                style = MaterialTheme.typography.labelSmall,
+                "Draft lesson: steps and demonstration are pending review by a qualified coach. Use them as a guide, not as a technique standard.",
+                style = MaterialTheme.typography.bodySmall,
                 color = MfColors.Caution,
             )
         }
@@ -99,16 +117,16 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
         }
 
         Panel {
-            Eyebrow("Space & equipment")
+            Eyebrow("Space and equipment")
             Text(exercise.space, style = MaterialTheme.typography.bodyMedium)
             Text(
-                if (exercise.equipment.isEmpty()) "No equipment needed." else exercise.equipment.joinToString(" · "),
+                if (exercise.equipment.isEmpty()) "No equipment needed." else exercise.equipment.joinToString(", "),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        PrimaryButton("Start practice · ${exercise.durationSeconds} s", onClick = { onStartPractice(exercise.id) })
+        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) }, color = exercise.category.accent)
 
         SectionTitle("How to do it")
         val accent = exercise.category.accent

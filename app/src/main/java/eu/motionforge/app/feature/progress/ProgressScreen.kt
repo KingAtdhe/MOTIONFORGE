@@ -60,7 +60,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
         val summary = remember(history) { ProgressStats.summarize(history, LocalDate.now(zone), zone) }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("${summary.sessionsThisWeek}", "Sessions this week", Modifier.weight(1f), accent = MfColors.Volt)
+            StatTile("${summary.sessionsThisWeek}", "Sessions this week", Modifier.weight(1f), accent = MfColors.Cobalt)
             StatTile("${summary.minutesThisWeek}", "Minutes this week", Modifier.weight(1f))
         }
 
@@ -96,7 +96,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                                 .fillMaxWidth()
                                 .height((8 + 72 * w.sessions / max).dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (w.sessions > 0) MfColors.Volt else MfColors.Line),
+                                .background(if (w.sessions > 0) MfColors.Cobalt else MfColors.Rule),
                         )
                         Text(w.weekStart.format(weekFormat), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -106,7 +106,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
         }
 
         Eyebrow("History")
-        val dateFormat = remember { DateTimeFormatter.ofPattern("EEE d MMM · HH:mm") }
+        val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm") }
         history.forEach { r ->
             Surface(
                 shape = RoundedCornerShape(18.dp),
@@ -124,7 +124,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                     }
                     Column(Modifier.padding(14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), color = r.type.accent)
-                        Text(r.title.uppercase(), style = MaterialTheme.typography.titleLarge)
+                        Text(r.title, style = MaterialTheme.typography.titleLarge)
                         val reps = r.exercises.mapNotNull { it.repetitions }
                         val parts = buildList {
                             add(formatClock(r.durationSeconds))
@@ -133,7 +133,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                             r.perceivedEffort?.let { add("effort $it/10") }
                             if (!r.completed) add("ended early")
                         }
-                        Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(parts.joinToString(", "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(r.exercises.joinToString(", ") { it.name }, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
@@ -162,13 +162,13 @@ private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
                         Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(if (done) MfColors.Volt else MfColors.PanelRaised)
-                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Volt, CircleShape) else Modifier),
+                            .background(if (done) MfColors.Cobalt else MfColors.Ground)
+                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Cobalt, CircleShape) else Modifier),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (done) Text("✓", color = MfColors.Ink, style = MaterialTheme.typography.titleMedium)
+                        if (done) Text("✓", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleMedium)
                     }
-                    Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Chalk else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Ink else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

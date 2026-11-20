@@ -189,7 +189,7 @@ private fun LiveCameraPose(onBack: () -> Unit) {
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .background(MfColors.Ink),
+                .background(MfColors.Night),
         ) {
             if (cameraError == null) {
                 CameraPreview(

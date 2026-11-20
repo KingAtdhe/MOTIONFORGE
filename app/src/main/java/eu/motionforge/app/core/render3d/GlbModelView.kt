@@ -22,6 +22,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.filament.ColorGrading
 import com.google.android.filament.EntityManager
 import com.google.android.filament.ToneMapper
+import com.google.android.filament.android.UiHelper
 import com.google.android.filament.View as FilamentView
 import com.google.android.filament.IndirectLight
 import com.google.android.filament.LightManager
@@ -81,9 +82,12 @@ private object FilamentRuntime {
 
 /** Owns the Filament viewer for one composable instance. */
 @SuppressLint("ClickableViewAccessibility")
-private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean, background: FloatArray) {
-    val textureView = TextureView(context)
-    val viewer: ModelViewer = ModelViewer(textureView)
+private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean, background: FloatArray, transparent: Boolean) {
+    val textureView = TextureView(context).apply { isOpaque = !transparent }
+    val viewer: ModelViewer = ModelViewer(
+        textureView,
+        uiHelper = UiHelper(UiHelper.ContextErrorPolicy.DONT_CHECK).apply { isOpaque = !transparent },
+    )
     private val baseTransform = FloatArray(16)
     private var appliedYaw = Float.NaN
     var clips: List<AnimationClip> = emptyList()
@@ -98,8 +102,10 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
         }
         viewer.renderer.clearOptions = viewer.renderer.clearOptions.apply {
             clear = true
-            clearColor = floatArrayOf(background[0], background[1], background[2], 1f)
+            clearColor = if (transparent) floatArrayOf(0f, 0f, 0f, 0f) else floatArrayOf(background[0], background[1], background[2], 1f)
         }
+        // transparent: the Compose content behind the view (the exercise-name backdrop) shows around the coach
+        if (transparent) viewer.view.blendMode = FilamentView.BlendMode.TRANSLUCENT
         if (lit) addStudioLighting()
         configureQuality()
     }
@@ -212,11 +218,12 @@ fun GlbModelView(
     lit: Boolean = true,
     contentDescription: String = "3D demonstration",
     backgroundRgb: FloatArray = floatArrayOf(0.16f, 0.18f, 0.21f), // linear ≈ sRGB #6E7680: contrast for black kit
+    transparent: Boolean = false,
 ) {
     val context = LocalContext.current
     val sceneResult: Result<FilamentScene> = remember {
         FilamentRuntime.initResult.fold(
-            onSuccess = { runCatching { FilamentScene(context, allowOrbit, lit, backgroundRgb) } },
+            onSuccess = { runCatching { FilamentScene(context, allowOrbit, lit, backgroundRgb, transparent) } },
             onFailure = { Result.failure(it) },
         )
     }

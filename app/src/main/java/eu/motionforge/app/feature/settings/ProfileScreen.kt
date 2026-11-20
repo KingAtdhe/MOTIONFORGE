@@ -130,7 +130,7 @@ fun ProfileScreen(
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MfColors.Halt),
         ) { Text("Reset app data") }
         Text(
-            "Version ${BuildConfig.VERSION_NAME} · Intended for adults (18+).",
+            "Version ${BuildConfig.VERSION_NAME}. Intended for adults (18+).",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

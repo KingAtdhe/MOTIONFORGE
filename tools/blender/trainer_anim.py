@@ -354,17 +354,47 @@ def clip_specs():
         return pose
 
     def march(t):
-        """Gentle march on the spot with relaxed opposite arm swing (warm-up). 4 steps per 2.4 s."""
-        ph = 2 * math.pi * t / 2.4
-        lift_l = max(0.0, math.sin(ph)) ** 1.5
-        lift_r = max(0.0, -math.sin(ph)) ** 1.5
-        swing = 22 * math.sin(ph)
+        """Brisk, relaxed march on the spot (warm-up), 75 steps/min. Layered like a real gait cycle rather than
+        one sine: the knee rises with a soft hold at the top and a quicker drop, the pelvis shifts over the
+        standing leg and its free side lifts, the ribcage counter-rotates, arms swing opposite with bent elbows
+        trailing the shoulder slightly, the head stays level, and the body dips a little as each foot lands."""
+        T = 1.6                                   # one left + one right step
+        ph = (t % T) / T                          # 0..1
+        def bell(x):                              # 0..1..0 over x in [0,1], quick rise, held top, faster fall
+            if x <= 0 or x >= 1:
+                return 0.0
+            up = min(1.0, x / 0.42)
+            down = min(1.0, (1 - x) / 0.34)
+            return ease(min(up, down))
+        lift_l = bell(ph * 2)                     # left knee in the first half
+        lift_r = bell(ph * 2 - 1)                 # right knee in the second half
+        side = math.sin(2 * math.pi * ph)         # +1 weight on the right (left knee up) .. -1 weight on the left
+        def leg(sd, lift):
+            thigh = -82 * lift
+            shin = 10 * lift                      # shin hangs nearly vertical under the raised knee (knee ~ 95 deg)
+            pose = leg_pose(sd, thigh, shin)
+            pose[f"foot_{sd}"] = [("X", -shin + 18 * lift)]   # toes point down a little while the foot is up
+            return pose
+        # arms: opposite to the legs, swing follows the shoulder with a short lag
+        arm_ph = 2 * math.pi * (ph - 0.04)
+        swing = 38 * math.sin(arm_ph)             # + swings the left arm back while the left knee is up
+        elbow_l = 78 + 12 * max(0.0, -math.sin(arm_ph))
+        elbow_r = 78 + 12 * max(0.0, math.sin(arm_ph))
+        land = max(0.0, math.cos(4 * math.pi * ph)) ** 6   # short dip when a foot meets the floor
+        breath = math.sin(2 * math.pi * t / 3.2)
         pose = merge(
-            arms_down(bend=24),
-            leg_pose("L", -52 * lift_l, -4 * lift_l), leg_pose("R", -52 * lift_r, -4 * lift_r),
-            {"upper_arm_L": [("X", swing)], "upper_arm_R": [("X", -swing)],
-             "chest": [("Z", 4 * math.sin(ph)), ("X", 2)], "hips": [("Z", -3 * math.sin(ph))],
-             "hips_loc": (0, 0, 0.012 * abs(math.sin(ph)))},
+            leg("L", lift_l), leg("R", lift_r),
+            {**grip("L", 0.5), **grip("R", 0.5),
+             # left knee up -> right arm forward
+             "upper_arm_L": [("Y", REST_ARM - 8), ("X", -4 + swing)],
+             "upper_arm_R": [("Y", -(REST_ARM - 8)), ("X", -4 - swing)],
+             "forearm_L": hinge("L", -elbow_l), "forearm_R": hinge("R", -elbow_r),
+             "hand_L": hinge("L", -6, 8), "hand_R": hinge("R", -6, -8),
+             "hips": [("Z", -5 * side), ("Y", 3.0 * side), ("X", 2)],
+             "spine": [("Z", 3 * side), ("Y", -1.5 * side), ("X", 1 + 0.6 * breath)],
+             "chest": [("Z", 4 * side), ("Y", -1.5 * side), ("X", 1 + 0.8 * breath)],
+             "neck": [("Z", -1.5 * side)], "head": [("Z", -1.0 * side), ("X", -2)],
+             "hips_loc": (0.022 * side, 0, 0.010 * (lift_l + lift_r) - 0.012 * land)},
         )
         return pose
 

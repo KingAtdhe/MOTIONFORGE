@@ -1,6 +1,7 @@
 package eu.motionforge.app.feature.lesson
 
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.size
@@ -14,6 +15,8 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.ui.semantics.contentDescription
 import eu.motionforge.app.core.design.SegmentedPill
+import eu.motionforge.app.core.design.CoachStage
+import androidx.compose.foundation.layout.fillMaxSize
 import eu.motionforge.app.core.design.accent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -115,18 +118,13 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
 
     val accent = exercise.category.accent
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(420.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(24.dp)),
-        ) {
+        CoachStage(exercise.name, accent, Modifier.fillMaxWidth().height(440.dp)) {
             GlbModelView(
                 assetPath = manifest.assetPath,
                 playback = playback,
-                modifier = Modifier.fillMaxWidth().height(420.dp),
+                modifier = Modifier.fillMaxSize(),
                 allowOrbit = false,
+                transparent = true,
                 contentDescription = "3D trainer demonstrating ${exercise.name}",
             )
             when (val s = playback.loadState) {
@@ -147,10 +145,10 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                                 .padding(12.dp)
                                 .semantics { liveRegion = LiveRegionMode.Polite },
                             shape = RoundedCornerShape(50),
-                            color = MfColors.Ink.copy(alpha = 0.78f),
+                            color = MaterialTheme.colorScheme.surface,
                         ) {
                             Text(
-                                label.uppercase(),
+                                label,
                                 Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = accent,
@@ -166,7 +164,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                 FilledIconButton(
                     onClick = { playback.playing = !playback.playing },
                     modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = MfColors.Ink),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = androidx.compose.ui.graphics.Color.White),
                 ) {
                     if (playback.playing) {
                         Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Pause" })
@@ -182,7 +180,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     selectedIndex = speeds.indexOf(playback.speed).coerceAtLeast(0),
                     onSelect = { playback.speed = speeds[it] },
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    accent = MfColors.Chalk,
+                    accent = MfColors.Ink,
                 )
             }
             SegmentedPill(
@@ -199,14 +197,6 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-        val drafts = sequence.mapNotNull { manifest.clip(it) }.any { it.reviewStatus == ReviewStatus.DRAFT_PENDING_COACH_REVIEW }
-        if (drafts) {
-            Text(
-                "Draft demonstration — pending review by a qualified coach. Use it as a visual guide, not as a technique standard.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MfColors.Caution,
-            )
         }
     }
 }
@@ -234,13 +224,14 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
     LaunchedEffect(playback, ready?.sequence) { ready?.let { playback.playSequence(it.sequence) } }
     LaunchedEffect(playback, playing) { playback.playing = playing }
 
-    Box(modifier.clip(RoundedCornerShape(18.dp))) {
+    Box(modifier.clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surface)) {
         val failed = playback.loadState is GlbLoadState.Failed
         if (ready != null && !failed) {
             GlbModelView(
                 assetPath = ready.manifest.assetPath,
                 playback = playback,
                 modifier = Modifier.matchParentSize(),
+                transparent = true,
                 contentDescription = "3D trainer demonstrating ${exercise.name}",
             )
         } else if (availability != DemoAvailability.Checking) {

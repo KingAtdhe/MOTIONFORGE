@@ -20,6 +20,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import eu.motionforge.app.core.design.CoachArt
+import eu.motionforge.app.core.design.CoachStage
+import androidx.compose.ui.unit.sp
 import eu.motionforge.app.core.design.CountdownRing
 import eu.motionforge.app.core.design.RoundAction
 import eu.motionforge.app.core.design.SegmentedPill
@@ -61,12 +63,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.motionforge.app.core.camera.PoseCameraPane
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.MfColors
+import eu.motionforge.app.core.design.MotionForgeTheme
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.PrimaryButton
 import eu.motionforge.app.core.design.ScreenColumn
 import eu.motionforge.app.core.design.StatTile
 import eu.motionforge.app.core.design.TrackingStatusChip
 import eu.motionforge.app.core.design.accent
+import eu.motionforge.app.core.design.accentOnNight
 import eu.motionforge.app.core.design.formatClock
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.movement.BoxingDrill
@@ -99,7 +103,22 @@ fun SessionScreen(
         SessionPhase.READY -> SetupStage(state.plan, coach, onStart = { camera -> viewModel.onEvent(SessionEvent.Start(camera)) }, onClose = onClose)
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
-            RunningStage(state, tracking, form, exercisesById, viewModel)
+            // the workout runs on the dark scheme: camera and coach stand out, less glare mid-exercise
+            val window = (LocalContext.current as? android.app.Activity)?.window
+            DisposableEffect(window) {
+                val ctl = window?.let { androidx.core.view.WindowCompat.getInsetsController(it, it.decorView) }
+                ctl?.isAppearanceLightStatusBars = false
+                ctl?.isAppearanceLightNavigationBars = false
+                onDispose {
+                    ctl?.isAppearanceLightStatusBars = true
+                    ctl?.isAppearanceLightNavigationBars = true
+                }
+            }
+            MotionForgeTheme(night = true) {
+                androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+                    RunningStage(state, tracking, form, exercisesById, viewModel)
+                }
+            }
         }
         SessionPhase.FINISHED -> SummaryStage(
             state, save, coach,
@@ -187,7 +206,7 @@ private fun RunningStage(
     val paused = state.phase == SessionPhase.PAUSED
     var showDemo by rememberSaveable { mutableStateOf(false) }
     var lensFacing by rememberSaveable { mutableIntStateOf(CameraSelector.LENS_FACING_FRONT) }
-    val accent = state.plan.type.accent
+    val accent = state.plan.type.accentOnNight
     val cameraVisible = state.cameraUsed && !showDemo && step is SessionStep.Work
     LaunchedEffect(cameraVisible) { if (!cameraVisible) viewModel.onCameraHidden() }
 
@@ -202,12 +221,12 @@ private fun RunningStage(
         if (showRestored && paused) {
             androidx.compose.material3.Surface(
                 shape = RoundedCornerShape(14.dp),
-                color = MfColors.PanelRaised,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MfColors.Caution),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MfColors.CautionOnNight),
                 modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
             ) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                    Eyebrow("Picked up where you left off", color = MfColors.Caution)
+                    Eyebrow("Picked up where you left off", color = MfColors.CautionOnNight)
                     Text(
                         "The app was closed during your workout. Everything you'd done is kept; time while it was closed isn't counted. Press Resume when you're ready.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -218,11 +237,11 @@ private fun RunningStage(
         when (step) {
             is SessionStep.Work -> {
                 Eyebrow("Exercise ${state.workIndex} of ${state.plan.workCount}", color = accent)
-                Text(step.name.uppercase(), style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                Text(step.name, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
             is SessionStep.Rest -> {
-                Eyebrow("Rest", color = MfColors.Muted)
-                Text("NEXT: ${step.nextName.uppercase()}", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                Eyebrow("Rest", color = MfColors.OnNightMuted)
+                Text("Next: ${step.nextName}", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
         }
 
@@ -246,7 +265,7 @@ private fun RunningStage(
             CountdownRing(
                 fraction = state.remainingInStep.toFloat() / step.durationSeconds.coerceAtLeast(1),
                 label = formatClock(state.remainingInStep),
-                accent = if (step is SessionStep.Rest) MfColors.Signal else accent,
+                accent = if (step is SessionStep.Rest) MfColors.SignalOnNight else accent,
                 caption = if (paused) "Paused" else if (step is SessionStep.Rest) "Rest" else "Left",
                 dimmed = paused,
                 modifier = Modifier.size(128.dp),
@@ -296,13 +315,13 @@ private fun RunningStage(
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
-            RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = MfColors.Halt)
+            RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = Color(0xFFFF6B6B))
             RoundAction(
                 if (paused) "▶" else "❚❚",
                 if (paused) "Resume" else "Pause",
                 onClick = { viewModel.onEvent(if (paused) SessionEvent.Resume else SessionEvent.Pause) },
                 container = accent,
-                content = MfColors.Ink,
+                content = Color.White,
                 size = 76.dp,
             )
             RoundAction("⏭", if (step is SessionStep.Rest) "Skip rest" else "Skip", onClick = { viewModel.onEvent(SessionEvent.Skip) })
@@ -325,20 +344,14 @@ private fun SummaryStage(
     BackHandler(onBack = onClose)
 
     ScreenColumn(title = if (state.endedEarly) "Session ended" else "Session complete") {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Brush.verticalGradient(listOf(state.plan.type.accent.copy(alpha = 0.05f), state.plan.type.accent.copy(alpha = 0.32f)))),
-        ) {
-            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().padding(top = 8.dp, end = 12.dp))
-            Column(Modifier.align(Alignment.CenterStart).padding(20.dp).fillMaxWidth(0.6f)) {
-                Eyebrow(state.plan.title, color = state.plan.type.accent)
+        CoachStage(state.plan.title, state.plan.type.accent, Modifier.fillMaxWidth().height(220.dp), backdropSize = 96.sp) {
+            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().padding(top = 10.dp, end = 12.dp))
+            Column(Modifier.align(Alignment.BottomStart).padding(20.dp).fillMaxWidth(0.6f)) {
                 Text(
-                    if (state.endedEarly) "EVERY MINUTE COUNTS." else "NICE WORK.",
+                    if (state.endedEarly) "Every minute counts." else "Nice work.",
                     style = MaterialTheme.typography.headlineLarge,
                 )
+                Text(state.plan.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -350,8 +363,8 @@ private fun SummaryStage(
             Panel {
                 Eyebrow("What you did")
                 state.results.forEach { r ->
-                    val repText = r.repetitions?.let { " · $it reps (experimental count)" }.orEmpty()
-                    Text("${r.name} · ${formatClock(r.elapsedSeconds)}$repText", style = MaterialTheme.typography.bodyLarge)
+                    val repText = r.repetitions?.let { ", $it reps (experimental count)" }.orEmpty()
+                    Text("${r.name}, ${formatClock(r.elapsedSeconds)}$repText", style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
                         Text("Tracking was mostly unavailable, so nothing was counted.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -374,7 +387,7 @@ private fun SummaryStage(
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (1..10).forEach { n -> EffortChip(n, effort == n) { effort = if (effort == n) 0 else n } }
                 }
-                Text("1 = very easy · 10 = maximum effort", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("1 is very easy, 10 is maximum effort", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (save == SaveState.FAILED) Text("Saving failed. Please try again.", color = MfColors.Halt)
                 PrimaryButton(if (save == SaveState.SAVING) "Saving…" else "Save session", onClick = { onSave(effort.takeIf { it in 1..10 }) }, enabled = save != SaveState.SAVING)
                 TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Discard") }
@@ -387,19 +400,19 @@ private fun SummaryStage(
 @Composable
 private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifier = Modifier) {
     val (color, text) = when (form) {
-        is FormFeedback.NotAssessing -> MfColors.Muted to "Form check paused — keep your whole body, hands and feet in view."
-        is FormFeedback.Steady -> MfColors.Signal to "No adjustment cues right now."
-        is FormFeedback.Cue -> MfColors.Caution to form.issue.message
+        is FormFeedback.NotAssessing -> MfColors.OnNightMuted to "Form check paused — keep your whole body, hands and feet in view."
+        is FormFeedback.Steady -> MfColors.SignalOnNight to "No adjustment cues right now."
+        is FormFeedback.Cue -> MfColors.CautionOnNight to form.issue.message
     }
     androidx.compose.material3.Surface(
         modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
         shape = RoundedCornerShape(14.dp),
-        color = MfColors.Ink.copy(alpha = 0.85f),
+        color = MfColors.Night.copy(alpha = 0.88f),
         border = androidx.compose.foundation.BorderStroke(1.dp, color),
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-            Eyebrow(if (drill == BoxingDrill.JAB) "Form check (experimental) · jabs ${form.jabs}" else "Form check (experimental)", color = color)
-            Text(text, style = MaterialTheme.typography.bodyMedium, color = MfColors.Chalk)
+            Eyebrow(if (drill == BoxingDrill.JAB) "Form check (experimental), ${form.jabs} jabs" else "Form check (experimental)", color = color)
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MfColors.OnNight)
         }
     }
 }
@@ -408,11 +421,12 @@ private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifi
 private fun PlanStepCard(step: SessionStep.Work, coach: Coach, accent: Color) {
     Column(
         Modifier
-            .width(112.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface),
+            .width(116.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(5.dp),
     ) {
-        Box(Modifier.fillMaxWidth().height(132.dp).background(Brush.verticalGradient(listOf(Color.Transparent, accent.copy(alpha = 0.28f))))) {
+        Box(Modifier.fillMaxWidth().height(132.dp).clip(RoundedCornerShape(15.dp)).background(accent.copy(alpha = 0.10f))) {
             CoachArt(coach.lessonArt(step.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp))
         }
         Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
@@ -430,11 +444,11 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
             .semantics { contentDescription = "Effort $n of 10" },
         shape = CircleShape,
-        color = if (selected) MfColors.Volt else MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) MfColors.Volt else MaterialTheme.colorScheme.outline),
+        color = if (selected) MfColors.Ink else MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) MfColors.Ink else MaterialTheme.colorScheme.outline),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text("$n", style = MaterialTheme.typography.titleMedium, color = if (selected) MfColors.Ink else MfColors.Chalk)
+            Text("$n", style = MaterialTheme.typography.titleMedium, color = if (selected) Color.White else MfColors.Ink)
         }
     }
 }

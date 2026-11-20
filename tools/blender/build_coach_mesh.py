@@ -421,7 +421,13 @@ MOCAP = {  # clip: (take, first frame, last frame, loops, frames easing back to 
     "boxing_jab": ("13_18", 88, 104, False, 14),
     # cross (peak f33) from the same combination; the lead arm holds its guard pose from f15 (before the jab)
     "boxing_cross": ("13_18", 22, 42, False, 10),
+    # bodyweight squat with hands on hips (subject 13); recorded to full depth, softened below (SOFTEN)
+    "squat_down": ("13_29", 1036, 1090, False, 0),
+    "squat_up": ("13_29", 1090, 1128, False, 0),
 }
+# blend recorded poses toward the standing frame: keeps the performer's timing, balance and torso/hip coordination
+# but at a beginner depth (knees ~95 deg instead of a full deep squat). value: (amount kept, standing frame)
+SOFTEN = {"squat_down": (0.56, "first"), "squat_up": (0.56, "last")}
 HOLD = {"boxing_cross": ("L", 15)}
 # the performer stands bladed, so "hips forward" is ~45 deg off the punching line; turn the boxing takes so punches
 # go straight at the viewer's target (-Y), like the hand-keyed footwork / guard clips
@@ -433,6 +439,34 @@ for clip, (take, f0, f1, loops, settle) in MOCAP.items():
     act_, _ = mr.retarget(arm, np.load(os.path.join(ROOT, "assets/mocap", take + ".npz")), f0, f1, clip, loop=loops, settle=settle, hold=HOLD.get(clip), turn=TURN.get(clip, 0.0))
     act_.name = clip
     print("mocap", clip, take, f0, f1)
+
+
+def soften(act, keep, ref):
+    from mathutils import Quaternion  # noqa: F401
+    arm.animation_data.action = act
+    a_, b_ = [int(x) for x in act.frame_range]
+    frames = list(range(a_, b_ + 1))
+    poses = []
+    for f in frames:
+        sc.frame_set(f)
+        poses.append({pb.name: (pb.rotation_quaternion.copy(), pb.location.copy()) for pb in arm.pose.bones})
+    base = poses[0] if ref == "first" else poses[-1]
+    for f, pose in zip(frames, poses):
+        for name, (q, loc) in pose.items():
+            pb = arm.pose.bones[name]
+            q0, l0 = base[name]
+            if q0.dot(q) < 0:
+                q = -q
+            pb.rotation_quaternion = q0.slerp(q, keep)
+            pb.location = l0.lerp(loc, keep)
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            pb.keyframe_insert("location", frame=f)
+    arm.animation_data.action = None
+
+
+for clip, (keep, ref) in SOFTEN.items():
+    soften(bpy.data.actions[clip], keep, ref)
+    print("softened", clip, keep)
 
 
 # ---- push-up (prone) clips: whole body pivots about the toes as a straight plank, hands planted on the floor

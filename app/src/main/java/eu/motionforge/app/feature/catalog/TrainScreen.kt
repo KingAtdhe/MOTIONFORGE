@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import eu.motionforge.app.core.design.SegmentedPill
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.LessonTile
+import eu.motionforge.app.core.design.formatLength
 import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.design.accent
 import eu.motionforge.app.core.design.MfColors
@@ -43,14 +44,14 @@ fun TrainScreen(
             selectedIndex = categories.indexOf(filter.category),
             onSelect = { onCategory(categories[it]) },
             modifier = Modifier.horizontalScroll(rememberScrollState()),
-            accent = filter.category?.accent ?: MfColors.Volt,
+            accent = filter.category?.accent ?: MfColors.Ink,
         )
         SegmentedPill(
             options = DurationFilter.entries.map { it.label },
             selectedIndex = DurationFilter.entries.indexOf(filter.duration),
             onSelect = { onDuration(DurationFilter.entries[it]) },
             modifier = Modifier.horizontalScroll(rememberScrollState()),
-            accent = MfColors.Chalk,
+            accent = MfColors.Ink,
         )
 
         when (catalog) {
@@ -74,7 +75,7 @@ fun TrainScreen(
                     }
                     else -> {
                         Text(
-                            "${visible.size} lesson${if (visible.size == 1) "" else "s"} · all beginner level",
+                            "${visible.size} beginner lesson${if (visible.size == 1) "" else "s"}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -95,7 +96,7 @@ fun TrainScreen(
 private fun LessonGridTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit, modifier: Modifier) {
     LessonTile(
         title = exercise.name,
-        meta = "${exercise.durationSeconds} s · ${exercise.category.displayName}",
+        meta = formatLength(exercise.durationSeconds),
         accent = exercise.category.accent,
         artPath = coach.lessonArt(exercise.id),
         onClick = { onOpenLesson(exercise.id) },

@@ -1,51 +1,93 @@
 package eu.motionforge.app.core.design
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import eu.motionforge.app.core.pose.TrackingState
 
-/** Flat panel used for content blocks. Clickable only when [onClick] is given. */
+// ---------------------------------------------------------------------------------------------- signature element
+
+/**
+ * The exercise name stacked in very large display type, one word per line, in a faint tint of [color] — the coach
+ * stands in front of it. Purely decorative: hidden from accessibility (the real title is elsewhere on screen).
+ */
+@Composable
+fun NameBackdrop(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    size: TextUnit = 132.sp,
+    alpha: Float = 0.13f,
+) {
+    val words = text.uppercase().split(' ', '-').filter { it.isNotBlank() }
+    Column(modifier.clip(RoundedCornerShape(0.dp)).clearAndSetSemantics {}) {
+        words.forEach { w ->
+            Text(
+                w,
+                style = TextStyle(fontFamily = DisplayFont, fontWeight = androidx.compose.ui.text.font.FontWeight.Black, fontSize = size, lineHeight = size * 0.86f, letterSpacing = (-0.01).em),
+                color = color.copy(alpha = alpha),
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Clip,
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------------------------- surfaces
+
+/** White "mat" surface for a block of content. Clickable only when [onClick] is given. */
 @Composable
 fun Panel(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(14.dp)
-    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    val shape = RoundedCornerShape(20.dp)
     val inner: @Composable () -> Unit = {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
     }
     if (onClick != null) {
         Surface(
@@ -53,57 +95,71 @@ fun Panel(
             modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).semantics { role = Role.Button },
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
-            border = border,
             content = inner,
         )
     } else {
-        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = MaterialTheme.colorScheme.surface, border = border, content = inner)
+        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = MaterialTheme.colorScheme.surface, content = inner)
     }
 }
 
-/** Small monospace section label, e.g. "SAFETY". */
+/** Small section label in sentence case, e.g. "Safety". */
 @Composable
 fun Eyebrow(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
-    Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = color)
+    Text(text, style = MaterialTheme.typography.labelLarge, color = color)
 }
 
-/**
- * Tracking status chip. Uses a text label and a shape marker as well as colour,
- * so status is never conveyed by colour alone.
- */
+/** Heading for a block of the page, optionally with an action on the right ("See all"). */
 @Composable
-fun TrackingStatusChip(state: TrackingState, modifier: Modifier = Modifier) {
-    val (color, marker) = when (state) {
-        TrackingState.TRACKING -> MfColors.Signal to "●"
-        TrackingState.CALIBRATING, TrackingState.CAMERA_INITIALIZING, TrackingState.PAUSED -> MfColors.Muted to "◐"
-        TrackingState.CAMERA_ERROR, TrackingState.CAMERA_PERMISSION_DENIED -> MfColors.Halt to "■"
-        else -> MfColors.Caution to "▲"
-    }
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(50),
-        color = MfColors.Ink.copy(alpha = 0.82f),
-        border = BorderStroke(1.dp, color),
-    ) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(marker, color = color, style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.width(8.dp))
-            Text(state.userMessage, color = MfColors.Chalk, style = MaterialTheme.typography.labelLarge)
+fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color = MaterialTheme.colorScheme.primary, onTrailing: (() -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f).semantics { heading() })
+        if (trailing != null) {
+            if (onTrailing != null) {
+                androidx.compose.material3.TextButton(onClick = onTrailing) { Text(trailing, color = trailingColor, style = MaterialTheme.typography.labelLarge) }
+            } else {
+                Text(trailing, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
 
+// ---------------------------------------------------------------------------------------------- status
+
 /**
- * A two-state choice button (filters, segment pickers). Exposes its selected state to
- * accessibility services instead of relying on colour alone.
+ * Tracking status chip. Uses a text label and a shape marker as well as colour, so status is never conveyed by
+ * colour alone. Lives on the dark workout scheme.
  */
 @Composable
+fun TrackingStatusChip(state: TrackingState, modifier: Modifier = Modifier) {
+    val (color, marker) = when (state) {
+        TrackingState.TRACKING -> MfColors.SignalOnNight to "●"
+        TrackingState.CALIBRATING, TrackingState.CAMERA_INITIALIZING, TrackingState.PAUSED -> MfColors.OnNightMuted to "◐"
+        TrackingState.CAMERA_ERROR, TrackingState.CAMERA_PERMISSION_DENIED -> Color(0xFFFF6B6B) to "■"
+        else -> MfColors.CautionOnNight to "▲"
+    }
+    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MfColors.Night.copy(alpha = 0.85f)) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(marker, color = color, style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.width(8.dp))
+            Text(state.userMessage, color = MfColors.OnNight, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------------------------- choices
+
+/** A two-state choice button (filters, small pickers). Exposes its selected state to accessibility services. */
+@Composable
 fun ChoiceButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val semanticsModifier = modifier.semantics { this.selected = selected }
-    if (selected) {
-        androidx.compose.material3.Button(onClick = onClick, modifier = semanticsModifier) { Text("✓ $label") }
-    } else {
-        androidx.compose.material3.OutlinedButton(onClick = onClick, modifier = semanticsModifier) { Text(label) }
+    Surface(
+        modifier = modifier.heightIn(min = 44.dp).selectable(selected = selected, onClick = onClick, role = Role.Checkbox),
+        shape = RoundedCornerShape(50),
+        color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface,
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 11.dp), contentAlignment = Alignment.Center) {
+            Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface)
+        }
     }
 }
 
@@ -121,8 +177,8 @@ fun SelectableOption(
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton),
-        shape = RoundedCornerShape(14.dp),
-        color = if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -136,182 +192,14 @@ fun SelectableOption(
     }
 }
 
-/** Small read-only fact chip, e.g. "60 s". */
-@Composable
-fun FactChip(text: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium)
-    }
-}
-
-/** Full-width main action. */
-@Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    androidx.compose.material3.Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = RoundedCornerShape(16.dp),
-    ) { Text(text.uppercase(), style = MaterialTheme.typography.titleLarge) }
-}
-
-/** Large call-to-action card with an accent gradient. */
-@Composable
-fun HeroCard(
-    eyebrow: String,
-    title: String,
-    body: String,
-    action: String,
-    accent: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val shape = RoundedCornerShape(22.dp)
-    Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth().semantics { role = Role.Button },
-        shape = shape,
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.55f)),
-    ) {
-        Column(
-            Modifier
-                .background(Brush.linearGradient(listOf(accent.copy(alpha = 0.30f), MfColors.Panel, MfColors.Panel)))
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Eyebrow(eyebrow, color = accent)
-            Text(title.uppercase(), style = MaterialTheme.typography.headlineLarge)
-            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(1.dp))
-            Surface(shape = RoundedCornerShape(14.dp), color = accent) {
-                Text(
-                    "▶  ${action.uppercase()}",
-                    Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MfColors.Ink,
-                )
-            }
-        }
-    }
-}
-
-/** Big number with a caption. */
-@Composable
-fun StatTile(value: String, label: String, modifier: Modifier = Modifier, accent: Color = MfColors.Chalk) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-            Text(value, style = MaterialTheme.typography.displaySmall, color = accent)
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-/** Lesson list card with a category accent bar. */
-@Composable
-fun LessonCard(
-    title: String,
-    subtitle: String,
-    facts: List<String>,
-    accent: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    eyebrow: String? = null,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth().semantics { role = Role.Button },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(Modifier.width(5.dp).fillMaxHeight().background(accent))
-            Column(Modifier.padding(16.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (eyebrow != null) Eyebrow(eyebrow, color = accent)
-                Text(title.uppercase(), style = MaterialTheme.typography.titleLarge)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { facts.forEach { FactChip(it) } }
-            }
-            Text("›", Modifier.align(Alignment.CenterVertically).padding(end = 16.dp), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-fun formatClock(totalSeconds: Int): String {
-    val s = totalSeconds.coerceAtLeast(0)
-    return "%d:%02d".format(s / 60, s % 60)
-}
-
-/**
- * Picture card for a lesson: the coach performing the move over a category-tinted backdrop, name and facts below.
- * The whole card is one button; the picture is decorative (the title says what it is).
- */
-@Composable
-fun LessonTile(
-    title: String,
-    meta: String,
-    accent: Color,
-    artPath: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    eyebrow: String? = null,
-    artHeight: androidx.compose.ui.unit.Dp = 168.dp,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.semantics { role = Role.Button },
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-    ) {
-        Column {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(artHeight)
-                    .background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.05f), accent.copy(alpha = 0.30f)))),
-            ) {
-                CoachArt(
-                    artPath,
-                    Modifier.fillMaxWidth().height(artHeight).padding(top = 8.dp),
-                )
-                if (eyebrow != null) {
-                    Surface(
-                        modifier = Modifier.padding(10.dp),
-                        shape = RoundedCornerShape(50),
-                        color = MfColors.Ink.copy(alpha = 0.78f),
-                    ) {
-                        Text(
-                            eyebrow.uppercase(),
-                            Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = accent,
-                        )
-                    }
-                }
-            }
-            Box(Modifier.fillMaxWidth().height(3.dp).background(accent))
-            Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title.uppercase(), style = MaterialTheme.typography.titleLarge, maxLines = 2)
-                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-            }
-        }
-    }
-}
-
-/** Pill-shaped single-choice control (speed, camera angle). Each option exposes its selected state. */
+/** Pill-shaped single-choice control (speed, camera angle, filters). Each option exposes its selected state. */
 @Composable
 fun SegmentedPill(
     options: List<String>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    accent: Color = MfColors.Volt,
+    accent: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Row(Modifier.padding(4.dp)) {
@@ -325,7 +213,11 @@ fun SegmentedPill(
                     color = if (selected) accent else Color.Transparent,
                 ) {
                     Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
-                        Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) MfColors.Ink else MfColors.Chalk)
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                        )
                     }
                 }
             }
@@ -333,16 +225,70 @@ fun SegmentedPill(
     }
 }
 
-/** Section heading with an optional trailing count, used between home/train blocks. */
+/** Small read-only fact, e.g. "60 s". */
 @Composable
-fun SectionHeader(title: String, trailing: String? = null) {
-    Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.Bottom) {
-        Text(
-            title.uppercase(),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.weight(1f).semantics { heading() },
-        )
-        if (trailing != null) Text(trailing.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+fun FactChip(text: String, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+        Text(text, Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+// ---------------------------------------------------------------------------------------------- actions
+
+/** Full-width main action. */
+@Composable
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = MaterialTheme.colorScheme.primary,
+) {
+    androidx.compose.material3.Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().heightIn(min = 58.dp),
+        shape = RoundedCornerShape(50),
+        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = color, contentColor = Color.White),
+    ) { Text(text, style = MaterialTheme.typography.titleMedium) }
+}
+
+/** Large round action with a text label underneath for clarity (workout controls). */
+@Composable
+fun RoundAction(
+    symbol: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    container: Color = MaterialTheme.colorScheme.surface,
+    content: Color = MaterialTheme.colorScheme.onSurface,
+    size: Dp = 56.dp,
+) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.width(size).height(size).semantics { contentDescription = label; role = Role.Button },
+            shape = CircleShape,
+            color = container,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(symbol, style = MaterialTheme.typography.titleLarge, color = content, modifier = Modifier.clearAndSetSemantics {})
+            }
+        }
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.clearAndSetSemantics {})
+    }
+}
+
+// ---------------------------------------------------------------------------------------------- numbers
+
+/** Big number with a caption. */
+@Composable
+fun StatTile(value: String, label: String, modifier: Modifier = Modifier, accent: Color = MaterialTheme.colorScheme.onSurface) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            Text(value, style = MaterialTheme.typography.displaySmall, color = accent)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
@@ -356,51 +302,90 @@ fun CountdownRing(
     caption: String? = null,
     dimmed: Boolean = false,
 ) {
+    val track = MaterialTheme.colorScheme.outline
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
     Box(modifier, contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-            val stroke = size.minDimension * 0.07f
-            val inset = stroke / 2
-            val arcSize = androidx.compose.ui.geometry.Size(size.minDimension - stroke, size.minDimension - stroke)
-            val topLeft = androidx.compose.ui.geometry.Offset((size.width - arcSize.width) / 2, inset)
-            val style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-            drawArc(MfColors.Line, -90f, 360f, false, topLeft, arcSize, style = style)
-            drawArc(if (dimmed) MfColors.Muted else accent, -90f, 360f * fraction.coerceIn(0f, 1f), false, topLeft, arcSize, style = style)
+        Canvas(Modifier.matchParentSize()) {
+            val stroke = size.minDimension * 0.075f
+            val arcSize = Size(size.minDimension - stroke, size.minDimension - stroke)
+            val topLeft = Offset((size.width - arcSize.width) / 2, (size.height - arcSize.height) / 2)
+            val style = Stroke(stroke, cap = StrokeCap.Round)
+            drawArc(track, -90f, 360f, false, topLeft, arcSize, style = style)
+            drawArc(if (dimmed) muted else accent, -90f, 360f * fraction.coerceIn(0f, 1f), false, topLeft, arcSize, style = style)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, style = MaterialTheme.typography.displaySmall, color = if (dimmed) MfColors.Muted else MfColors.Chalk)
-            if (caption != null) Text(caption.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(label, style = MaterialTheme.typography.displaySmall, color = if (dimmed) muted else MaterialTheme.colorScheme.onSurface)
+            if (caption != null) Text(caption, style = MaterialTheme.typography.labelMedium, color = muted)
         }
     }
 }
 
-/** Large round action (pause / resume) with a text label underneath for clarity. */
+// ---------------------------------------------------------------------------------------------- lesson cards
+
+/**
+ * Picture card for a lesson: the coach performing the move in front of the move's name on a tinted field, the
+ * name and length below. The whole card is one button; the picture is decorative (the title says what it is).
+ */
 @Composable
-fun RoundAction(
-    symbol: String,
-    label: String,
+fun LessonTile(
+    title: String,
+    meta: String,
+    accent: Color,
+    artPath: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    container: Color = MaterialTheme.colorScheme.surface,
-    content: Color = MfColors.Chalk,
-    size: androidx.compose.ui.unit.Dp = 56.dp,
+    badge: String? = null,
+    artHeight: Dp = 168.dp,
 ) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Surface(
-            onClick = onClick,
-            modifier = Modifier.width(size).height(size).semantics { contentDescription = label; role = Role.Button },
-            shape = androidx.compose.foundation.shape.CircleShape,
-            color = container,
-            border = if (container == MaterialTheme.colorScheme.surface) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(symbol, style = MaterialTheme.typography.titleLarge, color = content, modifier = Modifier.clearAndSetSemantics {})
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Button },
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(Modifier.padding(6.dp)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(artHeight)
+                    .clip(RoundedCornerShape(17.dp))
+                    .background(accent.copy(alpha = 0.10f)),
+            ) {
+                NameBackdrop(title, accent, Modifier.padding(start = 6.dp, top = 2.dp), size = 64.sp, alpha = 0.16f)
+                CoachArt(artPath, Modifier.fillMaxSize().padding(top = 10.dp, bottom = 2.dp))
+                if (badge != null) {
+                    Surface(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp), shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface) {
+                        Text(badge, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium, color = accent)
+                    }
+                }
+            }
+            Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 8.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
-        Text(
-            label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clearAndSetSemantics {},
-        )
     }
 }
+
+/** A tinted stage with the exercise name behind whatever [content] draws (a coach still or the live 3D coach). */
+@Composable
+fun CoachStage(
+    name: String,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    backdropSize: TextUnit = 132.sp,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(modifier.clip(RoundedCornerShape(28.dp)).background(accent.copy(alpha = 0.08f))) {
+        NameBackdrop(name, accent, Modifier.padding(start = 12.dp, top = 8.dp), size = backdropSize)
+        content()
+    }
+}
+
+fun formatClock(totalSeconds: Int): String {
+    val s = totalSeconds.coerceAtLeast(0)
+    return "%d:%02d".format(s / 60, s % 60)
+}
+
+/** "2 min" for ≥ 60 s, else "45 s". */
+fun formatLength(seconds: Int): String = if (seconds >= 60) "${(seconds + 30) / 60} min" else "$seconds s"

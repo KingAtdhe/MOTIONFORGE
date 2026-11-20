@@ -2,6 +2,7 @@ package eu.motionforge.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -21,7 +22,12 @@ import eu.motionforge.app.feature.onboarding.OnboardingViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // light app chrome: dark status/navigation icons whatever the phone's dark-mode setting
+        val ground = android.graphics.Color.rgb(0xEC, 0xEF, 0xF3)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(ground, ground),
+        )
         setContent {
             MotionForgeTheme {
                 MotionForgeRoot()

@@ -25,12 +25,12 @@
     },
     {
       "name": "squat_down",
-      "durationSeconds": 1.6,
+      "durationSeconds": 1.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_up",
-      "durationSeconds": 1.6,
+      "durationSeconds": 1.267,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
