@@ -513,3 +513,59 @@ def floor_contact(arm, mesh, scene, names):
             print("  ", n, "palm height above the floor at first / last frame:", gaps)
     arm.animation_data.action = None
     print("floor contact on the rigged mesh: feet verts", len(feet), "largest correction", round(worst, 3), "m")
+
+
+def finger_pose(arm, amount):
+    """Finger and thumb rotations (pose-bone basis quaternions) for a hand closed by `amount`: 0 open, ~0.25 relaxed,
+    1 a closed fist with the thumb folded across the front of the index and middle fingers.
+    Solved from the rest pose itself (T-pose, palms down), so it does not depend on bone roll conventions."""
+    from mathutils import Quaternion
+    out = {}
+    bones = arm.data.bones
+    down = Vector((0, 0, -1))
+    back = Vector((0, 1, 0))
+    curl = {1: 82.0, 2: 98.0, 3: 62.0}
+    spread_in = {"Index": 4.0, "Middle": 0.0, "Ring": -4.0, "Pinky": -9.0}
+
+    def local(bn, axis, deg):
+        r = bones[bn].matrix_local.to_3x3()
+        return Quaternion((r.inverted() @ axis).normalized(), math.radians(deg))
+    for side in ("Left", "Right"):
+        hand = bones[P + side + "Hand"]
+        mid = bones[P + side + "HandMiddle1"]
+        d_hand = (Vector(mid.head_local) - Vector(hand.head_local)).normalized()
+        for fn in ("Index", "Middle", "Ring", "Pinky"):
+            for j in (1, 2, 3):
+                bn = f"{P}{side}Hand{fn}{j}"
+                b = bones[bn]
+                d = (Vector(b.tail_local) - Vector(b.head_local)).normalized()
+                q = local(bn, d.cross(down), curl[j] * amount)
+                if j == 1:                                   # knuckles close up as the fist forms
+                    q = local(bn, down, spread_in[fn] * amount * (1 if side == "Left" else -1)) @ q
+                out[bn] = q
+        t1, t2, t3 = (f"{P}{side}HandThumb{j}" for j in (1, 2, 3))
+        t = (Vector(bones[t1].tail_local) - Vector(bones[t1].head_local)).normalized()
+        flex = t.cross(back)                                  # swings the thumb across the palm toward the little finger
+        # thumb 1: drop under the palm (opposition), then start to fold across
+        out[t1] = local(t1, flex, 22.0 * amount) @ local(t1, d_hand * (1 if side == "Left" else -1), THUMB_OPPOSE * amount)
+        out[t2] = local(t2, flex, 38.0 * amount)
+        out[t3] = local(t3, flex, 58.0 * amount)
+    return out
+
+
+THUMB_OPPOSE = 48.0
+
+
+def key_fingers(arm, scene, grip_for):
+    """Keys finger_pose on every frame of every clip; grip_for(clip name) gives the amount of closure."""
+    for act in bpy.data.actions:
+        arm.animation_data.action = act
+        a, b = [int(x) for x in act.frame_range]
+        pose = finger_pose(arm, grip_for(act.name))
+        for bn, q in pose.items():
+            pb = arm.pose.bones[bn]
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = q
+            for f in range(a, b + 1):
+                pb.keyframe_insert("rotation_quaternion", frame=f)
+    arm.animation_data.action = None

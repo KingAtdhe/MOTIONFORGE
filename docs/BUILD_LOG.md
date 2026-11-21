@@ -597,3 +597,8 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   - Squat, hinge, push-up, stance, footwork: demonstration and text already agree.
 - Boxing clips breathe once per loop, so no chest pop at the loop point (stance 3.2 s, jab / cross 2.4 s, guard return 4.8 s, footwork pair 3.2 s).
 - Both coaches rebuilt, thumbnails re-rendered. Device playback still unverified.
+
+## 2026-11-21 — Fists (device feedback)
+- Owner's phone screenshot of the jab showed open fingers and a thumb sticking out. Cause: the control rig has two finger bones per hand and no thumb, so the transfer could not close the coach's 15 finger bones into a fist.
+- `rigged_coach.finger_pose` / `key_fingers`: fingers and thumb are now posed directly on the coach's own bones (three joints per finger curl toward the palm, thumb drops under the palm and folds across the index and middle fingers). Boxing and footwork clips use a closed fist, march a loose fist, push-up a flat hand, everything else a relaxed hand.
+- Checked with hand close-ups on both coaches (jab extension, guard, squat). First confirmation that the new clips play on a device came from the same screenshot.

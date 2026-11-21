@@ -635,6 +635,8 @@ if RIGGED:
     if "--fix-shorts" in args:
         rc.fix_shorts(mx_mesh, mx_arm)
     rc.prepare_textures(mx_mesh)
+    # fingers are posed on the coach's own finger bones (a real fist with the thumb folded over), not carried over
+    rc.key_fingers(mx_arm, sc, lambda n: next((v for k_, v in GRIP.items() if n.startswith(k_)), 0.22))
     rc.floor_contact(mx_arm, mx_mesh, sc, names)
     print("transferred", len(names), "clips to the rigged coach")
 
