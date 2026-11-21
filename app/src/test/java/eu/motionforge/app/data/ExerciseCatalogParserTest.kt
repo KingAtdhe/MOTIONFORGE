@@ -17,7 +17,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun bundledCatalogParses() {
         val exercises = ExerciseCatalogParser.parse(bundled)
-        assertEquals(17, exercises.size)
+        assertEquals(41, exercises.size)
         assertTrue(exercises.any { it.category == TrainingCategory.FITNESS })
         assertTrue(exercises.any { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS })
     }
@@ -91,6 +91,12 @@ class ExerciseCatalogParserTest {
             "idle_neutral", "warmup_march", "hip_hinge_down", "hip_hinge_up", "squat_down", "squat_up", "pushup_down", "pushup_up", "boxing_stance",
             "boxing_jab", "boxing_cross", "boxing_guard_return", "footwork_forward", "footwork_backward",
             "boxing_lead_hook", "boxing_slip", "footwork_lateral", "reverse_lunge", "calf_raise", "step_jack", "glute_bridge", "plank_hold",
+        "arm_circles", "band_pull_apart", "bird_dog", "boxing_lead_uppercut", "boxing_rear_hook",
+        "boxing_rear_uppercut", "boxing_roll", "cat_cow", "db_bent_over_row", "db_curl", "db_lateral_raise",
+        "db_rdl_down", "db_rdl_up", "db_shoulder_press", "dead_bug", "footwork_pivot", "high_knee_march",
+        "incline_pushup_down", "incline_pushup_up", "kb_deadlift_down", "kb_deadlift_up", "knee_pushup_down",
+        "knee_pushup_up", "mountain_climber_slow", "side_lunge", "split_squat", "sumo_squat_down", "sumo_squat_up",
+        "superman",
         )
         ExerciseCatalogParser.parse(bundled).forEach {
             val clip = it.demoAnimation ?: return@forEach
@@ -102,8 +108,27 @@ class ExerciseCatalogParserTest {
     fun addedLessonsGiveNoAutomatedFormFeedback() {
         // lessons added after the MVP set have no validated camera rule yet
         val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
-        listOf("reverse_lunge", "glute_bridge", "forearm_plank", "step_jack", "calf_raise", "boxing_lead_hook", "boxing_slip", "footwork_lateral")
-            .forEach { assertFalse(it, byId.getValue(it).analysisMode.allowsLiveCues) }
+        val mvp = setOf(
+            "standing_mobility_warmup", "bodyweight_squat", "hip_hinge", "push_up", "boxing_stance", "boxing_jab", "boxing_cross",
+            "boxing_guard_return", "footwork_forward_backward",
+        )
+        byId.values.filter { it.id !in mvp }.forEach { assertFalse(it.id, it.analysisMode.allowsLiveCues) }
+    }
+
+    @Test
+    fun equipmentLessonsSayWhatTheyNeed() {
+        val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
+        val needs = byId.values.filter { it.needsEquipment }.map { it.id }.toSet()
+        assertEquals(
+            setOf(
+                "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "dumbbell_bent_over_row",
+                "dumbbell_romanian_deadlift", "kettlebell_deadlift", "band_pull_apart", "incline_push_up",
+            ),
+            needs,
+        )
+        // optional / recommended items never make a lesson an "equipment" lesson
+        assertFalse(byId.getValue("push_up").needsEquipment)
+        assertFalse(byId.getValue("footwork_forward_backward").needsEquipment)
     }
 
     @Test(expected = CatalogException::class)

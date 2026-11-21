@@ -43,6 +43,16 @@ class CatalogFilterTest {
     }
 
     @Test
+    fun equipmentFilter() {
+        val none = CatalogFilter(equipment = EquipmentFilter.NONE).apply(catalog)
+        val with = CatalogFilter(equipment = EquipmentFilter.WITH).apply(catalog)
+        assertTrue(with.isNotEmpty() && none.isNotEmpty())
+        assertTrue(with.all { it.needsEquipment } && none.none { it.needsEquipment })
+        assertEquals(catalog.size, none.size + with.size)
+        assertTrue(CatalogFilter(equipment = EquipmentFilter.WITH).isActive)
+    }
+
+    @Test
     fun suggestionStaysInFocus() {
         val s = LessonSuggestions.suggest(catalog, TrainingCategory.FIGHTING_FUNDAMENTALS, TrainingGoal.LEARN_BASICS, null)
         assertEquals(TrainingCategory.FIGHTING_FUNDAMENTALS, s!!.category)

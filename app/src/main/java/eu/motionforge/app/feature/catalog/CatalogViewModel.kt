@@ -50,6 +50,10 @@ class CatalogViewModel(
         _filter.value = _filter.value.copy(duration = duration)
     }
 
+    fun setEquipment(equipment: EquipmentFilter) {
+        _filter.value = _filter.value.copy(equipment = equipment)
+    }
+
     fun clearFilters() {
         _filter.value = CatalogFilter()
     }

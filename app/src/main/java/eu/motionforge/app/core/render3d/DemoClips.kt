@@ -90,6 +90,21 @@ object DemoSequence {
         clip == "glute_bridge" -> "Lift and lower"
         clip == "step_jack" -> "Step out, arms up"
         clip == "calf_raise" -> "Rise and lower"
+        clip == "dead_bug" -> "Reach opposite arm and leg"
+        clip == "bird_dog" -> "Reach opposite arm and leg"
+        clip == "cat_cow" -> "Round, then arch"
+        clip == "superman" -> "Lift and lower"
+        clip == "split_squat" -> "Lower and rise"
+        clip == "side_lunge" -> "Side to side"
+        clip == "high_knee_march" -> "High-knee march"
+        clip == "mountain_climber_slow" -> "Knee to chest"
+        clip == "arm_circles" -> "Circle forward, then back"
+        clip == "footwork_pivot" -> "Pivot"
+        clip == "band_pull_apart" -> "Pull apart"
+        clip == "db_curl" -> "Curl"
+        clip == "db_shoulder_press" -> "Press"
+        clip == "db_lateral_raise" -> "Raise"
+        clip == "db_bent_over_row" -> "Row"
         clip.startsWith("footwork_") -> "Step " + clip.removePrefix("footwork_")
         else -> clip.substringAfter('_').replace('_', ' ').replaceFirstChar { it.uppercase() }
     }

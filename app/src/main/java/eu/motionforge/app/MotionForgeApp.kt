@@ -174,6 +174,7 @@ fun MotionForgeApp(
                     filter = filter,
                     onCategory = catalogViewModel::setCategory,
                     onDuration = catalogViewModel::setDuration,
+                    onEquipment = catalogViewModel::setEquipment,
                     onClearFilters = catalogViewModel::clearFilters,
                     onOpenLesson = { navController.navigate(Routes.lesson(it)) },
                     onRetry = catalogViewModel::load,

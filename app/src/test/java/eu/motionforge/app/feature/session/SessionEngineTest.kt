@@ -123,4 +123,13 @@ class SessionEngineTest {
         org.junit.Assert.assertEquals(eu.motionforge.app.core.movement.BoxingDrill.JAB, (SessionPlanner.single(jab).steps.first() as SessionStep.Work).formDrill)
         org.junit.Assert.assertEquals(null, (SessionPlanner.single(squat).steps.first() as SessionStep.Work).formDrill)
     }
+
+    @Test
+    fun quickSessionNeverNeedsEquipment() {
+        listOf(TrainingCategory.FITNESS, TrainingCategory.FIGHTING_FUNDAMENTALS, null).forEach { focus ->
+            val plan = SessionPlanner.quick(catalog, focus)!!
+            val ids = plan.steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.toSet()
+            assertTrue(catalog.filter { it.id in ids }.none { it.needsEquipment })
+        }
+    }
 }

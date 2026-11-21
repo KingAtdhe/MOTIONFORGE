@@ -11,7 +11,7 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 ## What is built
 - Phase 0: CameraX + MediaPipe Pose Landmarker + Filament GLB spikes (Profile → Technical checks).
 - Phase 1: onboarding (18+ gate, safety acknowledgement, focus, goal), Home, Train catalogue with filters,
-  lesson detail, Profile, data reset. 17 lessons in `data/exercises.json` (= app asset; test keeps them equal).
+  lesson detail, Profile, data reset. 41 lessons in `data/exercises.json` (8 need equipment) (= app asset; test keeps them equal).
 - Phase 2: 3D trainer in lesson pages (play/pause, replay, 1×/0.5×/0.25×, front/side/back).
 - Phases 3–5 slice: sessions (`feature/session`: SessionEngine, SessionPlanner, SessionScreen, SessionViewModel),
   optional camera with skeleton, experimental squat rep counter (`core/movement/SquatRepCounter`), summary,
@@ -22,7 +22,7 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 - 82 JVM unit tests.
 
 ## Trainer / coach model
-- **Now (21 Nov):** Tripo coaches, 22 clips each, all built from rules in `tools/blender/authored_clips.py`. Build one
+- **Now (21 Nov):** Tripo coaches, 51 clips each, with equipment props (`coach_props.py`), all built from rules in `tools/blender/authored_clips.py`. Build one
   coach at a time: `build_coach_mesh.py assets/blender/rigged/coach_f_tripo_static.glb coach_f 1.70 --rigged
   assets/blender/rigged/coach_f_tripo.glb --app` (coach_m 1.85), then `render_thumbs.py`, check with `clip_audit.py`.
 - **Earlier (v7, superseded):** `models/coach_f.glb` (female, default) and `models/coach_m.glb` (male), chosen in Profile →

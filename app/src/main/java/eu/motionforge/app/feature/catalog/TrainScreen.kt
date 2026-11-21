@@ -33,6 +33,7 @@ fun TrainScreen(
     filter: CatalogFilter,
     onCategory: (TrainingCategory?) -> Unit,
     onDuration: (DurationFilter) -> Unit,
+    onEquipment: (EquipmentFilter) -> Unit,
     onClearFilters: () -> Unit,
     onOpenLesson: (String) -> Unit,
     onRetry: () -> Unit,
@@ -50,6 +51,13 @@ fun TrainScreen(
             options = DurationFilter.entries.map { it.label },
             selectedIndex = DurationFilter.entries.indexOf(filter.duration),
             onSelect = { onDuration(DurationFilter.entries[it]) },
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            accent = MfColors.Ink,
+        )
+        SegmentedPill(
+            options = EquipmentFilter.entries.map { it.label },
+            selectedIndex = EquipmentFilter.entries.indexOf(filter.equipment),
+            onSelect = { onEquipment(EquipmentFilter.entries[it]) },
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             accent = MfColors.Ink,
         )

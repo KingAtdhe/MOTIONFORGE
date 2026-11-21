@@ -645,3 +645,36 @@ clip audit on both coaches (hook ball-of-foot slide 0.0 cm, lunge foot slide <= 
 contact sheets from front/side/three-quarter/top, thumbnails for all 8 lessons on both coaches.
 **Not verified:** anything on a phone — the TTS voice and pacing, the squat thresholds, Filament playback of the new clips.
 **Known issues:** lunge hip acceleration peak 4.8 m/s² (squat 1.2), inherent to stepping but worth watching on device.
+
+## 2026-11-21 — 24 more lessons (41 in total), training equipment in the coach models
+**Owner's request:** more exercises, including ones with equipment. Still within the CLAUDE.md hard limits (no kicks,
+sparring, partner drills or combinations; no striking objects, so no bag work). All drafts pending coach review; none
+has camera scoring (a test now pins that every lesson outside the 9 MVP lessons has `allowsLiveCues = false`).
+- Fitness, no equipment: Sumo Squat, Split Squat, Side Lunge, Knee Push-up, Slow Mountain Climber, Dead Bug, Bird Dog,
+  Superman, High-Knee March, Arm Circles, Cat-Cow.
+- Fitness, equipment: Dumbbell Biceps Curl, Shoulder Press, Lateral Raise, Bent-over Row, Romanian Deadlift; Kettlebell
+  Deadlift; Band Pull-apart; Incline Push-up (bench / counter).
+- Fighting fundamentals: Rear Uppercut, Lead Uppercut, Rear Hook, Roll, Pivot.
+- Side plank was considered and dropped: the rig's feet cannot roll onto their sides, so it would look wrong.
+
+**Clips** (`authored_clips.py`, 51 per coach). New rig helpers: `Rig.foot_toward` (kneeling / lying feet) and a
+whole-pose `world` transform (the pivot turns the solved stance about the lead foot's ball). `march` and `_squat_pose`
+are parameterised (defaults unchanged). Kneeling / all-fours poses solve the trunk angle so straight arms reach the floor;
+the knee push-up keeps one line knees-hips-shoulders; the dead bug starts in table-top (fixed: the knee pole was parallel
+to the hip-ankle line and flipped the legs). `NO_FLOOR_CONTACT` (dead bug, superman) skips the build's shoes-to-floor pass.
+
+**Equipment** (`tools/blender/coach_props.py`, modelled from scratch): hex dumbbells, kettlebell, resistance band, flat
+bench. Each is skinned to its own bone (dumbbells / kettlebell in the fist, positioned from a reference frame where the
+authored finger and palm directions are known; the band is one bone from the left fist aimed at the right fist and scaled
+to the gap every frame; the bench is a root bone under the incline push-up hands). Every clip keys every prop bone's scale
+(1 where used per `PROPS_BY_CLIP`, 1e-4 elsewhere), so props only appear in their lessons with no app changes.
+GLB size: 2.9 MB → 5.0 MB per coach (more clips).
+
+**App:** `Exercise.needsEquipment` (items marked "(optional)" / "(recommended)" do not count); Train screen gets an
+equipment filter (Any / No equipment / With equipment); the quick session never picks an equipment lesson; phase labels
+for the new clips. Tests updated (41 lessons, 51 clips, equipment set, filter, quick session).
+
+**Verified:** contact sheets of every new clip from several angles on the female coach, equipment and floor moves on the
+male coach; IK over-reach <= 4 mm; thumbnails for all lessons on both coaches. Bug found and fixed while checking: a
+scratch file named `inspect.py` next to the render script shadowed Python's `inspect` module (workspace only).
+**Not verified:** on a phone. Prop scale-to-hide in Filament playback is untested.

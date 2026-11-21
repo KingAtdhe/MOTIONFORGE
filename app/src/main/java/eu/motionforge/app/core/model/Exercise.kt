@@ -20,7 +20,11 @@ data class Exercise(
     val commonMistakes: List<CommonMistake>,
     val limitations: String,
     val reviewStatus: ReviewStatus,
-)
+) {
+    /** True when the lesson needs equipment; items marked "(optional)" or "(recommended)" do not count. */
+    val needsEquipment: Boolean
+        get() = equipment.any { !it.contains("(optional)") && !it.contains("(recommended)") }
+}
 
 /** A frequent mistake and a safer, gentler adjustment. Never a diagnosis. */
 data class CommonMistake(val mistake: String, val adjustment: String)

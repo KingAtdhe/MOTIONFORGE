@@ -49,7 +49,8 @@ object SessionPlanner {
     /** Short guided session: warm-up first (when the pool has one), then lessons in catalogue order, with rests. */
     fun quick(catalog: List<Exercise>, focus: TrainingCategory?): SessionPlan? {
         val category = focus ?: TrainingCategory.FITNESS
-        val pool = catalog.filter { it.category == category }.ifEmpty { catalog }
+        // the quick session never assumes equipment
+        val pool = catalog.filter { it.category == category && !it.needsEquipment }.ifEmpty { catalog.filter { !it.needsEquipment } }
         if (pool.isEmpty()) return null
         val warmUp = catalog.firstOrNull { it.id == WARM_UP_ID }
         val picked = (listOfNotNull(warmUp) + pool.filter { it.id != WARM_UP_ID }).take(MAX_QUICK_EXERCISES)

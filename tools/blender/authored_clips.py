@@ -111,6 +111,18 @@ class Rig:
         ball, yaw, pitch = f
         return ball - self.foot_q(s, yaw, pitch) @ self.fv[s]
 
+    def foot_toward(self, s, A, direction, yaw=0.0):
+        """Foot whose ankle sits at A and whose ankle->ball vector points as close as possible to `direction`
+        (kneeling and lying poses, where the foot is not flat on the floor)."""
+        d = direction.normalized()
+        best, bp = None, 0.0
+        for i in range(-180, 181, 2):
+            v = (self.foot_q(s, yaw, float(i)) @ self.fv[s]).normalized()
+            sc = v.dot(d)
+            if best is None or sc > best:
+                best, bp = sc, float(i)
+        return (A + self.foot_q(s, yaw, bp) @ self.fv[s], yaw, bp)
+
     def hip_joint(self, sp, s):
         return sp["pos"] + sp["pel"] @ self.hj[s]
 
@@ -230,6 +242,9 @@ class Rig:
         for bn in self.order:
             if bn not in M:
                 M[bn] = self._child(M, bn)
+        if "world" in sp:                                       # whole-body turn (e.g. a pivot on one foot)
+            W = sp["world"]
+            M = {k: W @ m for k, m in M.items()}
         return M
 
     def write(self, name, specs):
@@ -327,13 +342,13 @@ def idle(r, st):
 
 
 # =============================================================================================== march
-def march(r, st):
-    Ts = 0.62 * st["tempo"]
+def march(r, st, step_s=0.62, lift_m=0.30, fwd_m=0.20, swing=1.0):
+    Ts = step_s * st["tempo"]
     steps = 4
     T = Ts * steps
     n = frames(T)
     w = 0.092 * r.k
-    lift, fwd = 0.30 * r.k, 0.20 * r.k
+    lift, fwd = lift_m * r.k, fwd_m * r.k
     out = []
     for i in range(n):
         t = T * i / (n - 1)
@@ -369,7 +384,7 @@ def march(r, st):
         def arms(pts, arm_w=arm_w, var=var):
             res = {}
             for s, sg in SIDES:
-                wv = (arm_w if s == "L" else -arm_w) * st["swing"] * var
+                wv = (arm_w if s == "L" else -arm_w) * st["swing"] * var * swing
                 a = math.radians(4.0 + 34.0 * wv)   # each arm goes forward with the opposite knee
                 S = pts["S_" + s]
                 ud = V(sg * 0.10, -math.sin(a), -math.cos(a)).normalized()
@@ -384,13 +399,13 @@ def march(r, st):
 
 
 # =============================================================================================== squat
-def _squat_pose(r, st, u, a, t):
-    """u: depth 0 (standing) .. 1 (thighs parallel); a: arms 0 (hanging) .. 1 (reaching forward)."""
-    w = r.sh_half * 1.02 * st["stance"]
-    toe = 20.0
+def _squat_pose(r, st, u, a, t, width=1.02, toe=20.0, lean_max=40.0, shin=33.0, arms_mode="reach"):
+    """u: depth 0 (standing) .. 1 (thighs parallel); a: arms 0 (hanging) .. 1 (reaching forward).
+    width / toe / lean_max / shin shape the stance (defaults: the bodyweight squat; wider + more toe-out = sumo)."""
+    w = r.sh_half * width * st["stance"]
     feet = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * toe) for s, sg in SIDES}
     b = breath(t, 4.0, 0.0)
-    lean = 40.0 * (u ** 0.8)
+    lean = lean_max * (u ** 0.8)
     sp = torso_spec(V(0, r.P0.y, 0), pitch=1.0 + lean * 0.80, spine=lean * 0.10, chest=lean * 0.10 - 1.0, head_pitch=2.0 + 9.0 * u, br=b * (1 - 0.6 * u))
     sp["feet"] = feet
     sp["kpole"] = {s: V(sg * math.sin(math.radians(toe)) * 1.15, -math.cos(math.radians(toe)), 0) for s, sg in SIDES}   # knees over toes
@@ -398,7 +413,7 @@ def _squat_pose(r, st, u, a, t):
     # bottom: shins lean ~33 deg over the toes, hip joints level with the knees
     s_ = "L"
     A = r.ankle(s_, feet[s_])
-    sig = math.radians(33.0)
+    sig = math.radians(shin)
     kz = A.z + r.l2[s_] * math.cos(sig)
     k_fwd = r.l2[s_] * math.sin(sig)
     kx = A.x + k_fwd * math.sin(math.radians(toe))
@@ -406,13 +421,20 @@ def _squat_pose(r, st, u, a, t):
     hjx = r.hj[s_].x
     back = math.sqrt(max(r.l1[s_] ** 2 - (kx - hjx) ** 2 - (0.012 * r.k) ** 2, 1e-6))
     hip_y, hip_z = ky + back, kz + 0.012 * r.k
-    pel_b = Q(0, 1.0 + 40.0 * 0.80, 0)
+    pel_b = Q(0, 1.0 + lean_max * 0.80, 0)
     off = pel_b @ r.hj[s_]
     y_b, z_b = hip_y - off.y, hip_z - off.z
     sp["pos"] = V(0, lerp(r.P0.y + 0.004 * r.k, y_b, u ** 0.9), lerp(z_top, z_b, u))
 
     def arms(pts):
         res = {}
+        if arms_mode == "chest":                                 # hands together in front of the chest
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                c = (pts["S_L"] + pts["S_R"]) / 2
+                res[s] = {"w": V(c.x + sg * 0.035 * r.k, c.y - 0.24 * r.k, c.z - 0.17 * r.k), "pole": V(sg * 0.6, 0.5, -1.0),
+                          "fingers": V(-sg * 0.3, -0.2, 1.0), "palm": V(-sg, 0.0, 0.0)}
+            return res
         for s, sg in SIDES:
             S = pts["S_" + s]
             ang = math.radians(86.0 * a)
@@ -524,7 +546,7 @@ def _pushup_geometry(r, st):
         return pts
 
     def solve_phi(target_z, d):
-        lo, hi = 40.0, 92.0
+        lo, hi = 15.0, 92.0
         for _ in range(40):
             mid = (lo + hi) / 2
             if shoulders(mid, d)["S_L"].z > target_z:
@@ -573,7 +595,7 @@ def pushup(r, st):
 
 # =============================================================================================== boxing
 def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0, loop=3.2,
-                 e_hook=0.0, slip=0.0, travel_x=0.0):
+                 e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0):
     """Orthodox stance (left foot leads, target straight ahead at -Y).
     e_jab / e_cross / e_hook: 0 guard .. 1 full extension. travel: forward shift of the whole stance (m).
     lead_step / rear_step: 0..1 bell while that foot is in the air during a push-step.
@@ -581,7 +603,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     k = r.k
     bob = math.sin(2 * math.pi * t / 0.8)
     b = breath(t, loop, 0.4)                                     # one breath per loop, so the clip closes on itself
-    c = e_cross
+    # rear-hand punches turn the body like the cross (less for the uppercut); the lead uppercut turns it slightly the other way
+    c = max(e_cross, 0.75 * e_rhook, 0.45 * e_rup)
     # feet: lead toes turned in a little, rear foot ~50 deg out on its ball; the cross pivots the rear foot
     h = e_hook
     # the lead hook pivots on the ball of the lead foot (heel turns out) as the hips turn through
@@ -593,8 +616,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     rear = (rear[0], rear_yaw, rear_pitch)
     shift = V(travel_x, -travel, 0)
     feet = {"L": (lead[0] + shift, lead[1], lead[2]), "R": (rear[0] + shift, rear[1], rear[2])}
-    yaw_p = lerp(-34.0, 6.0, c) - 5.0 * e_jab - 14.0 * h
-    yaw_c = lerp(-42.0, 30.0, c) - 12.0 * e_jab - 30.0 * h
+    yaw_p = lerp(-34.0, 6.0, c) - 5.0 * e_jab - 14.0 * h - 8.0 * e_lup
+    yaw_c = lerp(-42.0, 30.0, c) - 12.0 * e_jab - 30.0 * h - 18.0 * e_lup
     pos = V(0.012 * k * c + travel_x - 0.06 * k * slip, 0.012 * k - 0.035 * k * e_jab - 0.075 * k * c - travel, 0)
     sp = torso_spec(pos, yaw=yaw_p, pitch=2.0 + 2.0 * c, spine=2.0, chest=4.0, chest_yaw=yaw_c - yaw_p,
                     head_pitch=11.0 + 2.0 * max(e_jab, c), head_yaw=lerp(-4.0, 3.0, c), br=b * 0.5)
@@ -609,7 +632,13 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         sp["hed"] = Ry(-3.0 * slip) @ sp["hed"]
         sp["kpole"]["L"] = sp["kpole"]["L"] + V(-0.3 * slip, 0, 0)
     z = r.fit_z(sp, 0.992)
-    sp["pos"].z = z - (0.034 + 0.005 * bob * bob_amp + 0.012 * c + 0.028 * abs(slip)) * k
+    # uppercuts: the knees dip first and drive up with the punch
+    up_dip = 0.035 * (math.sin(math.pi * min(1.0, max(e_rup, e_lup) * 1.6)) if max(e_rup, e_lup) < 0.62 else 0.0)
+    sp["pos"].z = z - (0.034 + 0.005 * bob * bob_amp + 0.012 * c + 0.028 * abs(slip) + 0.10 * dip + up_dip) * k
+    if dip:
+        sp["pel"] = Rx(6.0 * dip) @ sp["pel"]
+        sp["spi"] = Rx(8.0 * dip) @ sp["spi"]
+        sp["che"] = Rx(10.0 * dip) @ sp["che"]
     sp["shrug"] = {"L": 2.0 + 13.0 * e_jab, "R": 2.0 + 13.0 * c}
     sp["prot"] = {"L": 6.0 + 12.0 * e_jab, "R": 4.0 + 14.0 * c}
 
@@ -630,6 +659,23 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             ext = {"w": tgt, "pole": V(-0.55, 0.1, -0.5), "fingers": V(0, -1, 0), "palm": V(-0.12, 0, -1)}
             res["R"] = mix_arm(gr, ext, e_cross)
             res["R"]["w"] = gr["w"].lerp(tgt, e_cross)
+        if e_rhook > 0:
+            # rear hook: mirror of the lead hook, turned through by the rear foot and hips
+            S = pts["S_R"]
+            tgt = V(Hc.x + 0.02 * k, S.y - 0.34 * k, S.z + 0.015 * k)
+            hk = {"w": tgt, "pole": V(-1.0, 0.25, 0.15), "fingers": V(1.0, -0.35, 0.0), "palm": V(0.0, 0.1, -1.0)}
+            res["R"] = mix_arm(gr, hk, smooth(e_rhook))
+            res["R"]["w"] = gr["w"].lerp(tgt, e_rhook) + V(-0.10 * k * math.sin(math.pi * e_rhook), 0, 0.02 * k * math.sin(math.pi * e_rhook))
+        for side, e, sgn in (("R", e_rup, -1.0), ("L", e_lup, 1.0)):
+            if e > 0:
+                # uppercut: the fist drops a little, then rises close to the body to chin height, palm toward the face
+                g = gl if side == "L" else gr
+                S = pts["S_" + side]
+                tgt = V(Hc.x + sgn * 0.02 * k, S.y - 0.27 * k, Hc.z - 0.05 * k)
+                up = {"w": tgt, "pole": V(sgn * 0.3, 0.3, -1.0), "fingers": V(0.0, 0.25, 1.0), "palm": V(0.0, 1.0, 0.25)}
+                res[side] = mix_arm(g, up, smooth(e))
+                drop = 0.09 * k * math.sin(math.pi * min(1.0, e * 1.4)) * (1.0 - e)
+                res[side]["w"] = g["w"].lerp(tgt, smoother(e)) + V(0, -0.02 * k * e, -drop)
         if h > 0:
             # lead hook: elbow rises to shoulder height, forearm level, the fist swings round to just in front of the chin
             S = pts["S_L"]
@@ -1082,11 +1128,652 @@ def plank_hold(r, st):
     return out
 
 
+# =============================================================================================== batch 2 (no equipment)
+def _phases(t, segs):
+    """segs: list of (duration, start_value, end_value); smootherstep inside each segment. Returns the value at t."""
+    acc = 0.0
+    for d, a, b in segs:
+        if t <= acc + d:
+            return lerp(a, b, smoother((t - acc) / d)) if d > 0 else b
+        acc += d
+    return segs[-1][2]
+
+
+def _rep_segments(st, hold0=0.35, down=2.0, hold1=0.3, up=1.4, top=0.4):
+    tp = st["tempo"]
+    segs = [(hold0, 0, 0), (down * tp, 0, 1), (hold1, 1, 1), (up * tp, 1, 0), (top, 0, 0)]
+    return segs, sum(d for d, _, _ in segs)
+
+
+def sumo_squat(r, st):
+    """Wide stance, toes turned out ~35 deg, knees track over the toes, chest tall; hands together in front of the chest."""
+    kw = dict(width=1.75, toe=35.0, lean_max=22.0, shin=18.0, arms_mode="chest")
+    down, up = [], []
+    hold0, lower, hold1 = 0.35, 2.0 * st["tempo"], 0.30
+    n = frames(hold0 + lower + hold1)
+    for i in range(n):
+        t = i / FPS
+        down.append(_squat_pose(r, st, 0.85 * smoother((t - hold0) / lower), 1.0, t, **kw))
+    T0 = (n - 1) / FPS
+    rise, top = 1.45 * st["tempo"], 0.5
+    m = frames(rise + top)
+    for i in range(m):
+        t = i / FPS
+        up.append(_squat_pose(r, st, 0.85 * (1.0 - smoother(t / rise)), 1.0, T0 + t, **kw))
+    return down, up
+
+
+def split_squat(r, st):
+    """Split stance held (right foot back on its ball); the body lowers straight down and rises, no stepping."""
+    geo = _lunge_geometry(r, st, "R")
+    segs, T = _rep_segments(st, 0.4, 1.6, 0.3, 1.2, 0.4)
+    n = frames(T)
+    return [_lunge_pose(r, st, geo, "R", 1.0, _phases(T * i / (n - 1), segs), T * i / (n - 1)) for i in range(n)]
+
+
+def _side_lunge_pose(r, st, side, u, t):
+    """Wide stance; the weight shifts over one foot, that knee bends over the toes, hips go back, the other leg stays long."""
+    k = r.k
+    w = 0.40 * k * st["stance"]
+    feet = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * 14.0) for s, sg in SIDES}
+    sg_b = 1.0 if side == "L" else -1.0
+    straight = "R" if side == "L" else "L"
+    b = breath(t, 4.0, 0.0)
+    lean = 28.0 * u
+    sp = torso_spec(V(sg_b * 0.30 * k * u, r.P0.y + 0.004 * k + 0.10 * k * u, 0), pitch=1.0 + lean, spine=0.5, chest=-1.0,
+                    head_pitch=1.5 + lean * 0.7, roll=-sg_b * 3.0 * u, br=b * 0.5)
+    sp["feet"] = feet
+    sp["kpole"] = {s: V(sg * 0.35, -1, 0) for s, sg in SIDES}
+    r.fit_z(sp, 0.994, sides=(straight,))                       # the long leg sets the height; the bent leg follows
+    sp["arms"] = lambda pts: {s: {"w": (pts["S_L"] + pts["S_R"]) / 2 + V(sg * 0.035 * k, -0.25 * k, -0.20 * k),
+                                  "pole": V(sg * 0.6, 0.5, -1.0), "fingers": V(-sg * 0.3, -0.2, 1.0), "palm": V(-sg, 0, 0)} for s, sg in SIDES}
+    return sp
+
+
+def side_lunge(r, st):
+    tp = st["tempo"]
+    segs = [(0.4, 0, 0), (1.4 * tp, 0, 1), (0.3, 1, 1), (1.1 * tp, 1, 0), (0.3, 0, 0)]
+    T1 = sum(d for d, _, _ in segs)
+    n = frames(T1)
+    out = []
+    for side in ("R", "L"):
+        for i in range(n):
+            if side == "L" and i == 0:
+                continue
+            t = T1 * i / (n - 1)
+            out.append(_side_lunge_pose(r, st, side, _phases(t, segs), t + (T1 if side == "L" else 0)))
+    return out
+
+
+def high_knee_march(r, st):
+    return march(r, st, step_s=0.48, lift_m=0.40, fwd_m=0.24, swing=1.25)
+
+
+def arm_circles(r, st):
+    """Arms out at shoulder height, small circles: two forward, two backward."""
+    k = r.k
+    T = 4.8
+    n = frames(T)
+    w = 0.098 * k * st["stance"]
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        rise = smoother(min(1.0, t / 0.5)) * smoother(min(1.0, (T - t) / 0.5))
+        ph = 2 * math.pi * (t / (T / 4)) * (1 if t < T / 2 else -1)
+        b = breath(t, T, 0.0)
+        feet = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * 9.0) for s, sg in SIDES}
+        sp = torso_spec(V(0, r.P0.y + 0.004 * k, 0), pitch=1.0, spine=0.5, chest=-1.0, head_pitch=1.0, br=b * 0.6)
+        sp["feet"] = feet
+        r.fit_z(sp, 0.994)
+
+        def arms(pts, ph=ph, rise=rise):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                d_out = V(sg, -0.10, 0.02).normalized()
+                circ = V(0, math.sin(ph), math.cos(ph)) * (0.09 * k * rise)
+                outw = S + d_out * (0.90 * r.la) + circ                 # the circle stays inside the arm's reach
+                hangw = hang(r, pts, s, sg, out=st["arm_out"])
+                res[s] = {"w": hangw["w"].lerp(outw, rise), "pole": V(0, 1.0, -0.3 * rise), "fingers": d_out if rise > 0.5 else None,
+                          "palm": V(-sg * (1 - rise), 0.15 * (1 - rise), -rise)}
+                if res[s]["fingers"] is None:
+                    del res[s]["fingers"]
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+# ---- kneeling / all fours
+def _quadruped_base(r, st, knee_y=0.20, spine=0.0, chest=0.0, head=0.0, pel_extra=0.0):
+    """Hands under shoulders, knees under hips, shins and feet flat behind. Returns (spec, wrists, knees)."""
+    k = r.k
+    kz = 0.055 * k
+    knees = {s: V(r.hj[s].x, knee_y * k, kz) for s, _ in SIDES}
+    Hs = {s: knees[s] + V(0, 0, r.l1[s] * 0.998) for s, _ in SIDES}
+    feet = {}
+    for s, sg in SIDES:
+        A = knees[s] + V(0, r.l2[s] * math.cos(math.radians(6.0)), r.l2[s] * math.sin(math.radians(6.0)))
+        feet[s] = r.foot_toward(s, A, V(0, 1.0, -0.25))
+    mid_h = (Hs["L"] + Hs["R"]) / 2
+    mid_j = (r.hj["L"] + r.hj["R"]) / 2
+    wrist_h = 0.050 * k
+
+    def spec(pitch):
+        sp = torso_spec(V(0, 0, 0), pitch=pitch + pel_extra, spine=spine, chest=chest, head_pitch=pitch - 14.0 + head)
+        sp["pos"] = mid_h - sp["pel"] @ mid_j
+        return sp
+    lo, hi = 60.0, 110.0
+    for _ in range(40):
+        m = (lo + hi) / 2
+        _, pts = r.torso(spec(m))
+        if pts["S_L"].z > wrist_h + 0.993 * r.la:
+            lo = m
+        else:
+            hi = m
+    sp = spec((lo + hi) / 2)
+    _, pts = r.torso(sp)
+    wrists = {s: V(pts["S_" + s].x + sg * 0.01 * k, pts["S_" + s].y - 0.02 * k, wrist_h) for s, sg in SIDES}
+    sp["feet"] = feet
+    sp["kpole"] = {s: V(0, -0.3, -1) for s, _ in SIDES}
+    return sp, wrists, (lo + hi) / 2
+
+
+def _hands_on_floor(wrists, sides=("L", "R")):
+    return {s: {"w": wrists[s], "pole": V(sg * 0.5, 0.6, 0.1), "fingers": V(-sg * 0.1, -1, 0), "palm": V(0, 0, -1)} for s, sg in SIDES}
+
+
+def cat_cow(r, st):
+    """On all fours: round the back (cat), then let the chest sink and lift the gaze (cow). Hands and knees stay put."""
+    T = 6.0
+    n = frames(T)
+    base, wrists, pitch0 = _quadruped_base(r, st)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        x = _phases(t, [(0.4, 0, 0), (1.6, 0, 1), (0.6, 1, 1), (1.6, 1, -1), (0.6, -1, -1), (1.2, -1, 0)])   # +1 cat, -1 cow
+        sp, _, _ = _quadruped_base(r, st, spine=-9.0 * x, chest=-10.0 * x, head=18.0 * x, pel_extra=-6.0 * x)
+        sp["arms"] = _hands_on_floor(wrists)
+        out.append(sp)
+    return out
+
+
+def bird_dog(r, st):
+    """On all fours: reach one arm forward and the opposite leg back to hip height, hold, return; then the other side."""
+    k = r.k
+    base, wrists, pitch0 = _quadruped_base(r, st)
+    segs = [(0.4, 0, 0), (1.3 * st["tempo"], 0, 1), (0.8, 1, 1), (1.1 * st["tempo"], 1, 0), (0.3, 0, 0)]
+    T1 = sum(d for d, _, _ in segs)
+    n = frames(T1)
+    out = []
+    for arm_side in ("R", "L"):
+        leg = "L" if arm_side == "R" else "R"
+        for i in range(n):
+            if arm_side == "L" and i == 0:
+                continue
+            t = T1 * i / (n - 1)
+            e = _phases(t, segs)
+            sp, _, _ = _quadruped_base(r, st)
+            feet = dict(sp["feet"])
+            Hj = sp["pos"] + sp["pel"] @ r.hj[leg]
+            A_ext = Hj + V(0, 0.99 * r.leg, 0.0)
+            A0 = r.ankle(leg, feet[leg])
+            A = A0.lerp(A_ext, e) + V(0, 0, 0.10 * k * math.sin(math.pi * e) * (1 - e))
+            feet[leg] = r.foot_toward(leg, A, V(0, 0.4, -1.0).lerp(V(0, 0.2, -1.0), e))
+            sp["feet"] = feet
+            sp["kpole"] = {leg: V(0, -0.2, -1).lerp(V(0, 0, -1), e), arm_side if False else ("L" if leg == "R" else "R"): V(0, -0.3, -1)}
+            sp["kpole"] = {s: (V(0, 0.2, -1) if s == leg else V(0, -0.3, -1)) for s, _ in SIDES}
+
+            def arms(pts, e=e):
+                res = _hands_on_floor(wrists)
+                S = pts["S_" + arm_side]
+                sg = 1.0 if arm_side == "L" else -1.0
+                fwd = S + V(sg * 0.03 * k, -0.985 * r.la, 0.0)
+                up = 0.06 * k * math.sin(math.pi * e) * (1 - e)
+                res[arm_side] = {"w": wrists[arm_side].lerp(fwd, e) + V(0, 0, up), "pole": V(sg * 0.4, 0.6, -0.5).lerp(V(sg * 0.2, 0, -1), e),
+                                 "fingers": V(-sg * 0.1, -1, 0), "palm": V(-sg * e, 0, -(1 - e) - 0.2)}
+                return res
+            sp["arms"] = arms
+            out.append(sp)
+    return out
+
+
+def _kneeling_line(r, st, theta, knee_y):
+    """Knees on the floor; one straight line from knees through hips to shoulders, `theta` deg above the floor."""
+    k = r.k
+    kz = 0.055 * k
+    knees = {s: V(r.hj[s].x, knee_y, kz) for s, _ in SIDES}
+    th = math.radians(theta)
+    d = V(0, -math.cos(th), math.sin(th))
+    H = {s: knees[s] + d * r.l1[s] * 0.998 for s, _ in SIDES}
+    pitch = 90.0 - theta
+    sp = torso_spec(V(0, 0, 0), pitch=pitch, head_pitch=pitch - 8.0)
+    mid_h = (H["L"] + H["R"]) / 2
+    mid_j = (r.hj["L"] + r.hj["R"]) / 2
+    sp["pos"] = mid_h - sp["pel"] @ mid_j
+    feet = {}
+    for s, sg in SIDES:
+        A = knees[s] + V(0, r.l2[s] * math.cos(math.radians(20.0)), r.l2[s] * math.sin(math.radians(20.0)))
+        feet[s] = r.foot_toward(s, A, V(0, 1.0, -0.5))
+    sp["feet"] = feet
+    sp["kpole"] = {s: V(0, 0.2, -1) for s, _ in SIDES}
+    return sp
+
+
+def knee_pushup(r, st):
+    """Push-up from the knees: one straight line knees-hips-shoulders, hands a little wider than the shoulders."""
+    k = r.k
+    wrist_h = 0.050 * k
+    knee_y = 0.25 * k
+
+    def sz(theta):
+        _, pts = r.torso(_kneeling_line(r, st, theta, knee_y))
+        return pts["S_L"].z
+
+    def solve(target):
+        lo, hi = 2.0, 70.0
+        for _ in range(40):
+            m = (lo + hi) / 2
+            if sz(m) < target:
+                lo = m
+            else:
+                hi = m
+        return (lo + hi) / 2
+    dx = 0.105 * k
+    th_top = solve(wrist_h + math.sqrt((0.9965 * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
+    th_bot = solve(wrist_h + 0.175 * k)
+    _, top = r.torso(_kneeling_line(r, st, th_top, knee_y))
+    wrist = {s: V(top["S_" + s].x + sg * dx, top["S_" + s].y + 0.03 * k, wrist_h) for s, sg in SIDES}
+
+    def pose(d):
+        sp = _kneeling_line(r, st, lerp(th_top, th_bot, d), knee_y)
+        sp["prot"] = {"L": 7.0 - 15.0 * d, "R": 7.0 - 15.0 * d}
+        sp["arms"] = {s: {"w": wrist[s], "pole": V(sg * 0.72, 0.68, 0.15), "fingers": V(sg * 0.14, -1, 0), "palm": V(0, 0, -1)} for s, sg in SIDES}
+        return sp
+    hold0, lower, hold1 = 0.40, 1.8 * st["tempo"], 0.25
+    n = frames(hold0 + lower + hold1)
+    down = [pose(smoother((i / FPS - hold0) / lower)) for i in range(n)]
+    press, topt = 1.2 * st["tempo"], 0.5
+    m = frames(press + topt)
+    up = [pose(1.0 - smoother((i / FPS) / press)) for i in range(m)]
+    return down, up
+
+
+def mountain_climber_slow(r, st):
+    """High plank (push-up top); one knee drives toward the chest and returns, then the other. Slow, controlled."""
+    k = r.k
+    geo = _pushup_geometry(r, st)
+    body, phi_top, phi_bot, wrist, blades = geo
+    segs = [(0.3, 0, 0), (0.8 * st["tempo"], 0, 1), (0.3, 1, 1), (0.7 * st["tempo"], 1, 0), (0.2, 0, 0)]
+    T1 = sum(d for d, _, _ in segs)
+    n = frames(T1)
+    out = []
+    for side in ("R", "L"):
+        for i in range(n):
+            if side == "L" and i == 0:
+                continue
+            t = T1 * i / (n - 1)
+            e = _phases(t, segs)
+            sp = _pushup_pose(r, st, geo, 0.0, t)
+            phi = phi_top + 6.0 * e                              # hips rise a touch as the knee comes in
+            feet, pos = body(phi)
+            sp["pos"] = pos + V(0, 0, 0.03 * k * e)
+            sp["pel"] = Q(0, phi, 0)
+            ball, yaw, pitch = feet[side]
+            Hj = sp["pos"] + sp["pel"] @ r.hj[side]
+            K_in = Hj + V(0, -0.30 * k, -0.20 * k)
+            A_in = K_in + (V(0, 0.9, -0.45).normalized()) * r.l2[side]
+            A0 = r.ankle(side, feet[side])
+            A = A0.lerp(A_in, e) + V(0, 0, 0.05 * k * math.sin(math.pi * e))
+            feet[side] = r.foot_toward(side, A, V(0, -0.2, -1.0).lerp(V(0, -0.6, -1.0), e)) if e > 0.02 else feet[side]
+            sp["feet"] = feet
+            sp["kpole"] = {s: V(0, -1, -0.2) if s == side else V(0, -0.2, -1) for s, _ in SIDES}
+            out.append(sp)
+    return out
+
+
+# ---- lying
+def dead_bug(r, st):
+    """On the back, hips and knees at 90 deg, arms to the ceiling; one arm lowers overhead as the opposite leg reaches out
+    long, both stop just above the floor; return; switch sides. Lower back stays down."""
+    k = r.k
+    S_z, S_y = 0.085 * k, 0.40 * k
+    sp0 = torso_spec(V(0, 0, 0), pitch=-92.0, head_pitch=-90.0)
+    _, pts = r.torso(sp0)
+    mid = (pts["S_L"] + pts["S_R"]) / 2
+    pos = V(0, S_y, S_z) - mid
+    segs = [(0.4, 0, 0), (1.6 * st["tempo"], 0, 1), (0.4, 1, 1), (1.3 * st["tempo"], 1, 0), (0.2, 0, 0)]
+    T1 = sum(d for d, _, _ in segs)
+    n = frames(T1)
+    out = []
+    for arm_side in ("R", "L"):
+        leg = "L" if arm_side == "R" else "R"
+        for i in range(n):
+            if arm_side == "L" and i == 0:
+                continue
+            t = T1 * i / (n - 1)
+            e = _phases(t, segs)
+            b = breath(t, T1, 0.0)
+            sp = torso_spec(pos.copy(), pitch=-92.0, head_pitch=-90.0, br=b * 0.5)
+            feet, poles = {}, {}
+            for s, sg in SIDES:
+                Hj = sp["pos"] + sp["pel"] @ r.hj[s]
+                K = Hj + V(0, -0.02 * k, r.l1[s] * 0.999)
+                A_tab = K + V(0, -r.l2[s] * 0.999, 0)
+                if s == leg:
+                    A_long = Hj + V(0, -0.985 * r.leg * math.cos(math.radians(14.0)), 0.985 * r.leg * math.sin(math.radians(14.0)))
+                    A = A_tab.lerp(A_long, e)
+                else:
+                    A = A_tab
+                feet[s] = r.foot_toward(s, A, V(0, -0.35, 1.0))
+                poles[s] = V(0, 1.0, 1.0)                        # knee above the hip (the hip->ankle line runs forward-up)
+            sp["feet"] = feet
+            sp["kpole"] = poles
+
+            def arms(pts, e=e):
+                res = {}
+                for s, sg in SIDES:
+                    S = pts["S_" + s]
+                    upw = S + V(0, -0.02 * k, 0.985 * r.la)
+                    over = S + V(sg * 0.02 * k, 0.985 * r.la * math.cos(math.radians(12.0)), 0.985 * r.la * math.sin(math.radians(12.0)))
+                    w = upw.lerp(over, e) if s == arm_side else upw
+                    if s == arm_side:
+                        w = w + V(0, 0, 0.12 * k * math.sin(math.pi * e) * (1 - e))
+                    res[s] = {"w": w, "pole": V(sg * 0.5, 0, -1.0), "fingers": (w - S).normalized(), "palm": V(-sg, 0, 0)}
+                return res
+            sp["arms"] = arms
+            out.append(sp)
+    return out
+
+
+def superman(r, st):
+    """Face down, arms reaching forward; lift arms, chest and legs a few centimetres, hold, lower. Gaze stays down."""
+    k = r.k
+    segs = [(0.5, 0, 0), (1.2 * st["tempo"], 0, 1), (1.0, 1, 1), (1.4 * st["tempo"], 1, 0), (0.4, 0, 0)]
+    T = sum(d for d, _, _ in segs)
+    n = frames(T)
+    hip_z = 0.105 * k
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = torso_spec(V(0, 0, 0), pitch=90.0, spine=-5.0 * e, chest=-7.0 * e, head_pitch=86.0 - 10.0 * e)
+        mid_j = (r.hj["L"] + r.hj["R"]) / 2
+        sp["pos"] = V(0, 0.05 * k, hip_z) - sp["pel"] @ mid_j
+        feet = {}
+        for s, sg in SIDES:
+            Hj = sp["pos"] + sp["pel"] @ r.hj[s]
+            ang = math.radians(4.0 + 9.0 * e)
+            A = Hj + V(sg * 0.02 * k, 0.99 * r.leg * math.cos(ang), 0.99 * r.leg * math.sin(ang) - 0.03 * k)
+            feet[s] = r.foot_toward(s, A, V(0, 1.0, -0.15))
+        sp["feet"] = feet
+        sp["kpole"] = {s: V(0, 0, -1) for s, _ in SIDES}
+
+        def arms(pts, e=e):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                ang = math.radians(-6.0 + 14.0 * e)
+                w = S + V(sg * 0.10 * k, -0.985 * r.la * math.cos(ang), 0.985 * r.la * math.sin(ang))
+                res[s] = {"w": w, "pole": V(sg * 0.3, 0, 1.0), "fingers": V(0, -1, 0), "palm": V(0, 0, -1)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+# ---- boxing batch 2
+def _single_punch(r, st, key, out_s=0.45, hold=0.15, back=0.55, T=2.4):
+    n = frames(T)
+    return [_stance_pose(r, st, T * i / (n - 1), loop=T, **{key: _punch_curve(T * i / (n - 1), 0.35, out_s, hold, back)}) for i in range(n)]
+
+
+def rear_uppercut(r, st):
+    return _single_punch(r, st, "e_rup", 0.50, 0.15, 0.55)
+
+
+def lead_uppercut(r, st):
+    return _single_punch(r, st, "e_lup", 0.50, 0.15, 0.55)
+
+
+def rear_hook(r, st):
+    return _single_punch(r, st, "e_rhook", 0.50, 0.20, 0.55)
+
+
+def roll(r, st):
+    """Roll under an imaginary hook: knees bend, the upper body travels in a U from one side to the other, guard up."""
+    T = 4.0
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        x = _phases(t, [(0.4, 0, 0), (0.35, 0, -0.6), (0.9, -0.6, 0.6), (0.35, 0.6, 0), (0.4, 0, 0), (0.35, 0, 0.6), (0.9, 0.6, -0.6), (0.35, -0.6, 0)])
+        dip = math.sqrt(max(0.0, 0.36 - x * x)) / 0.6 if abs(x) < 0.6 else 0.0
+        out.append(_stance_pose(r, st, t, slip=x, dip=dip * 0.9, bob_amp=0.3, loop=T))
+    return out
+
+
+def footwork_pivot(r, st):
+    """Pivot on the ball of the lead foot: the rear foot swings round ~40 deg and the whole stance turns with it; then back."""
+    T = 3.2
+    n = frames(T)
+    base = _stance_pose(r, st, 0.0, loop=T)
+    P = base["feet"]["L"][0].copy()
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        a = 40.0 * _phases(t, [(0.4, 0, 0), (0.6, 0, 1), (0.6, 1, 1), (0.6, 1, 0), (1.0, 0, 0)])
+        lift = math.sin(math.pi * smooth((t - 0.4) / 0.6)) if 0.4 < t < 1.0 else (math.sin(math.pi * smooth((t - 1.6) / 0.6)) if 1.6 < t < 2.2 else 0.0)
+        sp = _stance_pose(r, st, t, bob_amp=0.0, loop=T, rear_step=lift * 0.6)
+        W = Matrix.Translation(P) @ Matrix.Rotation(math.radians(a), 4, "Z") @ Matrix.Translation(-P)
+        sp["world"] = W
+        # feet are solved in the unturned frame; the lead foot stays planted because the turn is about its ball
+        out.append(sp)
+    return out
+
+
+# =============================================================================================== equipment
+def _stand(r, st, t, w=0.10, toe=7.0, pitch=1.0, T=4.0, dz=0.0):
+    k = r.k
+    feet = {s: r.foot(s, sg * w * k * st["stance"], r.ankle0[s].y, sg * toe) for s, sg in SIDES}
+    b = breath(t, T, 0.0)
+    sp = torso_spec(V(0, r.P0.y + 0.004 * k, 0), pitch=pitch, spine=0.5, chest=-1.0, head_pitch=1.0, br=b * 0.6)
+    sp["feet"] = feet
+    sp["kpole"] = {s: V(sg * 0.08, -1, 0) for s, sg in SIDES}
+    r.fit_z(sp, 0.990)
+    sp["pos"].z -= dz * k
+    return sp
+
+
+def db_curl(r, st):
+    """Elbows stay by the sides; the dumbbells curl up with palms turning up, then lower slowly."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.1, 0.3, 1.8, 0.3)       # lifting 1.1 s, lowering 1.8 s
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _stand(r, st, t, T=T)
+
+        def arms(pts, e=e):
+            res = {}
+            th = math.radians(8.0 + 132.0 * e)
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                E = S + V(sg * 0.035 * k, 0.01 * k, -r.a1[s] * 0.999)
+                fd = V(sg * 0.05, -math.sin(th), -math.cos(th)).normalized()
+                res[s] = {"w": E + fd * r.a2[s] * 0.999, "pole": V(sg * 0.15, 1.0, 0.0), "fingers": fd,
+                          "palm": V(-sg * 0.25, -math.cos(th), math.sin(th))}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def db_shoulder_press(r, st):
+    """Dumbbells at shoulder height, palms forward; press straight up to just short of locked, lower to the shoulders."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.2, 0.3, 1.8, 0.3)
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _stand(r, st, t, T=T, pitch=0.0)
+
+        def arms(pts, e=e):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                lo = S + V(sg * 0.10 * k, -0.04 * k, 0.05 * k)
+                hi = S + V(sg * 0.06 * k, -0.03 * k, 0.985 * r.la)
+                res[s] = {"w": lo.lerp(hi, e), "pole": V(sg * 1.0, 0.15, -0.6), "fingers": V(-sg * 0.1, 0, 1), "palm": V(0, -1, 0)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def db_lateral_raise(r, st):
+    """Arms rise out to the sides to shoulder height with a soft elbow, palms down, and lower slowly."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.2, 0.3, 1.8, 0.3)
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _stand(r, st, t, T=T)
+
+        def arms(pts, e=e):
+            res = {}
+            a = math.radians(lerp(10.0, 86.0, e))
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                d = V(sg * math.sin(a), -0.12, -math.cos(a)).normalized()
+                res[s] = {"w": S + d * (0.96 * r.la), "pole": V(0, 1.0, 0.4), "fingers": d, "palm": V(-sg * (1 - e) * 0.8, 0.0, -e - 0.2)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def db_rdl(r, st):
+    """Romanian deadlift with dumbbells: the hip hinge, weights sliding close down the thighs."""
+    return hinge(r, st)
+
+
+def db_bent_over_row(r, st):
+    """Hinged ~45 deg with a flat back; the elbows pull back past the ribs, then the arms lower straight down."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.0, 0.4, 1.6, 0.3)
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _hinge_pose(r, st, 0.70, t)
+
+        def arms(pts, e=e):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                down = S + V(sg * 0.02 * k, -0.04 * k, -0.985 * r.la)
+                top = S + V(sg * 0.07 * k, 0.15 * k, -0.30 * k)
+                res[s] = {"w": down.lerp(top, e), "pole": V(sg * 0.35, 1.0, 0.6), "fingers": V(0, -0.2, -1), "palm": V(-sg, 0, 0)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def _kb_pose(r, st, u, t):
+    """Kettlebell deadlift: wide stance, hips back and down, flat back; both hands on the handle between the feet."""
+    sp = _squat_pose(r, st, u * 0.70, 0.0, t, width=1.55, toe=25.0, lean_max=40.0, shin=22.0)
+    k = r.k
+
+    def arms(pts):
+        res = {}
+        mid = (pts["S_L"] + pts["S_R"]) / 2
+        for s, sg in SIDES:
+            S = pts["S_" + s]
+            x = sg * 0.045 * k
+            dz2 = (0.985 * r.la) ** 2 - (S.x - x) ** 2 - (S.y - mid.y + 0.01 * k) ** 2
+            res[s] = {"w": V(x, mid.y - 0.01 * k, S.z - math.sqrt(max(dz2, 1e-6))), "pole": V(sg * 0.6, 0.6, 0.2),
+                      "fingers": V(-sg * 0.2, 0.1, -1), "palm": V(0, 1.0, 0)}
+        return res
+    sp["arms"] = arms
+    return sp
+
+
+def kb_deadlift(r, st):
+    hold0, lower, hold1 = 0.35, 1.8 * st["tempo"], 0.35
+    n = frames(hold0 + lower + hold1)
+    down = [_kb_pose(r, st, smoother((i / FPS - hold0) / lower), i / FPS) for i in range(n)]
+    T0 = (n - 1) / FPS
+    rise, top = 1.3 * st["tempo"], 0.5
+    m = frames(rise + top)
+    up = [_kb_pose(r, st, 1.0 - smoother((i / FPS) / rise), T0 + i / FPS) for i in range(m)]
+    return down, up
+
+
+def band_pull_apart(r, st):
+    """Arms straight in front at shoulder height holding a light band; pull the hands apart until the arms are out to
+    the sides, squeezing the shoulder blades; return slowly."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.1, 0.4, 1.6, 0.3)
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _stand(r, st, t, T=T)
+        sp["prot"] = {"L": 6.0 - 16.0 * e, "R": 6.0 - 16.0 * e}
+
+        def arms(pts, e=e):
+            res = {}
+            a = math.radians(lerp(9.0, 82.0, e))
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                d = V(sg * math.sin(a), -math.cos(a), -0.06).normalized()
+                res[s] = {"w": S + d * (0.98 * r.la), "pole": V(sg * 0.2, 0.3, -1.0), "fingers": d, "palm": V(0, 0, -1)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+INCLINE_BENCH_H = 0.45                                         # m, seat height of the bench the hands rest on
+
+
+def incline_pushup(r, st):
+    """Push-up with the hands on a sturdy bench: same straight line from head to heels, easier angle."""
+    st2 = dict(st)
+    st2["wrist_h"] = (INCLINE_BENCH_H + 0.035) / r.k
+    return pushup(r, st2)
+
+
+# which clips show which prop (tools/blender/coach_props.py adds the meshes and keys their visibility)
+PROPS_BY_CLIP = {
+    "db_curl": ("dumbbell_L", "dumbbell_R"), "db_shoulder_press": ("dumbbell_L", "dumbbell_R"),
+    "db_lateral_raise": ("dumbbell_L", "dumbbell_R"), "db_bent_over_row": ("dumbbell_L", "dumbbell_R"),
+    "db_rdl_down": ("dumbbell_L", "dumbbell_R"), "db_rdl_up": ("dumbbell_L", "dumbbell_R"),
+    "kb_deadlift_down": ("kettlebell",), "kb_deadlift_up": ("kettlebell",),
+    "band_pull_apart": ("band",),
+    "incline_pushup_down": ("bench",), "incline_pushup_up": ("bench",),
+}
+
+
 STYLE = {
     # the two coaches perform the same technique; only build-related details differ
     "coach_f": {"stance": 1.0, "sway": 1.0, "arm_out": 0.085, "tempo": 1.0, "swing": 1.0, "wrist_h": 0.050},
     "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050},
 }
+
+
+# clips in which no shoe rests on the floor: the build must not pull the shoes down to it
+NO_FLOOR_CONTACT = {"dead_bug", "superman"}
 
 
 def build_all(arm, height, name):
@@ -1117,5 +1804,24 @@ def build_all(arm, height, name):
     r.write("step_jack", step_jack(r, st))
     r.write("glute_bridge", glute_bridge(r, st))
     r.write("plank_hold", plank_hold(r, st))
+    # batch 2 (2026-11-21)
+    for base, fn in (("sumo_squat", sumo_squat), ("knee_pushup", knee_pushup)):
+        d, u = fn(r, st)
+        r.write(base + "_down", d)
+        r.write(base + "_up", u)
+    for name, fn in (("split_squat", split_squat), ("side_lunge", side_lunge), ("high_knee_march", high_knee_march),
+                     ("arm_circles", arm_circles), ("cat_cow", cat_cow), ("bird_dog", bird_dog),
+                     ("mountain_climber_slow", mountain_climber_slow), ("dead_bug", dead_bug), ("superman", superman),
+                     ("boxing_rear_uppercut", rear_uppercut), ("boxing_lead_uppercut", lead_uppercut), ("boxing_rear_hook", rear_hook),
+                     ("boxing_roll", roll), ("footwork_pivot", footwork_pivot)):
+        r.write(name, fn(r, st))
+    # equipment
+    for base, fn in (("db_rdl", db_rdl), ("kb_deadlift", kb_deadlift), ("incline_pushup", incline_pushup)):
+        d, u = fn(r, st)
+        r.write(base + "_down", d)
+        r.write(base + "_up", u)
+    for name, fn in (("db_curl", db_curl), ("db_shoulder_press", db_shoulder_press), ("db_lateral_raise", db_lateral_raise),
+                     ("db_bent_over_row", db_bent_over_row), ("band_pull_apart", band_pull_apart)):
+        r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

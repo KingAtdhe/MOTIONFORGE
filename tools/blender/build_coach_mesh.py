@@ -569,7 +569,9 @@ if LEGACY_MOCAP:
     exec(compile(open(os.path.join(HERE, "legacy_mocap_clips.py")).read(), "legacy_mocap_clips.py", "exec"), globals())
 
 
-GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5, "plank_": 0.6, "glute_": 0.1}  # everything else: relaxed hands (below)
+GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5, "plank_": 0.6, "glute_": 0.1,
+        "db_": 0.95, "kb_": 0.95, "band_": 0.9, "incline_": 0.0, "knee_pushup": 0.0, "mountain_": 0.0, "cat_": 0.0, "bird_": 0.0,
+        "dead_bug": 0.3, "superman": 0.2, "sumo_": 0.3, "side_lunge": 0.3, "high_knee": 0.5}  # everything else: relaxed hands (below)
 
 
 def key_grip(act, amount):
@@ -637,7 +639,12 @@ if RIGGED:
     rc.prepare_textures(mx_mesh)
     # fingers are posed on the coach's own finger bones (a real fist with the thumb folded over), not carried over
     rc.key_fingers(mx_arm, sc, lambda n: next((v for k_, v in GRIP.items() if n.startswith(k_)), 0.22))
-    rc.floor_contact(mx_arm, mx_mesh, sc, names)
+    no_floor = getattr(ac, "NO_FLOOR_CONTACT", set()) if not LEGACY_MOCAP else set()
+    rc.floor_contact(mx_arm, mx_mesh, sc, [n for n in names if n not in no_floor])
+    # training equipment (dumbbells, kettlebell, band, bench), shown only in the clips that use it
+    if not LEGACY_MOCAP:
+        import coach_props  # noqa: E402
+        PROP_OBJS = coach_props.add_props(mx_arm, HEIGHT / 1.8)
     print("transferred", len(names), "clips to the rigged coach")
 
 # ---------------------------------------------------------------- save + export
@@ -652,6 +659,8 @@ bpy.ops.object.select_all(action="DESELECT")
 if RIGGED:
     mx_mesh.select_set(True)
     mx_arm.select_set(True)
+    for o in globals().get("PROP_OBJS", []):
+        o.select_set(True)
 else:
     lo.select_set(True)
     arm.select_set(True)

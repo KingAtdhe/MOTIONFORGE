@@ -11,6 +11,13 @@ enum class DurationFilter(val label: String, val maxSeconds: Int?) {
     UP_TO_60("≤ 60 s", 60),
 }
 
+/** Equipment buckets offered in the catalogue filter. */
+enum class EquipmentFilter(val label: String) {
+    ANY("Any equipment"),
+    NONE("No equipment"),
+    WITH("With equipment"),
+}
+
 /**
  * Catalogue filter. Difficulty is not offered yet because every MVP lesson is beginner level;
  * a filter with a single option would be a control that does nothing.
@@ -18,12 +25,18 @@ enum class DurationFilter(val label: String, val maxSeconds: Int?) {
 data class CatalogFilter(
     val category: TrainingCategory? = null,
     val duration: DurationFilter = DurationFilter.ANY,
+    val equipment: EquipmentFilter = EquipmentFilter.ANY,
 ) {
-    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY
+    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY || equipment != EquipmentFilter.ANY
 
     fun apply(exercises: List<Exercise>): List<Exercise> = exercises.filter { e ->
         (category == null || e.category == category) &&
-            (duration.maxSeconds == null || e.durationSeconds <= duration.maxSeconds)
+            (duration.maxSeconds == null || e.durationSeconds <= duration.maxSeconds) &&
+            when (equipment) {
+                EquipmentFilter.ANY -> true
+                EquipmentFilter.NONE -> !e.needsEquipment
+                EquipmentFilter.WITH -> e.needsEquipment
+            }
     }
 }
 

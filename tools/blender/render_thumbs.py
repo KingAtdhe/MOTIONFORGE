@@ -32,6 +32,30 @@ SHOTS = {
     "boxing_lead_hook": ("boxing_lead_hook", 0.38, -40),
     "boxing_slip": ("boxing_slip", 0.23, 25),
     "footwork_lateral": ("footwork_lateral", 0.2, 30),
+    "sumo_squat": ("sumo_squat_down", "end", 25),
+    "split_squat": ("split_squat", 0.4, 65),
+    "side_lunge": ("side_lunge", 0.33, 15),
+    "knee_push_up": ("knee_pushup_down", "start", 70),
+    "slow_mountain_climber": ("mountain_climber_slow", 0.22, 70),
+    "dead_bug": ("dead_bug", 0.25, 70),
+    "bird_dog": ("bird_dog", 0.25, 70),
+    "superman": ("superman", 0.45, 70),
+    "high_knee_march": ("high_knee_march", "knee", 50),
+    "arm_circles": ("arm_circles", 0.3, 20),
+    "cat_cow": ("cat_cow", 0.38, 70),
+    "dumbbell_biceps_curl": ("db_curl", 0.3, 30),
+    "dumbbell_shoulder_press": ("db_shoulder_press", 0.0, 25),
+    "dumbbell_lateral_raise": ("db_lateral_raise", 0.45, 15),
+    "dumbbell_bent_over_row": ("db_bent_over_row", 0.4, 65),
+    "dumbbell_romanian_deadlift": ("db_rdl_down", "end", 70),
+    "kettlebell_deadlift": ("kb_deadlift_down", "end", 40),
+    "band_pull_apart": ("band_pull_apart", 0.45, 20),
+    "incline_push_up": ("incline_pushup_down", "start", 60),
+    "boxing_rear_uppercut": ("boxing_rear_uppercut", 0.38, -35),
+    "boxing_lead_uppercut": ("boxing_lead_uppercut", 0.38, -35),
+    "boxing_rear_hook": ("boxing_rear_hook", 0.38, -35),
+    "boxing_roll": ("boxing_roll", 0.3, 20),
+    "footwork_pivot": ("footwork_pivot", 0.4, 30),
     "hero": ("idle_neutral", 0.0, 18),
 }
 
@@ -60,7 +84,7 @@ def bone(name):
     return arm.pose.bones["mixamorig:" + sd + {"hand": "Hand", "shin": "Leg"}[base]]
 mesh = next(o for o in bpy.data.objects if o.type == "MESH" and o.find_armature() == arm)
 for o in list(bpy.data.objects):
-    if o.type == "LIGHT" or (o.type == "MESH" and o is not mesh):
+    if o.type == "LIGHT" or (o.type == "MESH" and o is not mesh and not o.name.startswith("prop_")):
         bpy.data.objects.remove(o)
 
 world = sc.world or bpy.data.worlds.new("w")

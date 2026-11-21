@@ -23,6 +23,12 @@ class DemoClipsTest {
         "pushup_down", "pushup_up", "boxing_stance", "boxing_jab", "boxing_cross", "boxing_guard_return",
         "footwork_forward", "footwork_backward",
         "boxing_lead_hook", "boxing_slip", "footwork_lateral", "reverse_lunge", "calf_raise", "step_jack", "glute_bridge", "plank_hold",
+        "arm_circles", "band_pull_apart", "bird_dog", "boxing_lead_uppercut", "boxing_rear_hook",
+        "boxing_rear_uppercut", "boxing_roll", "cat_cow", "db_bent_over_row", "db_curl", "db_lateral_raise",
+        "db_rdl_down", "db_rdl_up", "db_shoulder_press", "dead_bug", "footwork_pivot", "high_knee_march",
+        "incline_pushup_down", "incline_pushup_up", "kb_deadlift_down", "kb_deadlift_up", "knee_pushup_down",
+        "knee_pushup_up", "mountain_climber_slow", "side_lunge", "split_squat", "sumo_squat_down", "sumo_squat_up",
+        "superman",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */
