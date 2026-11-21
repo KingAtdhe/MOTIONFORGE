@@ -249,6 +249,9 @@ class Rig:
         return M
 
     def write(self, name, specs):
+        """Solves every frame, then (1) retimes the clip so held poses pass quicker than movement (RETIME), and
+        (2) adds follow-through: head, neck and, unless the hands are planted, the upper back lag the body slightly
+        (LAG). First and last frames are kept exactly, so loops and down/up pairs still join."""
         old = bpy.data.actions.get(name)
         if old:
             bpy.data.actions.remove(old)
@@ -258,9 +261,16 @@ class Rig:
         if arm.animation_data is None:
             arm.animation_data_create()
         arm.animation_data.action = act
+        reach0 = (self.worst_leg, self.worst_arm)
+        self.worst_leg = self.worst_arm = 0.0
+        frames_ = []                                             # per frame: {bone: (loc, rot)}, activity sample
         prev = {}
-        for f, sp in enumerate(specs):
+        track = ("hips", "head", "hand_L", "hand_R", "foot_L", "foot_R")
+        last_pts = None
+        acts = []
+        for sp in specs:
             M = self.solve(sp)
+            fr = {}
             for bn in self.order:
                 p = self.parent[bn]
                 inherit = self.rest[bn] if p is None else M[p] @ self.rest[p].inverted() @ self.rest[bn]
@@ -268,15 +278,113 @@ class Rig:
                 if bn in prev and prev[bn].dot(rot) < 0:
                     rot = -rot
                 prev[bn] = rot
+                fr[bn] = (loc if bn == "hips" else Vector((0, 0, 0)), rot)
+            frames_.append(fr)
+            pts = [M[b].translation.copy() for b in track if b in M]
+            acts.append(0.0 if last_pts is None else max((a - b).length for a, b in zip(pts, last_pts)) * FPS)
+            last_pts = pts
+        if self.worst_arm > 0.005 or self.worst_leg > 0.005:
+            print(f"  over-reach in {name}: leg {self.worst_leg * 100:.1f} cm, arm {self.worst_arm * 100:.1f} cm")
+        self.worst_leg, self.worst_arm = max(reach0[0], self.worst_leg), max(reach0[1], self.worst_arm)
+        frames_ = _retime(frames_, acts, RETIME.get(name, RETIME_DEFAULT), self.order)
+        frames_ = _follow_through(frames_, self.order, name)
+        for f, fr in enumerate(frames_):
+            for bn in self.order:
+                loc, rot = fr[bn]
                 pb = arm.pose.bones[bn]
                 pb.rotation_mode = "QUATERNION"
                 pb.rotation_quaternion = rot
                 pb.keyframe_insert("rotation_quaternion", frame=f + 1)
-                pb.location = loc if bn == "hips" else (0, 0, 0)
+                pb.location = loc
                 pb.keyframe_insert("location", frame=f + 1)
-        act.frame_range = (1, len(specs))
+        act.frame_range = (1, len(frames_))
         arm.animation_data.action = None
         return act
+
+
+# =============================================================================================== timing and follow-through
+# (speed of held poses, speed of movement). Holds pass ~2.2x quicker, movement ~1.2x; rhythm drills keep their tempo.
+RETIME_DEFAULT = (2.2, 1.2)
+RETIME = {name: (1.0, 1.0) for name in ("idle_neutral", "warmup_march", "high_knee_march", "step_jack", "arm_circles",
+                                         "plank_hold", "boxing_stance")}
+# clips whose hands rest on the floor: the upper back must not lag, or the planted hands would slide
+PLANTED_HANDS = ("pushup_", "knee_pushup_", "incline_pushup_", "plank_hold", "mountain_climber_slow", "bird_dog",
+                 "cat_cow", "superman", "glute_bridge")
+# per-frame follow factor (1 = no lag); lower = more lag. Applied in time order, after retiming.
+LAG = {"head": 0.45, "neck": 0.62}
+LAG_BACK = {"chest": 0.72, "spine": 0.80}
+# hanging arms trail the body a little (pendulum) in clips where they only hang at the sides
+HANGING_ARMS = ("reverse_lunge", "split_squat", "calf_raise", "idle_neutral", "hip_hinge_", "superman")
+LAG_ARMS = {"upper_arm_L": 0.78, "upper_arm_R": 0.78, "forearm_L": 0.85, "forearm_R": 0.85}
+
+
+def _retime(frames_, acts, speeds, order):
+    """Time-warp: each source frame lasts 1 / speed, where speed blends from `still` to `moving` with the body's activity
+    (max speed of hips / head / hands / feet). The speed profile is smoothed so the warp itself never jerks."""
+    still, moving = speeds
+    n = len(frames_)
+    if n < 3 or (still == 1.0 and moving == 1.0):
+        return frames_
+    acts = acts[:]
+    acts[0] = acts[1]
+    sp = [lerp(still, moving, smooth(a / 0.10)) for a in acts]
+    w = 5
+    sp = [sum(sp[max(0, i - w):min(n, i + w + 1)]) / (min(n, i + w + 1) - max(0, i - w)) for i in range(n)]
+    cum = [0.0]
+    for i in range(1, n):
+        cum.append(cum[-1] + 0.5 * (1.0 / sp[i - 1] + 1.0 / sp[i]))
+    total = cum[-1]
+    m = max(3, int(round(total)) + 1)
+    out = []
+    k = 0
+    for j in range(m):
+        tgt = total * j / (m - 1)
+        while k < n - 2 and cum[k + 1] < tgt:
+            k += 1
+        a = 0.0 if cum[k + 1] == cum[k] else (tgt - cum[k]) / (cum[k + 1] - cum[k])
+        a = max(0.0, min(1.0, a))
+        f0, f1 = frames_[k], frames_[k + 1]
+        fr = {}
+        for bn in order:
+            l0, r0 = f0[bn]
+            l1, r1 = f1[bn]
+            fr[bn] = (l0.lerp(l1, a), r0.slerp(r1, a))
+        out.append(fr)
+    out[0], out[-1] = frames_[0], frames_[-1]
+    return out
+
+
+def _follow_through(frames_, order, name):
+    """Lag selected bones' local rotations behind their solved values (exponential follow). Loops are pre-rolled so the
+    seam matches; clips that start and end in different poses start from their first frame. The last few frames blend
+    back to the solved pose so down/up pairs still meet exactly."""
+    gains = dict(LAG)
+    if not any(name.startswith(p) for p in PLANTED_HANDS):
+        gains.update(LAG_BACK)
+    if any(name.startswith(p) for p in HANGING_ARMS) and not name.startswith("superman"):
+        gains.update(LAG_ARMS)
+    gains = {b: g for b, g in gains.items() if b in order}
+    n = len(frames_)
+    if n < 4 or not gains:
+        return frames_
+    first, last = frames_[0], frames_[-1]
+    loop = all(first[b][1].rotation_difference(last[b][1]).angle < 1e-3 for b in gains)
+    out = [dict(fr) for fr in frames_]
+    for bn, g in gains.items():
+        state = frames_[-1][bn][1].copy() if loop else frames_[0][bn][1].copy()
+        if loop:                                                 # pre-roll one cycle so the start continues the end
+            for fr in frames_:
+                state = state.slerp(fr[bn][1], g)
+        for i, fr in enumerate(frames_):
+            state = state.slerp(fr[bn][1], g)
+            out[i][bn] = (fr[bn][0], state.copy())
+        if not loop:                                             # land exactly on the final pose
+            tail = min(8, n - 1)
+            for t_ in range(tail):
+                i = n - tail + t_
+                a = smooth((t_ + 1) / tail)
+                out[i][bn] = (frames_[i][bn][0], out[i][bn][1].slerp(frames_[i][bn][1], a))
+    return out
 
 
 # =============================================================================================== shared pieces
@@ -1279,7 +1387,7 @@ def arm_circles(r, st):
 
 
 # ---- kneeling / all fours
-def _quadruped_base(r, st, knee_y=0.20, spine=0.0, chest=0.0, head=0.0, pel_extra=0.0):
+def _quadruped_base(r, st, knee_y=0.20, spine=0.0, chest=0.0, head=0.0, pel_extra=0.0, wrists_fixed=None, pitch_fixed=None):
     """Hands under shoulders, knees under hips, shins and feet flat behind. Returns (spec, wrists, knees)."""
     k = r.k
     kz = 0.055 * k
@@ -1298,19 +1406,24 @@ def _quadruped_base(r, st, knee_y=0.20, spine=0.0, chest=0.0, head=0.0, pel_extr
         sp["pos"] = mid_h - sp["pel"] @ mid_j
         return sp
     lo, hi = 60.0, 110.0
-    for _ in range(40):
+    for _ in range(0 if pitch_fixed is not None else 40):
         m = (lo + hi) / 2
         _, pts = r.torso(spec(m))
-        if pts["S_L"].z > wrist_h + 0.993 * r.la:
+        if wrists_fixed:                                         # planted hands: straight arms must still reach them
+            too_far = max((pts["S_" + s_] - wrists_fixed[s_]).length for s_, _ in SIDES) > 0.993 * r.la
+        else:
+            too_far = pts["S_L"].z > wrist_h + 0.945 * r.la      # soft elbows, as people hold all fours
+        if too_far:
             lo = m
         else:
             hi = m
-    sp = spec((lo + hi) / 2)
+    pitch = pitch_fixed if pitch_fixed is not None else (lo + hi) / 2
+    sp = spec(pitch)
     _, pts = r.torso(sp)
     wrists = {s: V(pts["S_" + s].x + sg * 0.01 * k, pts["S_" + s].y - 0.02 * k, wrist_h) for s, sg in SIDES}
     sp["feet"] = feet
     sp["kpole"] = {s: V(0, -0.3, -1) for s, _ in SIDES}
-    return sp, wrists, (lo + hi) / 2
+    return sp, wrists, pitch
 
 
 def _hands_on_floor(wrists, sides=("L", "R")):
@@ -1322,11 +1435,27 @@ def cat_cow(r, st):
     T = 6.0
     n = frames(T)
     base, wrists, pitch0 = _quadruped_base(r, st)
+
+    def shoulders(x):
+        sp, _, _ = _quadruped_base(r, st, spine=-14.0 * x, chest=-14.0 * x, head=24.0 * x, pel_extra=14.0 * x, pitch_fixed=pitch0)
+        _, pts = r.torso(sp)
+        return pts
+    # plant the hands under where the shoulders are midway between full cat and full cow, so both ends stay in reach
+    cat_, cow_ = shoulders(1.0), shoulders(-1.0)
+    wrists = {s_: V(wrists[s_].x, (cat_["S_" + s_].y + cow_["S_" + s_].y) / 2 - 0.02 * r.k, wrists[s_].z) for s_, _ in SIDES}
     out = []
     for i in range(n):
         t = T * i / (n - 1)
         x = _phases(t, [(0.4, 0, 0), (1.6, 0, 1), (0.6, 1, 1), (1.6, 1, -1), (0.6, -1, -1), (1.2, -1, 0)])   # +1 cat, -1 cow
-        sp, _, _ = _quadruped_base(r, st, spine=-9.0 * x, chest=-10.0 * x, head=18.0 * x, pel_extra=-6.0 * x)
+        # the spine curves between hips and shoulders: the pelvis tilts one way, the upper back the other, so the shoulders
+        # stay over the hands (cat: tail tucks, back rounds up, head drops; cow: tail lifts, chest sinks, gaze lifts)
+        sp, _, _ = _quadruped_base(r, st, spine=-14.0 * x, chest=-14.0 * x, head=24.0 * x, pel_extra=14.0 * x, pitch_fixed=pitch0)
+        for _ in range(6):                                       # if the rounded back lifts the shoulders out of reach,
+            _, pts = r.torso(sp)                                 # the hips settle a little lower
+            gap = max((pts["S_" + s_] - wrists[s_]).length for s_, _ in SIDES) - 0.985 * r.la
+            if gap <= 0:
+                break
+            sp["pos"] = sp["pos"] - V(0, 0, gap * 1.2)
         sp["arms"] = _hands_on_floor(wrists)
         out.append(sp)
     return out

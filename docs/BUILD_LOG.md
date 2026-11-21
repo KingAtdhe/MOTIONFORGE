@@ -711,3 +711,23 @@ squircle / square masks and at 48 / 32 px. v1 kept as `assets/branding/icon_v1.*
 **Launch screen:** Android 12+ uses an animated icon (`splash_icon_animated.xml`: streaks sweep in, the glove pops,
 0.7 s; `values-v31/themes.xml`); Android 8-11 show the static mark (an animated drawable there would start hidden).
 **Not verified on a device.**
+
+## 2026-11-21 — All clips: livelier timing and follow-through (owner: "stiff and slow")
+Measured every clip on the exported GLB (`speed of hips / head / hands / feet per frame`): most spent 35-65 % of their time
+nearly still (< 5 cm/s) in holds, reps were slow (squat ~2.1 s down + 1.6 s up), and the head hardly moved relative to
+the chest. Two passes added to `Rig.write`, so every clip gets them:
+- **Retiming** (`_retime`): each frame's duration depends on how much the body moves: held poses play ~2.2x faster,
+  movement ~1.2x; the speed profile is smoothed so the time warp never jerks; first and last frames are exact, so loops and
+  down/up pairs still join. Rhythm drills (march, high-knee march, step jack, arm circles), idle, plank and the boxing
+  stance keep their tempo. Result: squat 1.5 s down / 1.1 s up, jab clip 1.9 → 1.2 s, still time e.g. squat 30 → 17 %,
+  jab 43 → 8 %.
+- **Follow-through** (`_follow_through`): head and neck lag the body slightly (75 ms-ish), and the upper back lags the hips
+  except in clips with planted hands (push-ups, plank, bird dog, cat-cow, ...), where it would make the hands slide.
+  Arms that only hang (lunges, split squat, calf raise, idle, hinge) trail the body like a pendulum. Loops are pre-rolled
+  so the seam matches; non-loops blend back onto their last frame.
+- **Cat-cow** rebuilt: it barely moved (90 % still) because the whole trunk rotated instead of curving. Now the pelvis
+  tilts one way and the upper back the other, so the spine rounds and sinks between hips and shoulders over fixed hands
+  and knees. All-fours elbows are slightly soft so both extremes stay within reach.
+- Build prints per-clip IK over-reach when it exceeds 5 mm (that is how the cat-cow problem was found).
+**Verified:** motion measurements before / after for all 51 clips, contact sheets across the set, over-reach <= 3 mm.
+**Not verified:** on a phone.

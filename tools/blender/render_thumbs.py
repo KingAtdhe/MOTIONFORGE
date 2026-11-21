@@ -24,38 +24,38 @@ SHOTS = {
     "boxing_cross": ("boxing_cross", "punch", -55),
     "boxing_guard_return": ("boxing_guard_return", "end", 30),
     "footwork_forward_backward": ("footwork_forward", 0.4, 55),
-    "reverse_lunge": ("reverse_lunge", 0.24, 65),
-    "glute_bridge": ("glute_bridge", 0.5, 70),
+    "reverse_lunge": ("reverse_lunge", ("far", "hips"), 65),
+    "glute_bridge": ("glute_bridge", ("far", "hips"), 70),
     "forearm_plank": ("plank_hold", 0.0, 70),
-    "step_jack": ("step_jack", 0.25, 15),
-    "calf_raise": ("calf_raise", 0.4, 45),
-    "boxing_lead_hook": ("boxing_lead_hook", 0.38, -40),
-    "boxing_slip": ("boxing_slip", 0.23, 25),
-    "footwork_lateral": ("footwork_lateral", 0.2, 30),
+    "step_jack": ("step_jack", ("far", "hand_R"), 15),
+    "calf_raise": ("calf_raise", ("far", "hips"), 45),
+    "boxing_lead_hook": ("boxing_lead_hook", ("far", "hand_L"), -40),
+    "boxing_slip": ("boxing_slip", ("far", "head"), 25),
+    "footwork_lateral": ("footwork_lateral", ("far", "hips"), 30),
     "sumo_squat": ("sumo_squat_down", "end", 25),
-    "split_squat": ("split_squat", 0.4, 65),
-    "side_lunge": ("side_lunge", 0.33, 15),
+    "split_squat": ("split_squat", ("far", "hips"), 65),
+    "side_lunge": ("side_lunge", ("far", "hips"), 15),
     "knee_push_up": ("knee_pushup_down", "start", 70),
-    "slow_mountain_climber": ("mountain_climber_slow", 0.22, 70),
-    "dead_bug": ("dead_bug", 0.25, 70),
-    "bird_dog": ("bird_dog", 0.25, 70),
-    "superman": ("superman", 0.45, 70),
+    "slow_mountain_climber": ("mountain_climber_slow", ("far", "foot_R"), 70),
+    "dead_bug": ("dead_bug", ("far", "hand_R"), 70),
+    "bird_dog": ("bird_dog", ("far", "hand_R"), 70),
+    "superman": ("superman", ("far", "hand_R"), 70),
     "high_knee_march": ("high_knee_march", "knee", 50),
     "arm_circles": ("arm_circles", 0.3, 20),
     "cat_cow": ("cat_cow", 0.38, 70),
-    "dumbbell_biceps_curl": ("db_curl", 0.3, 30),
+    "dumbbell_biceps_curl": ("db_curl", ("far", "hand_R"), 30),
     "dumbbell_shoulder_press": ("db_shoulder_press", 0.0, 25),
-    "dumbbell_lateral_raise": ("db_lateral_raise", 0.45, 15),
-    "dumbbell_bent_over_row": ("db_bent_over_row", 0.4, 65),
+    "dumbbell_lateral_raise": ("db_lateral_raise", ("far", "hand_R"), 15),
+    "dumbbell_bent_over_row": ("db_bent_over_row", ("far", "hand_R"), 65),
     "dumbbell_romanian_deadlift": ("db_rdl_down", "end", 70),
     "kettlebell_deadlift": ("kb_deadlift_down", "end", 40),
-    "band_pull_apart": ("band_pull_apart", 0.45, 20),
+    "band_pull_apart": ("band_pull_apart", ("far", "hand_R"), 20),
     "incline_push_up": ("incline_pushup_down", "start", 60),
-    "boxing_rear_uppercut": ("boxing_rear_uppercut", 0.38, -35),
-    "boxing_lead_uppercut": ("boxing_lead_uppercut", 0.38, -35),
-    "boxing_rear_hook": ("boxing_rear_hook", 0.38, -35),
-    "boxing_roll": ("boxing_roll", 0.3, 20),
-    "footwork_pivot": ("footwork_pivot", 0.4, 30),
+    "boxing_rear_uppercut": ("boxing_rear_uppercut", ("far", "hand_R"), -35),
+    "boxing_lead_uppercut": ("boxing_lead_uppercut", ("far", "hand_L"), -35),
+    "boxing_rear_hook": ("boxing_rear_hook", ("far", "hand_R"), -35),
+    "boxing_roll": ("boxing_roll", ("far", "head"), 20),
+    "footwork_pivot": ("footwork_pivot", ("far", "foot_R"), 30),
     "hero": ("idle_neutral", 0.0, 18),
 }
 
@@ -79,9 +79,11 @@ def bone(name):
     """MOTIONFORGE bone name -> this armature's bone."""
     if not MIX:
         return arm.pose.bones[name]
+    if name in ("hips", "head"):
+        return arm.pose.bones["mixamorig:" + name.capitalize()]
     base, side = name.rsplit("_", 1)
     sd = "Left" if side == "L" else "Right"
-    return arm.pose.bones["mixamorig:" + sd + {"hand": "Hand", "shin": "Leg"}[base]]
+    return arm.pose.bones["mixamorig:" + sd + {"hand": "Hand", "shin": "Leg", "foot": "Foot"}[base]]
 mesh = next(o for o in bpy.data.objects if o.type == "MESH" and o.find_armature() == arm)
 for o in list(bpy.data.objects):
     if o.type == "LIGHT" or (o.type == "MESH" and o is not mesh and not o.name.startswith("prop_")):
@@ -123,6 +125,16 @@ def pick(act, how):
     f0, f1 = (int(x) for x in act.frame_range)
     if isinstance(how, float):
         return round(f0 + how * (f1 - f0))
+    if isinstance(how, tuple) and how[0] == "far":       # frame where this bone is furthest from where it started
+        sc.frame_set(f0)
+        p0 = (arm.matrix_world @ bone(how[1]).head).copy()
+        best, dist = f0, -1.0
+        for f in range(f0, f1 + 1):
+            sc.frame_set(f)
+            d = ((arm.matrix_world @ bone(how[1]).head) - p0).length
+            if d > dist:
+                best, dist = f, d
+        return best
     if how == "start":
         return f0
     if how == "end":

@@ -10,57 +10,57 @@
     },
     {
       "name": "band_pull_apart",
-      "durationSeconds": 3.9,
+      "durationSeconds": 2.633,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "bird_dog",
-      "durationSeconds": 8.0,
+      "durationSeconds": 5.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_guard_return",
-      "durationSeconds": 4.8,
+      "durationSeconds": 3.033,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lead_hook",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lead_uppercut",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_rear_hook",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_rear_uppercut",
-      "durationSeconds": 2.4,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_roll",
-      "durationSeconds": 4.0,
+      "durationSeconds": 2.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_slip",
-      "durationSeconds": 4.0,
+      "durationSeconds": 2.333,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -70,72 +70,72 @@
     },
     {
       "name": "calf_raise",
-      "durationSeconds": 4.1,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "cat_cow",
-      "durationSeconds": 6.0,
+      "durationSeconds": 3.167,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_bent_over_row",
-      "durationSeconds": 3.8,
+      "durationSeconds": 2.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_curl",
-      "durationSeconds": 4.0,
+      "durationSeconds": 2.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_lateral_raise",
-      "durationSeconds": 4.133,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "db_rdl_down",
       "durationSeconds": 2.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "db_rdl_down",
+      "durationSeconds": 1.9,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "db_rdl_up",
-      "durationSeconds": 2.1,
+      "durationSeconds": 1.467,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_shoulder_press",
-      "durationSeconds": 4.133,
+      "durationSeconds": 2.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "dead_bug",
-      "durationSeconds": 8.0,
+      "durationSeconds": 5.467,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_backward",
-      "durationSeconds": 1.6,
+      "durationSeconds": 0.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_forward",
-      "durationSeconds": 1.6,
+      "durationSeconds": 0.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_lateral",
-      "durationSeconds": 3.2,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_pivot",
-      "durationSeconds": 3.2,
+      "durationSeconds": 1.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "glute_bridge",
-      "durationSeconds": 5.0,
+      "durationSeconds": 3.033,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -145,12 +145,12 @@
     },
     {
       "name": "hip_hinge_down",
-      "durationSeconds": 2.833,
+      "durationSeconds": 1.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "hip_hinge_up",
-      "durationSeconds": 2.1,
+      "durationSeconds": 1.467,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -160,37 +160,37 @@
     },
     {
       "name": "incline_pushup_down",
-      "durationSeconds": 2.733,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "incline_pushup_up",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "kb_deadlift_down",
-      "durationSeconds": 2.567,
+      "durationSeconds": 1.7,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "kb_deadlift_up",
-      "durationSeconds": 1.867,
+      "durationSeconds": 1.267,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "knee_pushup_down",
-      "durationSeconds": 2.533,
+      "durationSeconds": 1.667,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "knee_pushup_up",
-      "durationSeconds": 1.733,
+      "durationSeconds": 1.167,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "mountain_climber_slow",
-      "durationSeconds": 4.733,
+      "durationSeconds": 3.067,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -200,37 +200,37 @@
     },
     {
       "name": "pushup_down",
-      "durationSeconds": 2.733,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "pushup_up",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "reverse_lunge",
-      "durationSeconds": 10.467,
+      "durationSeconds": 7.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "side_lunge",
-      "durationSeconds": 7.2,
+      "durationSeconds": 4.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "split_squat",
-      "durationSeconds": 4.0,
+      "durationSeconds": 2.333,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_down",
-      "durationSeconds": 2.733,
+      "durationSeconds": 1.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_up",
-      "durationSeconds": 2.0,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -240,17 +240,17 @@
     },
     {
       "name": "sumo_squat_down",
-      "durationSeconds": 2.733,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "sumo_squat_up",
-      "durationSeconds": 2.0,
+      "durationSeconds": 1.367,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "superman",
-      "durationSeconds": 4.6,
+      "durationSeconds": 2.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
