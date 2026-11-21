@@ -54,6 +54,7 @@ class BoxingFormMonitor(
     private val guardRatio: Double = 0.70,
     private val returnMs: Long = 1_500,
     private val minJabMs: Long = 400,
+    private val minFrontalRatio: Double = 0.40,
 ) {
     private data class Sample(val t: Long, val issues: Set<FormIssue>)
 
@@ -114,6 +115,14 @@ class BoxingFormMonitor(
     }
 
     /** Issues seen in this frame, or null when the frame cannot be assessed. */
+    private fun frontalEnough(f: PoseFrame, shoulderWidthPx: Double, dist: (Landmark, Landmark) -> Double): Boolean {
+        val lh = f[BodyLandmark.LEFT_HIP]; val rh = f[BodyLandmark.RIGHT_HIP]
+        if (lh.visibility < minVisibility || rh.visibility < minVisibility) return false
+        val ls = f[BodyLandmark.LEFT_SHOULDER]; val rs = f[BodyLandmark.RIGHT_SHOULDER]
+        val torso = (dist(ls, lh) + dist(rs, rh)) / 2
+        return torso > 1.0 && shoulderWidthPx / torso >= minFrontalRatio
+    }
+
     private fun evaluate(f: PoseFrame): Set<FormIssue>? {
         val need = listOf(
             BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.RIGHT_ELBOW,
@@ -141,9 +150,15 @@ class BoxingFormMonitor(
             return if (chain < 1.0) 0.0 else dist(s, wr) / chain
         }
 
-        val feet = dist(f[BodyLandmark.LEFT_ANKLE], f[BodyLandmark.RIGHT_ANKLE]) / sw
-        if (feet < feetNarrow) issues += FormIssue.FEET_NARROW
-        if (feet > feetWide) issues += FormIssue.FEET_WIDE
+        // Foot spacing can only be read when the camera sees the body roughly from the front. A bladed stance seen from
+        // the diagonal lines the feet up behind each other and shrinks the shoulder width, which would look "narrow"
+        // although the stance is fine. The torso length does not shrink when the body turns, so shoulders that are
+        // short compared with the torso mean "turned away": skip the feet rules instead of guessing.
+        if (frontalEnough(f, sw, ::dist)) {
+            val feet = dist(f[BodyLandmark.LEFT_ANKLE], f[BodyLandmark.RIGHT_ANKLE]) / sw
+            if (feet < feetNarrow) issues += FormIssue.FEET_NARROW
+            if (feet > feetWide) issues += FormIssue.FEET_WIDE
+        }
 
         val lw = f[BodyLandmark.LEFT_WRIST]; val rw = f[BodyLandmark.RIGHT_WRIST]
         when (drill) {

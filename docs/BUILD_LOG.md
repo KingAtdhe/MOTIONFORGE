@@ -582,3 +582,10 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - The recording-based clip pipeline (741 lines) moved out of `build_coach_mesh.py` into `tools/blender/legacy_mocap_clips.py`. It runs only with `MF_LEGACY_MOCAP=1`; the normal build goes straight to `authored_clips.py`.
 - Both coaches rebuilt; clip audit values unchanged (squat knees 59-165 deg, jab elbow to 170 deg, march support knee 170 deg). Spec-exact glTF check: squat hips 0.89 m -> 0.43 m with the feet fixed.
 - The legacy path itself was not re-run after the move.
+
+## 2026-11-21 — Feedback rules checked against the new demonstrations
+- Projected the coach's joints to 2D at the app's camera angles (front, diagonal, side) and evaluated the app's own rule quantities on each demonstration.
+  - Squat counter: demo knee angle 174 -> 77 deg (front), 166 -> 62 deg (side); thresholds 160 / 115 are met from every recommended view. No change.
+  - Jab: demo reach ratio 0.11 (guard) -> 0.93 (extended), return in ~0.4 s; thresholds 0.70 / 0.86 / 1.5 s are met. Hands-low rule not triggered by the demo guard. No change.
+  - Stance feet rule: from the front the demo gives 1.10 shoulder widths (allowed 0.75-2.1). From the diagonal on the closed side a correctly bladed stance projected to 0.50 and would have been called "feet narrow".
+- Fix: `BoxingFormMonitor` only evaluates foot spacing when the body is seen roughly from the front (shoulder width at least 0.40 of torso length in the image). Otherwise it gives no feet cue. Unit test added. Threshold is an initial hypothesis pending device tests.

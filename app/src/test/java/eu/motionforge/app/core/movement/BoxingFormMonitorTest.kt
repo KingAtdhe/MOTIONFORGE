@@ -53,6 +53,21 @@ class BoxingFormMonitorTest {
     }
 
     @Test
+    fun bladedStanceSeenFromTheDiagonalIsNotCalledNarrow() {
+        // shoulders turned away from the camera (narrow in the image) and the feet lined up behind each other:
+        // the spacing cannot be read from this angle, so there must be no feet cue
+        val m = BoxingFormMonitor(BoxingDrill.STANCE)
+        val turned = mapOf(
+            BodyLandmark.LEFT_SHOULDER to lm(0.53f, 0.25f), BodyLandmark.RIGHT_SHOULDER to lm(0.47f, 0.25f),
+            BodyLandmark.LEFT_ELBOW to lm(0.54f, 0.30f), BodyLandmark.RIGHT_ELBOW to lm(0.46f, 0.30f),
+            BodyLandmark.LEFT_WRIST to lm(0.53f, 0.17f), BodyLandmark.RIGHT_WRIST to lm(0.47f, 0.17f),
+            BodyLandmark.LEFT_ANKLE to lm(0.52f, 0.88f), BodyLandmark.RIGHT_ANKLE to lm(0.48f, 0.88f),
+        )
+        val (fb, _) = m.feed(30, 0, { guard(it, turned) })
+        assertTrue("got $fb", fb is FormFeedback.Steady)
+    }
+
+    @Test
     fun narrowFeetAreFlagged() {
         val m = BoxingFormMonitor(BoxingDrill.STANCE)
         val (fb, _) = m.feed(30, 0, { guard(it, mapOf(BodyLandmark.LEFT_ANKLE to lm(0.52f, 0.88f), BodyLandmark.RIGHT_ANKLE to lm(0.48f, 0.88f))) })
