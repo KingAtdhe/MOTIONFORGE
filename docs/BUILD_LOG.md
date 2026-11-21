@@ -678,3 +678,14 @@ for the new clips. Tests updated (41 lessons, 51 clips, equipment set, filter, q
 male coach; IK over-reach <= 4 mm; thumbnails for all lessons on both coaches. Bug found and fixed while checking: a
 scratch file named `inspect.py` next to the render script shadowed Python's `inspect` module (workspace only).
 **Not verified:** on a phone. Prop scale-to-hide in Filament playback is untested.
+
+## 2026-11-21 — App icon and launch screen
+- The app had no launcher icon (system default). New mark, designed from scratch: an italic "M" in volt (#C8F542) with
+  three ember (#FF7A45) speed lines and an ember focus dot, on a dark radial background with a faint volt ring.
+- Adaptive icon as vector drawables (`ic_launcher_background/foreground/monochrome`, `mipmap-anydpi-v26`); minSdk 26
+  means no PNG fallbacks are needed. The mark sits inside the 66 dp safe zone, checked on circle / squircle / square
+  masks. Monochrome layer for Android 13+ themed icons. Source SVG + 512 px PNG (store listing) in `assets/branding/`,
+  generator `tools/branding_icon.py`.
+- Launch screen: `Theme.MotionForge.Starting` (core-splashscreen 1.2.0): the mark on #0E1218, then the app theme;
+  `installSplashScreen()` in MainActivity.
+- Not verified on a device (no emulator here); CI builds the APK.

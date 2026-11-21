@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MOTIONFORGE mark: italic M (volt) with ember speed lines and focus dot. Source: assets/branding/icon.svg -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="0.8" android:scaleY="0.8" android:translateX="13.6" android:translateY="10.8">
+        <path android:pathData="M20,41 L31,41" android:strokeColor="#FFFF7A45" android:strokeWidth="4" android:strokeLineCap="round" />
+        <path android:pathData="M16,50 L28,50" android:strokeColor="#FFFF7A45" android:strokeWidth="4" android:strokeLineCap="round" />
+        <path android:pathData="M20,59 L30,59" android:strokeColor="#FFFF7A45" android:strokeWidth="4" android:strokeLineCap="round" />
+        <path android:pathData="M33,75 L42,33 L51,33 L55.5,51 L64,33 L73,33 L64,75 L55.5,75 L60.5,52 L53.5,66 L47.5,66 L44,52 L41.5,75 Z" android:fillColor="#FFC8F542" />
+        <path android:pathData="M74.8,30 a4.2,4.2 0 1,0 8.4,0 a4.2,4.2 0 1,0 -8.4,0 Z" android:fillColor="#FFFF7A45" />
+    </group>
+</vector>

@@ -54,3 +54,7 @@ The spec requires "a maintained Android GLB/glTF renderer based on Filament".
 2. Compose BOM / lifecycle / navigation to current stable.
 3. AGP 8.11 → 9.x with the Upgrade Assistant (removes `org.jetbrains.kotlin.android`).
 4. Filament / MediaPipe patch updates after on-device regression of the spikes.
+
+## androidx.core:core-splashscreen 1.2.0 (2026-11-21)
+Launch screen with the MOTIONFORGE mark. 1.2.0 is the current stable release on the AndroidX Core release page.
+Gives the Android 12+ splash API with an emulated version on Android 8-11 (minSdk 26).

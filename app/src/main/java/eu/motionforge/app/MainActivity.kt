@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import eu.motionforge.app.feature.onboarding.OnboardingViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen() // launch screen: MOTIONFORGE mark on the night background
         super.onCreate(savedInstanceState)
         // light app chrome: dark status/navigation icons whatever the phone's dark-mode setting
         val ground = android.graphics.Color.rgb(0xEC, 0xEF, 0xF3)
