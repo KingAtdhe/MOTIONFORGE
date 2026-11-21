@@ -35,22 +35,22 @@
     },
     {
       "name": "boxing_stance",
-      "durationSeconds": 1.6,
+      "durationSeconds": 3.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab",
-      "durationSeconds": 1.6,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross",
-      "durationSeconds": 1.6,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_guard_return",
-      "durationSeconds": 2.4,
+      "durationSeconds": 4.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

@@ -572,13 +572,13 @@ def pushup(r, st):
 
 
 # =============================================================================================== boxing
-def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0):
+def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0, loop=3.2):
     """Orthodox stance (left foot leads, target straight ahead at -Y).
     e_jab / e_cross: 0 guard .. 1 full extension. travel: forward shift of the whole stance (m).
     lead_step / rear_step: 0..1 bell while that foot is in the air during a push-step."""
     k = r.k
     bob = math.sin(2 * math.pi * t / 0.8)
-    b = breath(t, 3.2, 0.4)
+    b = breath(t, loop, 0.4)                                     # one breath per loop, so the clip closes on itself
     c = e_cross
     # feet: lead toes turned in a little, rear foot ~50 deg out on its ball; the cross pivots the rear foot
     lead = r.foot("L", 0.115 * k * st["stance"], -0.155 * k, -18.0, pitch=0.0)
@@ -640,47 +640,42 @@ def _punch_curve(t, start, out, hold, back):
 
 
 def stance(r, st):
-    T = 1.6
+    T = 3.2
     n = frames(T)
-    return [_stance_pose(r, st, T * i / (n - 1)) for i in range(n)]
+    return [_stance_pose(r, st, T * i / (n - 1), loop=T) for i in range(n)]
 
 
 def jab(r, st):
-    T = 1.6
-    n = frames(T)
-    out = []
-    for i in range(n):
-        t = T * i / (n - 1)
-        out.append(_stance_pose(r, st, t, e_jab=_punch_curve(t, 0.30, 0.20, 0.07, 0.30)))
-    return out
-
-
-def cross(r, st):
-    T = 1.6
-    n = frames(T)
-    out = []
-    for i in range(n):
-        t = T * i / (n - 1)
-        out.append(_stance_pose(r, st, t, e_cross=_punch_curve(t, 0.30, 0.26, 0.07, 0.36)))
-    return out
-
-
-def guard_return(r, st):
-    """Slow, deliberate version: the lead hand goes out, pauses, and comes straight back to the cheek along the same line."""
+    """Beginner tempo, matching the lesson text: a smooth, controlled extension that stops short of a locked elbow."""
     T = 2.4
     n = frames(T)
     out = []
     for i in range(n):
         t = T * i / (n - 1)
-        if t < 0.3:
-            e = 0.0
-        elif t < 0.85:
-            e = 0.8 * smoother((t - 0.3) / 0.55)
-        elif t < 1.15:
-            e = 0.8
-        else:
-            e = 0.8 * (1.0 - smoother((t - 1.15) / 0.45))
-        out.append(_stance_pose(r, st, t, e_jab=e))
+        out.append(_stance_pose(r, st, t, e_jab=_punch_curve(t, 0.35, 0.45, 0.15, 0.50), loop=T))
+    return out
+
+
+def cross(r, st):
+    T = 2.4
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        out.append(_stance_pose(r, st, t, e_cross=_punch_curve(t, 0.35, 0.50, 0.15, 0.55), loop=T))
+    return out
+
+
+def guard_return(r, st):
+    """The lesson: one hand moves slightly away from the face and comes straight back; pause; then the other hand."""
+    T = 4.8
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        lead = 0.40 * _punch_curve(t, 0.40, 0.55, 0.30, 0.50)
+        rear = 0.32 * _punch_curve(t, 2.80, 0.55, 0.30, 0.50)
+        out.append(_stance_pose(r, st, t, e_jab=lead, e_cross=rear, loop=T))
     return out
 
 
@@ -702,12 +697,12 @@ def footwork(r, st):
     for i in range(n):
         t = T * i / (n - 1)
         first, second, body, g1, g2 = phase(t, True)
-        sp = _stance_pose(r, st, t, travel=step * body, lead_step=g1, rear_step=g2, bob_amp=0.0)
+        sp = _stance_pose(r, st, t, travel=step * body, lead_step=g1, rear_step=g2, bob_amp=0.0, loop=2 * T)
         for s, prog in (("L", first), ("R", second)):
             ball, yaw, pitch = sp["feet"][s]
             sp["feet"][s] = (ball + V(0, -step * (prog - body), 0), yaw, pitch)
         fwd.append(sp)
-        sp = _stance_pose(r, st, t, travel=step * (1 - body), lead_step=g2, rear_step=g1, bob_amp=0.0)
+        sp = _stance_pose(r, st, T + t, travel=step * (1 - body), lead_step=g2, rear_step=g1, bob_amp=0.0, loop=2 * T)
         for s, prog in (("R", first), ("L", second)):
             ball, yaw, pitch = sp["feet"][s]
             sp["feet"][s] = (ball + V(0, step * (prog - body), 0), yaw, pitch)

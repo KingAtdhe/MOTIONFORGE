@@ -589,3 +589,11 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   - Jab: demo reach ratio 0.11 (guard) -> 0.93 (extended), return in ~0.4 s; thresholds 0.70 / 0.86 / 1.5 s are met. Hands-low rule not triggered by the demo guard. No change.
   - Stance feet rule: from the front the demo gives 1.10 shoulder widths (allowed 0.75-2.1). From the diagonal on the closed side a correctly bladed stance projected to 0.50 and would have been called "feet narrow".
 - Fix: `BoxingFormMonitor` only evaluates foot spacing when the body is seen roughly from the front (shoulder width at least 0.40 of torso length in the image). Otherwise it gives no feet cue. Unit test added. Threshold is an initial hypothesis pending device tests.
+
+## 2026-11-21 — Demonstrations matched to the lesson text
+- Compared every lesson's written instructions and common mistakes with its demonstration.
+  - Jab / cross: the text asks for a slow, controlled extension; the demo punched at sparring speed (0.2 s). Now 0.45-0.5 s out, short hold, 0.5 s back. Elbow still stops at ~170 deg (text: "just short of a fully locked elbow"). Jab rule quantities re-checked: reach 0.11 -> 0.93.
+  - Guard return: the text says one hand moves *slightly* away and returns, then the other hand; the demo extended the lead hand 80 % and never used the rear hand. Now lead hand 40 %, pause, rear hand 32 %, both straight back to guard.
+  - Squat, hinge, push-up, stance, footwork: demonstration and text already agree.
+- Boxing clips breathe once per loop, so no chest pop at the loop point (stance 3.2 s, jab / cross 2.4 s, guard return 4.8 s, footwork pair 3.2 s).
+- Both coaches rebuilt, thumbnails re-rendered. Device playback still unverified.
