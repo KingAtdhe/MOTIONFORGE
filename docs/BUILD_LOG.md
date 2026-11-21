@@ -689,3 +689,25 @@ scratch file named `inspect.py` next to the render script shadowed Python's `ins
 - Launch screen: `Theme.MotionForge.Starting` (core-splashscreen 1.2.0): the mark on #0E1218, then the app theme;
   `installSplashScreen()` in MainActivity.
 - Not verified on a device (no emulator here); CI builds the APK.
+
+## 2026-11-21 — Boxing animations more natural; sports app icon and animated launch screen
+**Boxing (owner: "still does not look fully natural").** Looked at frame sequences of jab / cross / stance and measured the
+elbow during the extension. Changes in `_stance_pose` (shared by every boxing and footwork clip):
+- Straight punches: the elbow stays down behind the fist and the fist only turns over in the last ~45 % of the extension
+  (was: palm and elbow rotated from the start, a "chicken wing"). Measured at the first third of the jab, the elbow's
+  sideways offset from the shoulder-fist line went 8.3 → 3.3 cm (cross 5.9 → 2.5 cm).
+- Kinetic chain: hips and feet are sampled 50-80 ms ahead of the arm (`hip=` argument), so the turn starts in the hips.
+- Weight goes onto the lead leg with the jab, the chest settles on the exhale, the resting hand tucks to the chin.
+- Return to guard starts at once and eases in (was a slow start).
+- Living stance: lower base, uneven bounce from two loop-closing harmonics, slow sway, small independent guard drifts,
+  slight head movement, chin a little more tucked.
+- Fixes found by the audit: the whole-body turn (pivot) dropped the root translation, so the coach turned about the floor
+  origin (lead-foot slide 37 cm → 0.1 cm); uppercut knee dip had a corner (hip acceleration 12.6 → 4.6); the roll started
+  crouched and its U had vertical ends (12.3 → 4.3).
+
+**Icon v2 (sporty).** An athlete driving a straight punch (volt) with ember speed streaks and glove, diagonal jersey
+stripes on a dark gradient. Limbs have a thin dark edge so overlaps stay readable at launcher size. Checked on circle /
+squircle / square masks and at 48 / 32 px. v1 kept as `assets/branding/icon_v1.*`.
+**Launch screen:** Android 12+ uses an animated icon (`splash_icon_animated.xml`: streaks sweep in, the glove pops,
+0.7 s; `values-v31/themes.xml`); Android 8-11 show the static mark (an animated drawable there would start hidden).
+**Not verified on a device.**
