@@ -1106,14 +1106,72 @@ for clip in ("hip_hinge_down", "hip_hinge_up"):
     ik_hands(bpy.data.actions[clip], lambda s_, S: S + Vector(((0.04 if s_ == "L" else -0.04) * _k, -0.04 * _k, -0.62 * _k)))
 _k = HEIGHT / 1.8
 if "squat_down" in bpy.data.actions:
-    # squat: hands clasped in front of the sternum all the way down and up (the recording holds them at the chin)
+    # squat: arms reach forward at shoulder height as a counterbalance (the recording holds the hands at the chin)
     def _sq_target(s_, S):
-        ch = Vector(arm.pose.bones["chest"].head)
-        return ch + Vector(((0.05 if s_ == "L" else -0.05) * _k, -0.26 * _k, -0.10 * _k))
+        return S + Vector(((0.07 if s_ == "L" else -0.07) * _k, -0.52 * _k, -0.06 * _k))
     for clip in ("squat_down", "squat_up"):
         straighten(bpy.data.actions[clip], [("neck", 0.35), ("head", 0.35)])    # eyes ahead, not at the floor
         ik_hands(bpy.data.actions[clip], _sq_target)
     print("squat hands lowered")
+
+# march: the recording holds both hands still in front of the waist. Natural marching swings each arm with the
+# opposite leg: hand target moves forward when the other knee is up, back when its own knee is up, elbow ~90 deg.
+_m = bpy.data.actions["warmup_march"]
+arm.animation_data.action = _m
+_ma, _mb = [int(x) for x in _m.frame_range]
+_kz = []
+for f in range(_ma, _mb + 1):
+    sc.frame_set(f)
+    _kz.append(arm.pose.bones["shin_L"].head.z - arm.pose.bones["shin_R"].head.z)
+_amp = max(1e-3, max(abs(x) for x in _kz))
+arm.animation_data.action = None
+
+
+def _march_target(s_, S):
+    f = sc.frame_current
+    lift = _kz[f - _ma] / _amp                      # +1: left knee up, -1: right knee up
+    swing = -lift if s_ == "L" else lift            # each arm goes forward with the opposite knee
+    fwd = (0.06 + 0.30 * swing) * _k                # -Y is forward
+    return S + Vector(((0.08 if s_ == "L" else -0.08) * _k, -fwd, (-0.44 + 0.12 * max(swing, 0)) * _k))
+
+
+straighten(_m, [("spine", 0.3), ("chest", 0.3), ("neck", 0.5), ("head", 0.5)])   # tall torso, eyes ahead
+ik_hands(_m, _march_target)
+
+# hip hinge: the performer never stands fully up; start the lowering from, and finish the rising in, the standing pose
+
+
+def _blend_ends(act, at_start, span=0.35):
+    from mathutils import Quaternion
+    poses = sample(act)
+    n = len(poses)
+    k = max(2, int(n * span))
+    arm.animation_data.action = act
+    a_ = int(act.frame_range[0])
+    for i in range(n):
+        w = 0.0
+        if at_start and i < k:
+            w = 1.0 - (i / k)
+        if not at_start and i >= n - k:
+            w = (i - (n - k)) / k
+        if w <= 0:
+            continue
+        w = w * w * (3 - 2 * w)
+        for bn in ("spine", "chest", "neck", "head", "thigh_L", "thigh_R", "shin_L", "shin_R", "foot_L", "foot_R"):
+            q0 = poses[i][bn][0]; q1 = _idle0[bn][0]
+            if q0.dot(q1) < 0:
+                q1 = -q1
+            pb = arm.pose.bones[bn]
+            pb.rotation_quaternion = q0.slerp(q1, w)
+            pb.keyframe_insert("rotation_quaternion", frame=a_ + i)
+        hb = arm.pose.bones["hips"]
+        q0 = poses[i]["hips"][0]; q1 = _idle0["hips"][0]
+        if q0.dot(q1) < 0:
+            q1 = -q1
+        hb.rotation_quaternion = q0.slerp(q1, w)
+        hb.location = poses[i]["hips"][1].lerp(_idle0["hips"][1], w)
+        hb.keyframe_insert("rotation_quaternion", frame=a_ + i); hb.keyframe_insert("location", frame=a_ + i)
+    arm.animation_data.action = None
 print("pose clean-up done")
 
 
@@ -1137,6 +1195,11 @@ def sample(act):
     return out_
 
 
+
+_idle0 = sample(bpy.data.actions["idle_neutral"])[0]
+_blend_ends(bpy.data.actions["hip_hinge_down"], at_start=True)
+_blend_ends(bpy.data.actions["hip_hinge_up"], at_start=False)
+print("march arm swing + hinge stands tall at both ends")
 _stance = sample(bpy.data.actions["boxing_stance"])
 _jab = sample(bpy.data.actions["boxing_jab"])
 # the jab's most extended frame: largest lead-hand distance from the shoulder

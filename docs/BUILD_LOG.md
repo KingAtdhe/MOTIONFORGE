@@ -542,3 +542,9 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
   pose spread reduced for realistic builds (arms 5°, legs 3°).
 - Heights 1.68 m / 1.82 m. All 14 clips transferred; coach pictures re-rendered.
 - Verified: renders of every clip front/side and close-ups of guard, jab, squat, push-up, hinge. Not verified on device.
+
+## 2026-11-21 — More natural coach movement (Tripo coaches)
+- Warm-up march: arms now swing opposite to the lifted knee (driven by the recorded leg phase), torso and head straightened so the coach looks ahead instead of at the floor.
+- Hip hinge: the lowering now starts from, and the rising ends in, a tall standing pose (the recording never stood fully up); back kept flat, arms hang.
+- Squat: arms reach forward at shoulder height as a counterbalance instead of hands clasped at the chest with flared elbows.
+- Both coaches rebuilt sequentially; thumbnails re-rendered. Checked with Blender timeline renders (front and side). Not yet checked on a device.
