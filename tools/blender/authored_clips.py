@@ -114,13 +114,13 @@ class Rig:
     def hip_joint(self, sp, s):
         return sp["pos"] + sp["pel"] @ self.hj[s]
 
-    def fit_z(self, sp, ext=0.992):
+    def fit_z(self, sp, ext=0.992, sides=("L", "R")):
         """Highest pelvis at which the straighter leg is extended to `ext` of its length (soft knees, never locked)."""
         lo, hi = 0.15, 1.6
         for _ in range(40):
             mid = (lo + hi) / 2
             sp["pos"].z = mid
-            worst = max((self.hip_joint(sp, s) - self.ankle(s, sp["feet"][s])).length / (self.l1[s] + self.l2[s]) for s, _ in SIDES)
+            worst = max((self.hip_joint(sp, s) - self.ankle(s, sp["feet"][s])).length / (self.l1[s] + self.l2[s]) for s in sides)
             if worst > ext:
                 hi = mid
             else:
@@ -360,10 +360,7 @@ def march(r, st):
         sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
         # pelvis height from the standing leg only
         stand = "R" if step % 2 == 0 else "L"
-        keep = dict(feet)
-        sp["feet"] = {stand: keep[stand], ("L" if stand == "R" else "R"): keep[stand]}
-        base = r.fit_z(sp, 0.996)
-        sp["feet"] = keep
+        base = r.fit_z(sp, 0.996, sides=(stand,))
         # blend the height across the changeover so the pelvis never steps
         sp["pos"].z = base + bob - 0.005 * r.k
         lagt = t - 0.045
@@ -549,8 +546,8 @@ def _pushup_pose(r, st, geo, d, t):
     phi = lerp(phi_top, phi_bot, d)
     feet, pos = body(phi)
     b = breath(t, 4.0, 0.0)
-    sp = torso_spec(pos, pitch=phi, spine=0.0, chest=0.0, head_pitch=phi - 14.0 + 2.0 * d, br=0.0)
-    sp["nek"] = Q(0, phi - 5.0, 0)
+    sp = torso_spec(pos, pitch=phi, spine=0.0, chest=0.0, head_pitch=phi - 8.0 + 2.0 * d, br=0.0)
+    sp["nek"] = Q(0, phi - 3.0, 0)
     sp["feet"] = feet
     sp["kpole"] = {s: V(0, -0.2, -1) for s, sg in SIDES}
     prot = blades(d)
@@ -584,21 +581,21 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     b = breath(t, 3.2, 0.4)
     c = e_cross
     # feet: lead toes turned in a little, rear foot ~50 deg out on its ball; the cross pivots the rear foot
-    lead = r.foot("L", 0.115 * k * st["stance"], -0.185 * k, -18.0, pitch=0.0)
+    lead = r.foot("L", 0.115 * k * st["stance"], -0.155 * k, -18.0, pitch=0.0)
     rear_yaw = lerp(-52.0, -8.0, c)
     rear_pitch = lerp(13.0, 30.0, c)
-    rear = r.foot("R", -0.115 * k * st["stance"], 0.205 * k, -52.0, pitch=0.0)
+    rear = r.foot("R", -0.115 * k * st["stance"], 0.175 * k, -52.0, pitch=0.0)
     rear = (rear[0], rear_yaw, rear_pitch)
     feet = {"L": (lead[0] + V(0, -travel, 0), lead[1], lead[2]), "R": (rear[0] + V(0, -travel, 0), rear[1], rear[2])}
     yaw_p = lerp(-34.0, 6.0, c) - 5.0 * e_jab
     yaw_c = lerp(-42.0, 30.0, c) - 12.0 * e_jab
     pos = V(0.012 * k * c, 0.012 * k - 0.035 * k * e_jab - 0.075 * k * c - travel, 0)
-    sp = torso_spec(pos, yaw=yaw_p, pitch=4.0 + 2.0 * c, spine=2.0, chest=4.0, chest_yaw=yaw_c - yaw_p,
+    sp = torso_spec(pos, yaw=yaw_p, pitch=2.0 + 2.0 * c, spine=2.0, chest=4.0, chest_yaw=yaw_c - yaw_p,
                     head_pitch=11.0 + 2.0 * max(e_jab, c), head_yaw=lerp(-4.0, 3.0, c), br=b * 0.5)
     sp["feet"] = feet
     sp["kpole"] = {"L": V(-0.22, -1, 0), "R": V(lerp(-0.75, -0.15, c), -1, 0)}
     z = r.fit_z(sp, 0.992)
-    sp["pos"].z = z - (0.050 + 0.005 * bob * bob_amp + 0.012 * c) * k
+    sp["pos"].z = z - (0.034 + 0.005 * bob * bob_amp + 0.012 * c) * k
     sp["shrug"] = {"L": 2.0 + 13.0 * e_jab, "R": 2.0 + 13.0 * c}
     sp["prot"] = {"L": 6.0 + 12.0 * e_jab, "R": 4.0 + 14.0 * c}
 

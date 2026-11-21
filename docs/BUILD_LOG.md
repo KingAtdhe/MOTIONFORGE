@@ -570,3 +570,10 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 **Verified in Blender on the exported GLBs:** planted-foot slide 0.0-0.3 cm on all stationary clips, worst edge stretch < 0.8 %, no IK over-reach, down/up pairs meet exactly.
 **Not verified:** on-device playback in Filament (no device/emulator here). Clips remain `draft_pending_coach_review`.
 **Known issues:** the legacy mocap pipeline still runs before being replaced (build-time cost only); remove in a separate clean-up.
+
+## 2026-11-21 — Animation refinement, second pass
+- March: pelvis height was fitted against the wrong leg, leaving the standing knee bent ~30 deg at each changeover; it is now fitted to the standing leg (tall, near-straight support leg).
+- Boxing stance: shorter fore-aft base and less knee bend (more upright), guard lowered so the eyes stay visible.
+- Push-up: neck closer to neutral (8 deg extension instead of 14).
+- `tools/blender/clip_audit.py` added: prints joint ranges, planted-foot slide and acceleration peaks per clip for an exported GLB.
+- Verified with side renders of both coaches and the audit (planted-foot slide <= 0.3 cm on stationary clips). Device playback still unverified.
