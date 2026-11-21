@@ -83,6 +83,13 @@ object DemoSequence {
         clip.endsWith("_up") -> "Rising"
         clip == "boxing_stance" -> "Stance"
         clip == "boxing_guard_return" -> "Return to guard"
+        clip == "boxing_lead_hook" -> "Lead hook"
+        clip == "footwork_lateral" -> "Step side to side"
+        clip == "plank_hold" -> "Hold"
+        clip == "reverse_lunge" -> "Step back and lower"
+        clip == "glute_bridge" -> "Lift and lower"
+        clip == "step_jack" -> "Step out, arms up"
+        clip == "calf_raise" -> "Rise and lower"
         clip.startsWith("footwork_") -> "Step " + clip.removePrefix("footwork_")
         else -> clip.substringAfter('_').replace('_', ' ').replaceFirstChar { it.uppercase() }
     }

@@ -4,8 +4,58 @@
   "fps": 30,
   "clips": [
     {
-      "name": "warmup_march",
-      "durationSeconds": 2.567,
+      "name": "boxing_cross",
+      "durationSeconds": 2.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_guard_return",
+      "durationSeconds": 4.8,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_jab",
+      "durationSeconds": 2.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_lead_hook",
+      "durationSeconds": 2.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_slip",
+      "durationSeconds": 4.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_stance",
+      "durationSeconds": 3.2,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "calf_raise",
+      "durationSeconds": 4.1,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "footwork_backward",
+      "durationSeconds": 1.6,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "footwork_forward",
+      "durationSeconds": 1.6,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "footwork_lateral",
+      "durationSeconds": 3.2,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "glute_bridge",
+      "durationSeconds": 5.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -24,43 +74,8 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
-      "name": "squat_down",
-      "durationSeconds": 2.733,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "squat_up",
-      "durationSeconds": 2.0,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_stance",
-      "durationSeconds": 3.2,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_jab",
-      "durationSeconds": 2.4,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_cross",
-      "durationSeconds": 2.4,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_guard_return",
-      "durationSeconds": 4.8,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "footwork_forward",
-      "durationSeconds": 1.6,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "footwork_backward",
-      "durationSeconds": 1.6,
+      "name": "plank_hold",
+      "durationSeconds": 4.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -71,6 +86,31 @@
     {
       "name": "pushup_up",
       "durationSeconds": 1.8,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "reverse_lunge",
+      "durationSeconds": 10.467,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "squat_down",
+      "durationSeconds": 2.733,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "squat_up",
+      "durationSeconds": 2.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "step_jack",
+      "durationSeconds": 2.9,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "warmup_march",
+      "durationSeconds": 2.567,
       "reviewStatus": "draft_pending_coach_review"
     }
   ]

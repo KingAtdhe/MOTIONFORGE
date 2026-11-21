@@ -602,3 +602,46 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Owner's phone screenshot of the jab showed open fingers and a thumb sticking out. Cause: the control rig has two finger bones per hand and no thumb, so the transfer could not close the coach's 15 finger bones into a fist.
 - `rigged_coach.finger_pose` / `key_fingers`: fingers and thumb are now posed directly on the coach's own bones (three joints per finger curl toward the palm, thumb drops under the palm and folds across the index and middle fingers). Boxing and footwork clips use a closed fist, march a loose fist, push-up a flat hand, everything else a relaxed hand.
 - Checked with hand close-ups on both coaches (jab extension, guard, squat). First confirmation that the new clips play on a device came from the same screenshot.
+
+## 2026-11-21 — Voice coach, live confirmations, squat form checks, 8 new lessons (owner's request)
+**Feedback during camera sessions.**
+- Squat (`SquatRepCounter`): every finished rep is checked near its deepest point (smoothed knee angle within 8 deg of the
+  counting depth): rushed descent (< 0.55 s from leaving standing to counting depth), knees caving (front view: knee
+  spacing < 0.75 of ankle spacing), chest dropping (side view: hip→shoulder line > 60 deg from vertical). Front/side is
+  decided per frame (shoulder width vs torso length, as in the boxing monitor), so each rule only runs from a view that can
+  see it. A clear dip below 135 deg that turns back before counting depth reports "not counted". Each rule needs at least
+  3 qualifying frames and 60 % agreement. Counting itself is unchanged. All thresholds are first hypotheses.
+- Jab (`BoxingFormMonitor`): each jab that returns to guard is reported clean / not clean (rear hand stayed up, came back
+  within 1.5 s). Card shows "N jabs, M clean".
+- Stance: a cue-free guard held for 6 s gets one spoken confirmation per step.
+- The camera card (`CoachingCard`) now covers squats too; positive states say "No adjustments spotted", never that
+  technique is correct.
+
+**Voice coach.** `core/coaching/VoiceCoach` (pure, tested) paces what is spoken: 2.5 s minimum gap unless the new line
+outranks the last (announcement > correction > count > praise > tip), no repeat of the same line within 12 s, praise at
+most every 8 s. `SessionNarrator` (pure, tested) turns events into lines: exercise and rest announcements, "ten seconds
+left", squat counts with a correction or short praise, "Good jab.", lesson tips every 20 s on steps without camera
+feedback, session complete. `CoachSpeaker` wraps Android TextToSpeech (on device, English voice; silent if the phone has
+none), audio usage = navigation guidance so it plays over music. On/off: Profile → Voice coach, and a toggle in the
+running session (stored in DataStore `voice_cues`, default on). Manifest: `<queries>` for the TTS service (Android 11+).
+
+**New lessons (17 in total).** The owner asked for more exercises; this extends the CLAUDE.md MVP set within its hard
+limits (no kicks, sparring, partner drills or combinations). Fitness: Reverse Lunge, Glute Bridge, Forearm Plank, Step Jack
+(low-impact jumping jack), Calf Raise. Fighting fundamentals: Lead Hook, Slip, Side-to-Side Footwork. All are
+`draft_pending_coach_review` and none has camera rules (`guided_not_scored` / `demo_guided_initially`); a test pins that.
+Fitness lessons sit after Push-up, so the quick session is unchanged.
+
+**Clips** (`authored_clips.py`, both coaches, 22 clips each): `reverse_lunge` (right then left; front shin ~10 deg, rear
+knee a hand above the floor, rear heel up; the hips travel back partly with the step and partly while lowering),
+`glute_bridge` (shoulders stay on the floor; top solved so shoulders-hips-knees are one line with vertical shins),
+`plank_hold` (elbows under shoulders on the floor, straight line, breathing), `step_jack`, `calf_raise` (heels pivot on the
+balls of the feet), `boxing_lead_hook` (elbow to shoulder height, forearm level, lead foot pivots on its ball),
+`boxing_slip` (knees bend, upper body leans off the centre line, head level, guard up), `footwork_lateral` (left foot
+first going left, right foot first going right). The shared boxing stance gained `e_hook`, `slip`, `travel_x`.
+The build's clip manifest now lists whatever `authored_clips.build_all` wrote.
+
+**Verified:** 43 JVM tests for the new logic run locally (movement, voice pacing, narrator); Blender: no IK over-reach,
+clip audit on both coaches (hook ball-of-foot slide 0.0 cm, lunge foot slide <= 0.7 cm, squat/jab values unchanged),
+contact sheets from front/side/three-quarter/top, thumbnails for all 8 lessons on both coaches.
+**Not verified:** anything on a phone — the TTS voice and pacing, the squat thresholds, Filament playback of the new clips.
+**Known issues:** lunge hip acceleration peak 4.8 m/s² (squat 1.2), inherent to stepping but worth watching on device.

@@ -155,6 +155,221 @@
     "reviewStatus": "draft_pending_coach_review"
   },
   {
+    "id": "reverse_lunge",
+    "name": "Reverse Lunge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "reverse_lunge",
+    "purpose": "Practise a controlled single-leg movement: one foot steps back, both knees bend, and you return to standing.",
+    "space": "About 2 m front to back of clear, stable, non-slip floor. A wall or chair within reach for balance if you need it.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Use a small step and a shallow depth to start. Keep a support within reach if your balance is unsure. Stop if you feel pain in the knees, hips or back, or dizziness.",
+    "instructions": [
+      "Stand tall with your feet about hip-width apart.",
+      "Step one foot back and land on the ball of that foot.",
+      "Bend both knees until the back knee is a hand's width above the floor, or as low as is comfortable.",
+      "Press through the front foot to stand up and bring the back foot in.",
+      "Repeat on the other side."
+    ],
+    "commonCues": [
+      "Step back, then lower straight down.",
+      "Front knee in line with your toes.",
+      "Stay tall through your chest.",
+      "Take your time between sides."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Back knee dropping hard onto the floor",
+        "adjustment": "Lower more slowly and stop a little higher; the back knee never needs to touch."
+      },
+      {
+        "mistake": "Front knee drifting inward",
+        "adjustment": "Make the movement smaller and keep the knee travelling over the middle of your foot."
+      },
+      {
+        "mistake": "Stepping onto a tightrope line",
+        "adjustment": "Keep your feet about hip-width apart side to side, as if on two rail tracks."
+      },
+      {
+        "mistake": "Leaning far forward",
+        "adjustment": "Keep your chest up and your weight between both feet."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; no repetitions are counted.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "glute_bridge",
+    "name": "Glute Bridge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "glute_bridge",
+    "purpose": "Practise lifting the hips from the floor with control while lying on your back.",
+    "space": "A mat-sized area of clear floor where you can lie down.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Lift only as high as is comfortable and keep your neck relaxed on the floor. Stop if you feel pain in your back or neck.",
+    "instructions": [
+      "Lie on your back with your knees bent and feet flat, about hip-width apart.",
+      "Rest your arms by your sides, palms down.",
+      "Press through your heels and lift your hips until shoulders, hips and knees are roughly in line.",
+      "Pause briefly, then lower your hips slowly to the floor."
+    ],
+    "commonCues": [
+      "Press through your heels.",
+      "Lift and lower slowly.",
+      "Keep your ribs down; don't arch your back.",
+      "Relax your neck and shoulders."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Arching the lower back at the top",
+        "adjustment": "Lift a little lower and think of keeping your ribs down."
+      },
+      {
+        "mistake": "Pushing through the toes",
+        "adjustment": "Move your feet slightly closer and press through the heels."
+      },
+      {
+        "mistake": "Knees falling out or in",
+        "adjustment": "Keep your knees pointing the same way as your toes."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Lying-down poses are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "forearm_plank",
+    "name": "Forearm Plank",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "plank_hold",
+    "purpose": "Practise holding a straight, steady body position on your forearms and toes.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Breathe normally throughout and hold only as long as you can keep good position. Lower your knees to the floor whenever you need to. Stop if you feel pain in your back or shoulders.",
+    "instructions": [
+      "Kneel, then place your forearms on the floor with your elbows under your shoulders.",
+      "Step your feet back one at a time onto your toes.",
+      "Hold one straight line from head to heels.",
+      "Breathe steadily; lower your knees to rest when you need to."
+    ],
+    "commonCues": [
+      "Elbows under shoulders.",
+      "One straight line from head to heels.",
+      "Keep breathing.",
+      "Knees down to rest whenever you need."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Squeeze your glutes gently, or rest on your knees and hold a shorter time."
+      },
+      {
+        "mistake": "Hips piked high",
+        "adjustment": "Lower your hips until your body forms a straight line."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this hold in this version. The timer counts the hold; no form is scored.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "step_jack",
+    "name": "Step Jack",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "step_jack",
+    "purpose": "A low-impact version of the jumping jack: step to the side while the arms sweep overhead, to warm up and raise the heart rate.",
+    "space": "About 2 × 2 m of clear floor with room to reach overhead.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Keep a comfortable pace and stop if you feel dizzy, short of breath or unwell. Check there is nothing above or beside you before raising your arms.",
+    "instructions": [
+      "Stand with your feet close together and arms by your sides.",
+      "Step one foot out to the side as both arms sweep up overhead.",
+      "Bring the foot back in as the arms come down.",
+      "Alternate sides at a steady rhythm."
+    ],
+    "commonCues": [
+      "Step out, arms up; step in, arms down.",
+      "Land softly on the stepping foot.",
+      "Find a steady rhythm."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rushing and losing balance",
+        "adjustment": "Slow down until each step lands where you want it."
+      },
+      {
+        "mistake": "Shrugging the shoulders up to the ears",
+        "adjustment": "Reach long through the arms and keep the neck relaxed."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "calf_raise",
+    "name": "Calf Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "calf_raise",
+    "purpose": "Practise rising onto the balls of the feet and lowering with control.",
+    "space": "A small area of stable floor, next to a wall or chair you can touch for balance.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Hold a support lightly if your balance is unsure. Stop if you feel pain in your feet, ankles or calves.",
+    "instructions": [
+      "Stand tall with your feet about hip-width apart.",
+      "Rise onto the balls of your feet, lifting your heels.",
+      "Pause at the top.",
+      "Lower your heels slowly back to the floor."
+    ],
+    "commonCues": [
+      "Up smoothly, down slowly.",
+      "Weight over the big toe and second toe.",
+      "Stand tall at the top."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Ankles rolling outward",
+        "adjustment": "Keep your weight toward the big toe side of the foot."
+      },
+      {
+        "mistake": "Bouncing at the bottom",
+        "adjustment": "Pause with your heels down before the next rise."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
     "id": "boxing_stance",
     "name": "Boxing Stance",
     "category": "fighting_fundamentals",
@@ -348,6 +563,131 @@
       }
     ],
     "limitations": "Timer and instructions only. Footwork is not automatically scored.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_lead_hook",
+    "name": "Lead Hook",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_lead_hook",
+    "purpose": "Practise the lead-hand hook slowly in the air: a short, bent-arm movement driven by turning the body.",
+    "space": "Clear space around you of at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Shadowbox only; never strike people or objects. Practise slowly and turn only as far as is comfortable for your back and knees. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Begin from your boxing stance with your guard up.",
+      "Raise the lead elbow to about shoulder height with the arm bent and the forearm level.",
+      "Turn your lead foot, hips and shoulders together so the fist travels around in front of your chin.",
+      "Return straight to guard."
+    ],
+    "commonCues": [
+      "Turn the body, not just the arm.",
+      "Keep the rear hand by your face.",
+      "Short and controlled; back to guard."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the arm wide",
+        "adjustment": "Keep the elbow bent and the movement short, close to your body."
+      },
+      {
+        "mistake": "Twisting on a planted lead foot",
+        "adjustment": "Let the lead heel turn out so the knee stays comfortable."
+      },
+      {
+        "mistake": "Dropping the rear hand",
+        "adjustment": "Keep the rear fist next to your face throughout."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No power, impact or technique scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_slip",
+    "name": "Slip",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_slip",
+    "purpose": "Practise moving your head a short distance off the centre line with a small bend of the knees and body, then returning.",
+    "space": "Clear space around you of at least an arm's length. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Solo practice only; never practise with someone throwing punches at you. Keep the movement small and slow. Stop if you feel dizzy or have pain in your back or neck.",
+    "instructions": [
+      "Begin from your boxing stance with your guard up.",
+      "Bend your knees slightly and lean your upper body a short way to one side, moving your head just off the centre line.",
+      "Return to centre.",
+      "Repeat to the other side."
+    ],
+    "commonCues": [
+      "Small movement, eyes forward.",
+      "Bend the knees; don't bend over at the waist.",
+      "Hands stay up by your face."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning too far",
+        "adjustment": "Move only far enough to take your head just off the centre line."
+      },
+      {
+        "mistake": "Looking at the floor",
+        "adjustment": "Keep your eyes forward throughout."
+      },
+      {
+        "mistake": "Dropping the hands",
+        "adjustment": "Keep both fists by your face as you move."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_lateral",
+    "name": "Side-to-Side Footwork",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "full_body",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_lateral",
+    "purpose": "Practise stepping sideways in your stance with short push-steps, keeping the same stance width.",
+    "space": "About 2 m side to side of clear, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Keep steps short and the floor clear. Stop if you feel unsteady or have pain in your knees or ankles.",
+    "instructions": [
+      "Begin from your boxing stance with your guard up.",
+      "To move left, step the left foot first, then follow with the right.",
+      "To move right, step the right foot first, then follow with the left.",
+      "Keep the same stance width after every step."
+    ],
+    "commonCues": [
+      "The foot nearest the direction moves first.",
+      "Short steps; never cross your feet.",
+      "Stay balanced between both feet."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Crossing the feet",
+        "adjustment": "Step with the foot nearest the direction of travel first, then follow."
+      },
+      {
+        "mistake": "Feet ending up too close together",
+        "adjustment": "Check your stance width after every step."
+      },
+      {
+        "mistake": "Bouncing up and down",
+        "adjustment": "Stay level and glide with short steps."
+      }
+    ],
+    "limitations": "This is a guided drill. The camera does not score footwork.",
     "reviewStatus": "draft_pending_coach_review"
   }
 ]

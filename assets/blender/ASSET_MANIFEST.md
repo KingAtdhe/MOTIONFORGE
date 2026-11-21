@@ -20,6 +20,8 @@ Required animation clip names:
 - boxing_guard_return
 - footwork_forward
 - footwork_backward
+- Added 2026-11-21: warmup_march, hip_hinge_down, hip_hinge_up, boxing_lead_hook, boxing_slip, footwork_lateral,
+  reverse_lunge, calf_raise, step_jack, glute_bridge, plank_hold (all authored in tools/blender/authored_clips.py)
 
 Do not create all animations before the rig and export pipeline are tested. First create one avatar and one simple animation, export to GLB, and verify on a real Android device.
 

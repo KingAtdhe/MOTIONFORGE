@@ -1,4 +1,4 @@
-# MOTIONFORGE — handoff notes (19 Nov 2026)
+# MOTIONFORGE — handoff notes (21 Nov 2026)
 
 Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG.md`.
 
@@ -11,16 +11,21 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 ## What is built
 - Phase 0: CameraX + MediaPipe Pose Landmarker + Filament GLB spikes (Profile → Technical checks).
 - Phase 1: onboarding (18+ gate, safety acknowledgement, focus, goal), Home, Train catalogue with filters,
-  lesson detail, Profile, data reset. 9 lessons in `data/exercises.json` (= app asset; test keeps them equal).
+  lesson detail, Profile, data reset. 17 lessons in `data/exercises.json` (= app asset; test keeps them equal).
 - Phase 2: 3D trainer in lesson pages (play/pause, replay, 1×/0.5×/0.25×, front/side/back).
 - Phases 3–5 slice: sessions (`feature/session`: SessionEngine, SessionPlanner, SessionScreen, SessionViewModel),
   optional camera with skeleton, experimental squat rep counter (`core/movement/SquatRepCounter`), summary,
   Room history (`core/database`), Progress screen.
+- Live coaching (21 Nov): squat rep counter + per-rep form checks, boxing stance/jab cues with clean-jab count, spoken
+  voice coach (Android TTS, `core/coaching`, `feature/session/SessionNarrator`), toggle in Profile and in the session.
 - Design: Barlow / Barlow Condensed fonts, volt (#C8F542) = fitness, ember (#FF7A45) = fighting.
 - 82 JVM unit tests.
 
 ## Trainer / coach model
-- **In the app (v7):** `models/coach_f.glb` (female, default) and `models/coach_m.glb` (male), chosen in Profile →
+- **Now (21 Nov):** Tripo coaches, 22 clips each, all built from rules in `tools/blender/authored_clips.py`. Build one
+  coach at a time: `build_coach_mesh.py assets/blender/rigged/coach_f_tripo_static.glb coach_f 1.70 --rigged
+  assets/blender/rigged/coach_f_tripo.glb --app` (coach_m 1.85), then `render_thumbs.py`, check with `clip_audit.py`.
+- **Earlier (v7, superseded):** `models/coach_f.glb` (female, default) and `models/coach_m.glb` (male), chosen in Profile →
   "Your coach". Both are the owner's sculpted meshes (generated from her sheet; source GLBs kept outside the repo)
   processed by `tools/blender/build_coach_mesh.py` — see BUILD_LOG 2026-11-19 v7. Sheet:
   `assets/blender/references/coaches_v7.jpg`.

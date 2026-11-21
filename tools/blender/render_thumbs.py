@@ -24,6 +24,14 @@ SHOTS = {
     "boxing_cross": ("boxing_cross", "punch", -55),
     "boxing_guard_return": ("boxing_guard_return", "end", 30),
     "footwork_forward_backward": ("footwork_forward", 0.4, 55),
+    "reverse_lunge": ("reverse_lunge", 0.24, 65),
+    "glute_bridge": ("glute_bridge", 0.5, 70),
+    "forearm_plank": ("plank_hold", 0.0, 70),
+    "step_jack": ("step_jack", 0.25, 15),
+    "calf_raise": ("calf_raise", 0.4, 45),
+    "boxing_lead_hook": ("boxing_lead_hook", 0.38, -40),
+    "boxing_slip": ("boxing_slip", 0.23, 25),
+    "footwork_lateral": ("footwork_lateral", 0.2, 30),
     "hero": ("idle_neutral", 0.0, 18),
 }
 

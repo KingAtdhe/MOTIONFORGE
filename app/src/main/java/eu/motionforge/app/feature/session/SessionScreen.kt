@@ -411,6 +411,25 @@ private fun SummaryStage(
     }
 }
 
+@Composable
+private fun PlanStepCard(step: SessionStep.Work, coach: Coach, accent: Color) {
+    Column(
+        Modifier
+            .width(116.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(5.dp),
+    ) {
+        Box(Modifier.fillMaxWidth().height(132.dp).clip(RoundedCornerShape(15.dp)).background(accent.copy(alpha = 0.10f))) {
+            CoachArt(coach.lessonArt(step.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp))
+        }
+        Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Text(step.name, style = MaterialTheme.typography.labelLarge, maxLines = 2)
+            Text("${step.durationSeconds} s", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 /** Live coaching card over the camera (squat and boxing checks). Always labelled experimental; never certifies technique. */
 @Composable
 private fun CoachingCard(c: LiveCoaching, modifier: Modifier = Modifier) {

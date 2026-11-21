@@ -22,6 +22,7 @@ class DemoClipsTest {
         "idle_neutral", "warmup_march", "squat_down", "squat_up", "hip_hinge_down", "hip_hinge_up",
         "pushup_down", "pushup_up", "boxing_stance", "boxing_jab", "boxing_cross", "boxing_guard_return",
         "footwork_forward", "footwork_backward",
+        "boxing_lead_hook", "boxing_slip", "footwork_lateral", "reverse_lunge", "calf_raise", "step_jack", "glute_bridge", "plank_hold",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */
@@ -122,6 +123,9 @@ class DemoClipsTest {
         assertEquals("Rising", DemoSequence.phaseLabel("squat_up"))
         assertEquals("Jab", DemoSequence.phaseLabel("boxing_jab"))
         assertEquals("Step forward", DemoSequence.phaseLabel("footwork_forward"))
+        assertEquals("Step side to side", DemoSequence.phaseLabel("footwork_lateral"))
+        assertEquals("Lead hook", DemoSequence.phaseLabel("boxing_lead_hook"))
+        assertEquals("Hold", DemoSequence.phaseLabel("plank_hold"))
     }
 
     @Test(expected = IllegalArgumentException::class)

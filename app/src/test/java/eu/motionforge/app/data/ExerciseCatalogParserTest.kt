@@ -17,7 +17,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun bundledCatalogParses() {
         val exercises = ExerciseCatalogParser.parse(bundled)
-        assertEquals(9, exercises.size)
+        assertEquals(17, exercises.size)
         assertTrue(exercises.any { it.category == TrainingCategory.FITNESS })
         assertTrue(exercises.any { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS })
     }
@@ -90,11 +90,20 @@ class ExerciseCatalogParserTest {
         val manifestClips = setOf(
             "idle_neutral", "warmup_march", "hip_hinge_down", "hip_hinge_up", "squat_down", "squat_up", "pushup_down", "pushup_up", "boxing_stance",
             "boxing_jab", "boxing_cross", "boxing_guard_return", "footwork_forward", "footwork_backward",
+            "boxing_lead_hook", "boxing_slip", "footwork_lateral", "reverse_lunge", "calf_raise", "step_jack", "glute_bridge", "plank_hold",
         )
         ExerciseCatalogParser.parse(bundled).forEach {
             val clip = it.demoAnimation ?: return@forEach
             assertTrue("${it.id} uses unknown clip $clip", clip in manifestClips)
         }
+    }
+
+    @Test
+    fun addedLessonsGiveNoAutomatedFormFeedback() {
+        // lessons added after the MVP set have no validated camera rule yet
+        val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
+        listOf("reverse_lunge", "glute_bridge", "forearm_plank", "step_jack", "calf_raise", "boxing_lead_hook", "boxing_slip", "footwork_lateral")
+            .forEach { assertFalse(it, byId.getValue(it).analysisMode.allowsLiveCues) }
     }
 
     @Test(expected = CatalogException::class)

@@ -569,7 +569,7 @@ if LEGACY_MOCAP:
     exec(compile(open(os.path.join(HERE, "legacy_mocap_clips.py")).read(), "legacy_mocap_clips.py", "exec"), globals())
 
 
-GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5}  # everything else: relaxed hands (below)
+GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5, "plank_": 0.6, "glute_": 0.1}  # everything else: relaxed hands (below)
 
 
 def key_grip(act, amount):
@@ -590,7 +590,7 @@ def key_grip(act, amount):
 # ---- demonstration clips: authored from biomechanical rules (tools/blender/authored_clips.py)
 if not LEGACY_MOCAP:
     import authored_clips as ac  # noqa: E402
-    ac.build_all(arm, HEIGHT, NAME)
+    AUTHORED = ac.build_all(arm, HEIGHT, NAME)
 for act in bpy.data.actions:
     amt = next((v for k, v in GRIP.items() if act.name.startswith(k)), 0.22)
     key_grip(act, amt)
@@ -699,7 +699,7 @@ def fix_tangents(path):
 
 fix_tangents(exp)
 print("EXPORTED", exp, os.path.getsize(exp))
-ORDER = [n for n, _, _ in ta.clip_specs()] + ["pushup_down", "pushup_up"]
+ORDER = AUTHORED if not LEGACY_MOCAP else [n for n, _, _ in ta.clip_specs()] + ["pushup_down", "pushup_up"]
 manifest = {"asset": f"models/{NAME}.glb", "generator": "tools/blender/build_coach_mesh.py", "fps": ta.FPS,
             "clips": [{"name": n, "durationSeconds": round((bpy.data.actions[n].frame_range[1] - bpy.data.actions[n].frame_range[0]) / ta.FPS, 3),
                        "reviewStatus": "draft_pending_coach_review"} for n in ORDER]}
