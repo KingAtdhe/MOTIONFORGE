@@ -8,13 +8,20 @@ import kotlin.math.hypot
 /** Which beginner boxing drill is being watched. */
 enum class BoxingDrill { STANCE, JAB }
 
-enum class FormIssue(val message: String) {
-    HANDS_LOW("Possible form adjustment: bring your hands up near your face."),
-    FEET_NARROW("Possible form adjustment: step your feet a little wider for balance."),
-    FEET_WIDE("Your feet may be very wide — find a comfortable, balanced width."),
-    REAR_HAND_DROPS("Possible form adjustment: keep the rear hand near your face while the lead hand extends."),
-    SLOW_RETURN("Possible form adjustment: bring the hand back to guard after each jab."),
+/** [message] is shown on screen, [spoken] is the short version the voice coach says. */
+enum class FormIssue(val message: String, val spoken: String) {
+    HANDS_LOW("Possible form adjustment: bring your hands up near your face.", "Hands up by your face."),
+    FEET_NARROW("Possible form adjustment: step your feet a little wider for balance.", "Feet a little wider."),
+    FEET_WIDE("Your feet may be very wide — find a comfortable, balanced width.", "Feet a little narrower."),
+    REAR_HAND_DROPS("Possible form adjustment: keep the rear hand near your face while the lead hand extends.", "Keep the rear hand up."),
+    SLOW_RETURN("Possible form adjustment: bring the hand back to guard after each jab.", "Bring it back to guard."),
 }
+
+/**
+ * One finished jab (extended, then back to guard). [clean] = it came back within the return time and the rear
+ * hand stayed up the whole time. Says nothing about power, speed or accuracy.
+ */
+data class JabResult(val number: Int, val clean: Boolean)
 
 /**
  * What the monitor reports.
@@ -68,11 +75,20 @@ class BoxingFormMonitor(
     private var extendedAt = 0L
     private var lastJabAt = -1_000_000L
     private var rearDroppedThisJab = false
+    private var slowThisJab = false
+    private var cleanJabs = 0
+    private val finished = ArrayDeque<JabResult>()
 
     val jabs: Int get() = jabCount
 
+    /** Jabs that came back to guard in time with the rear hand up. */
+    val goodJabs: Int get() = cleanJabs
+
+    /** Jabs finished since the last call, oldest first. */
+    fun drainJabs(): List<JabResult> = finished.toList().also { finished.clear() }
+
     fun reset() {
-        window.clear(); visibleFrames = 0; hiddenFrames = 0; shown = null; extended = false; rearDroppedThisJab = false
+        window.clear(); visibleFrames = 0; hiddenFrames = 0; shown = null; extended = false; rearDroppedThisJab = false; slowThisJab = false; finished.clear()
     }
 
     fun update(frame: PoseFrame, tracking: Boolean): FormFeedback {
@@ -170,12 +186,18 @@ class BoxingFormMonitor(
                 val rear = if (leadIsLeft) rw else lw
                 val t = f.timestampMs
                 if (!extended && lead > extendedRatio && t - lastJabAt > minJabMs) {
-                    extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false
+                    extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false; slowThisJab = false
                 }
                 if (extended) {
                     if (wristLow(rear)) rearDroppedThisJab = true
-                    if (lead < guardRatio) extended = false
-                    else if (t - extendedAt > returnMs) issues += FormIssue.SLOW_RETURN
+                    if (lead < guardRatio) {
+                        extended = false
+                        val clean = !rearDroppedThisJab && !slowThisJab
+                        if (clean) cleanJabs++
+                        finished.addLast(JabResult(jabCount, clean))
+                    } else if (t - extendedAt > returnMs) {
+                        issues += FormIssue.SLOW_RETURN; slowThisJab = true
+                    }
                 }
                 if (extended && rearDroppedThisJab) issues += FormIssue.REAR_HAND_DROPS
                 if (!extended && wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW

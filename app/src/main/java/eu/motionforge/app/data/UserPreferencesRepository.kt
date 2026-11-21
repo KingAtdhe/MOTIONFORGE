@@ -26,6 +26,8 @@ data class UserPreferences(
     val goal: TrainingGoal?,
     val lastViewedExerciseId: String?,
     val coach: Coach = Coach.DEFAULT,
+    /** Spoken coaching cues during sessions (on-device text-to-speech). */
+    val voiceCues: Boolean = true,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -43,6 +45,7 @@ class UserPreferencesRepository(context: Context) {
                 goal = p[GOAL]?.let { name -> TrainingGoal.entries.firstOrNull { it.name == name } },
                 lastViewedExerciseId = p[LAST_VIEWED],
                 coach = Coach.fromName(p[COACH]),
+                voiceCues = p[VOICE_CUES] ?: true,
             )
         }
 
@@ -62,6 +65,10 @@ class UserPreferencesRepository(context: Context) {
         store.edit { it[COACH] = coach.name }
     }
 
+    suspend fun setVoiceCues(on: Boolean) {
+        store.edit { it[VOICE_CUES] = on }
+    }
+
     /** Local data reset: removes every stored preference and returns the app to onboarding. */
     suspend fun clearAll() {
         store.edit { it.clear() }
@@ -73,5 +80,6 @@ class UserPreferencesRepository(context: Context) {
         val GOAL = stringPreferencesKey("goal")
         val LAST_VIEWED = stringPreferencesKey("last_viewed_exercise")
         val COACH = stringPreferencesKey("coach")
+        val VOICE_CUES = booleanPreferencesKey("voice_cues")
     }
 }

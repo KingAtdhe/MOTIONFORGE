@@ -35,6 +35,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
+import androidx.compose.material3.Switch
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import eu.motionforge.app.core.design.CoachArt
 import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.design.Eyebrow
@@ -92,6 +95,25 @@ fun ProfileScreen(
             }
         }
         Panel {
+            Eyebrow("Voice coach")
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text("Spoken cues during sessions", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "The coach announces each exercise, counts squats and says form adjustments and good reps out loud. " +
+                            "Uses your phone's own text-to-speech voice.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = preferences.voiceCues,
+                    onCheckedChange = { on -> scope.launch { prefsRepo.setVoiceCues(on) } },
+                    modifier = Modifier.semantics { contentDescription = "Spoken cues during sessions" },
+                )
+            }
+        }
+        Panel {
             Eyebrow("Camera & privacy")
             Text(
                 "Camera images are processed on this phone to estimate body landmarks. Frames are kept in " +
@@ -105,7 +127,7 @@ fun ProfileScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                "Stored on this phone: your focus, goal, chosen coach and last viewed lesson. Nothing is sent to a server.",
+                "Stored on this phone: your focus, goal, chosen coach, voice setting and last viewed lesson. Nothing is sent to a server.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

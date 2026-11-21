@@ -122,4 +122,36 @@ class BoxingFormMonitorTest {
         val (fb, _) = m.feed(45, t, { jabOut(it) })
         assertEquals(FormIssue.SLOW_RETURN, (fb as FormFeedback.Cue).issue)
     }
+
+    @Test
+    fun cleanJabsAreReportedAsClean() {
+        val m = BoxingFormMonitor(BoxingDrill.JAB)
+        var t = m.feed(15, 0, { guard(it) }).second
+        repeat(2) {
+            t = m.feed(5, t, { jabOut(it) }).second
+            t = m.feed(10, t, { guard(it) }).second
+        }
+        assertEquals(listOf(JabResult(1, true), JabResult(2, true)), m.drainJabs())
+        assertEquals(2, m.goodJabs)
+        assertTrue(m.drainJabs().isEmpty())
+    }
+
+    @Test
+    fun aJabWithTheRearHandDroppedIsNotClean() {
+        val m = BoxingFormMonitor(BoxingDrill.JAB)
+        var t = m.feed(15, 0, { guard(it) }).second
+        t = m.feed(5, t, { jabOut(it, rearLow = true) }).second
+        m.feed(10, t, { guard(it) })
+        assertEquals(listOf(JabResult(1, false)), m.drainJabs())
+        assertEquals(0, m.goodJabs)
+    }
+
+    @Test
+    fun aJabHeldOutTooLongIsNotClean() {
+        val m = BoxingFormMonitor(BoxingDrill.JAB)
+        var t = m.feed(15, 0, { guard(it) }).second
+        t = m.feed(30, t, { jabOut(it) }).second
+        m.feed(10, t, { guard(it) })
+        assertEquals(listOf(JabResult(1, false)), m.drainJabs())
+    }
 }

@@ -73,8 +73,8 @@ import eu.motionforge.app.core.design.accent
 import eu.motionforge.app.core.design.accentOnNight
 import eu.motionforge.app.core.design.formatClock
 import eu.motionforge.app.core.model.Exercise
-import eu.motionforge.app.core.movement.BoxingDrill
-import eu.motionforge.app.core.movement.FormFeedback
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import eu.motionforge.app.core.pose.TrackingState
 import eu.motionforge.app.feature.lesson.TrainerDemoCompact
 
@@ -83,13 +83,23 @@ fun SessionScreen(
     viewModel: SessionViewModel,
     exercisesById: Map<String, Exercise>,
     coach: Coach,
+    voiceCues: Boolean,
+    onVoiceCuesChange: (Boolean) -> Unit,
     onClose: () -> Unit,
     onOpenProgress: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val tracking by viewModel.tracking.collectAsStateWithLifecycle()
-    val form by viewModel.form.collectAsStateWithLifecycle()
+    val coaching by viewModel.coaching.collectAsStateWithLifecycle()
     val save by viewModel.save.collectAsStateWithLifecycle()
+
+    // Voice coach: the phone's text-to-speech, alive while this screen is.
+    val appContext = LocalContext.current.applicationContext
+    val speaker = remember { eu.motionforge.app.core.coaching.CoachSpeaker(appContext) }
+    DisposableEffect(speaker) { onDispose { speaker.shutdown() } }
+    val voiceOn by rememberUpdatedState(voiceCues)
+    LaunchedEffect(voiceCues) { if (!voiceCues) speaker.stop() }
+    LaunchedEffect(viewModel) { viewModel.speech.collect { if (voiceOn) speaker.speak(it) } }
 
     // Keep the screen awake while a session is in progress.
     val view = LocalView.current
@@ -116,7 +126,7 @@ fun SessionScreen(
             }
             MotionForgeTheme(night = true) {
                 androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
-                    RunningStage(state, tracking, form, exercisesById, viewModel)
+                    RunningStage(state, tracking, coaching, exercisesById, viewModel, voiceCues, onVoiceCuesChange)
                 }
             }
         }
@@ -198,9 +208,11 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
 private fun RunningStage(
     state: SessionState,
     tracking: TrackingState,
-    form: FormFeedback?,
+    coaching: LiveCoaching?,
     exercisesById: Map<String, Exercise>,
     viewModel: SessionViewModel,
+    voiceCues: Boolean,
+    onVoiceCuesChange: (Boolean) -> Unit,
 ) {
     val step = state.currentStep
     val paused = state.phase == SessionPhase.PAUSED
@@ -252,9 +264,8 @@ private fun RunningStage(
                 cameraVisible -> {
                     PoseCameraPane(lensFacing = lensFacing, showOverlay = true, onOutput = viewModel::onPose, modifier = Modifier.fillMaxSize())
                     TrackingStatusChip(tracking, Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
-                    val drill = (step as? SessionStep.Work)?.formDrill
-                    if (form != null && drill != null) {
-                        FormCueCard(form, drill, Modifier.align(Alignment.BottomCenter).padding(12.dp))
+                    if (coaching != null) {
+                        CoachingCard(coaching, Modifier.align(Alignment.BottomCenter).padding(12.dp))
                     }
                 }
                 exercise != null -> TrainerDemoCompact(exercise, playing = !paused, modifier = Modifier.fillMaxSize())
@@ -291,7 +302,7 @@ private fun RunningStage(
                 val cues = exercisesById[step.exerciseId]?.commonCues.orEmpty()
                 when {
                     step.countsReps && cameraVisible && !tracking.allowsFeedback -> "Counting is paused until tracking is steady."
-                    cameraVisible && !step.countsReps -> "The camera does not assess this movement — use it as a mirror."
+                    cameraVisible && !step.countsReps && step.formDrill == null -> "The camera does not assess this movement — use it as a mirror."
                     cues.isNotEmpty() -> cues[(state.stepElapsed / 8) % cues.size]
                     else -> null
                 }
@@ -314,6 +325,10 @@ private fun RunningStage(
                 }
             }
         }
+        TextButton(
+            onClick = { onVoiceCuesChange(!voiceCues) },
+            modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = if (voiceCues) "Voice coach on, tap to mute" else "Voice coach muted, tap to turn on" },
+        ) { Text(if (voiceCues) "🔊 Voice coach on" else "🔇 Voice coach muted", color = if (voiceCues) accent else MfColors.OnNightMuted) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
             RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = Color(0xFFFF6B6B))
             RoundAction(
@@ -396,13 +411,13 @@ private fun SummaryStage(
     }
 }
 
-/** Boxing form cue overlay. Always labelled experimental; never certifies technique. */
+/** Live coaching card over the camera (squat and boxing checks). Always labelled experimental; never certifies technique. */
 @Composable
-private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifier = Modifier) {
-    val (color, text) = when (form) {
-        is FormFeedback.NotAssessing -> MfColors.OnNightMuted to "Form check paused — keep your whole body, hands and feet in view."
-        is FormFeedback.Steady -> MfColors.SignalOnNight to "No adjustment cues right now."
-        is FormFeedback.Cue -> MfColors.CautionOnNight to form.issue.message
+private fun CoachingCard(c: LiveCoaching, modifier: Modifier = Modifier) {
+    val color = when (c.tone) {
+        CoachTone.PAUSED, CoachTone.NEUTRAL -> MfColors.OnNightMuted
+        CoachTone.GOOD -> MfColors.SignalOnNight
+        CoachTone.ADJUST -> MfColors.CautionOnNight
     }
     androidx.compose.material3.Surface(
         modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
@@ -411,27 +426,8 @@ private fun FormCueCard(form: FormFeedback, drill: BoxingDrill, modifier: Modifi
         border = androidx.compose.foundation.BorderStroke(1.dp, color),
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-            Eyebrow(if (drill == BoxingDrill.JAB) "Form check (experimental), ${form.jabs} jabs" else "Form check (experimental)", color = color)
-            Text(text, style = MaterialTheme.typography.bodyMedium, color = MfColors.OnNight)
-        }
-    }
-}
-
-@Composable
-private fun PlanStepCard(step: SessionStep.Work, coach: Coach, accent: Color) {
-    Column(
-        Modifier
-            .width(116.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(5.dp),
-    ) {
-        Box(Modifier.fillMaxWidth().height(132.dp).clip(RoundedCornerShape(15.dp)).background(accent.copy(alpha = 0.10f))) {
-            CoachArt(coach.lessonArt(step.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp))
-        }
-        Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-            Text(step.name, style = MaterialTheme.typography.labelLarge, maxLines = 2)
-            Text("${step.durationSeconds} s", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Eyebrow(c.title, color = color)
+            Text(c.message, style = MaterialTheme.typography.bodyMedium, color = MfColors.OnNight)
         }
     }
 }

@@ -17,9 +17,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import eu.motionforge.app.feature.session.SessionSnapshot
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -99,6 +101,7 @@ fun MotionForgeApp(
         CatalogViewModel(container.exercises, container.preferences)
     }
     val catalog by catalogViewModel.catalog.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     val filter by catalogViewModel.filter.collectAsStateWithLifecycle()
 
     val history by container.sessions.history.collectAsStateWithLifecycle(initialValue = null)
@@ -226,12 +229,17 @@ fun MotionForgeApp(
                     val sessionViewModel: SessionViewModel = viewModel(key = "session-$planArg") {
                         // Android may have closed the app mid-workout and reopened this screen: carry on from disk.
                         val restored = container.activeSession.read()?.takeIf { it.planKey == planArg }
-                        SessionViewModel(plan, container.sessions, container.activeSession, planArg, restored)
+                        SessionViewModel(
+                            plan, container.sessions, container.activeSession, planArg, restored,
+                            tips = ready.exercises.associate { it.id to it.commonCues },
+                        )
                     }
                     SessionScreen(
                         viewModel = sessionViewModel,
                         exercisesById = ready.exercises.associateBy { it.id },
                         coach = preferences.coach,
+                        voiceCues = preferences.voiceCues,
+                        onVoiceCuesChange = { on -> scope.launch { container.preferences.setVoiceCues(on) } },
                         onClose = { navController.popBackStack() },
                         onOpenProgress = {
                             navController.popBackStack()

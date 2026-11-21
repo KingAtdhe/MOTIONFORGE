@@ -2,7 +2,10 @@ package eu.motionforge.app.feature.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import eu.motionforge.app.core.coaching.Utterance
+import eu.motionforge.app.core.coaching.VoiceCoach
 import eu.motionforge.app.core.movement.BoxingFormMonitor
+import eu.motionforge.app.core.movement.SquatEvent
 import eu.motionforge.app.core.movement.FormFeedback
 import eu.motionforge.app.core.movement.SquatRepCounter
 import eu.motionforge.app.core.pose.PoseOutput
@@ -14,7 +17,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
@@ -26,6 +32,8 @@ enum class SaveState { IDLE, SAVING, SAVED, FAILED }
 /**
  * @param restored an unfinished session for the same [planKey] read back from [store] (Android closed the app
  *   mid-workout); it continues paused, with everything done so far kept.
+ * @param tips each lesson's written cues by exercise id, read out by the voice coach on steps without camera feedback.
+ * @param clock milliseconds for pacing the voice coach (monotonic in the app).
  */
 class SessionViewModel(
     plan: SessionPlan,
@@ -33,6 +41,8 @@ class SessionViewModel(
     private val store: ActiveSessionStore,
     private val planKey: String,
     restored: SessionSnapshot? = null,
+    private val tips: Map<String, List<String>> = emptyMap(),
+    private val clock: () -> Long = { android.os.SystemClock.elapsedRealtime() },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -51,6 +61,18 @@ class SessionViewModel(
     /** Boxing form cues for the current step (null when the step has no form check). */
     val form: StateFlow<FormFeedback?> = _form.asStateFlow()
     private var formMonitor: BoxingFormMonitor? = null
+
+    private val _coaching = MutableStateFlow<LiveCoaching?>(null)
+    /** The coaching card for the current camera step (squat or boxing checks), or null. */
+    val coaching: StateFlow<LiveCoaching?> = _coaching.asStateFlow()
+
+    private val voice = VoiceCoach()
+    private val _speech = MutableSharedFlow<Utterance>(extraBufferCapacity = 8)
+    /** Lines for the text-to-speech engine; the screen speaks them when voice cues are on. */
+    val speech: SharedFlow<Utterance> = _speech.asSharedFlow()
+    private var lastSquatEvent: SquatEvent? = null
+    private var steadySinceMs = -1L
+    private var stancePraised = false
     private var startedAtMillis = restored?.startedAtMillis ?: 0L
     private var ticker: Job? = null
 
@@ -98,8 +120,15 @@ class SessionViewModel(
         if (after.stepIndex != before.stepIndex || (drill != null && formMonitor == null)) {
             formMonitor = drill?.let { BoxingFormMonitor(it) }
             _form.value = drill?.let { FormFeedback.NotAssessing(0) }
+            lastSquatEvent = null
+            steadySinceMs = -1L
+            stancePraised = false
         }
         if (after.phase != SessionPhase.RUNNING) formMonitor?.reset()
+        refreshCoachingCard(after)
+        val step = after.currentStep
+        val live = after.cameraUsed && step is SessionStep.Work && (step.countsReps || step.formDrill != null)
+        SessionNarrator.onTransition(before, after, tips, live).forEach(::say)
         if (after.phase != SessionPhase.READY && after != before && toPersist.value != Disk.Forget) toPersist.value = Disk.Keep(after)
         syncTicker(after.phase)
     }
@@ -130,16 +159,54 @@ class SessionViewModel(
         val step = s.currentStep
         if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps && output is PoseOutput.Detected) {
             val before = repCounter.repetitions
-            repCounter.update(output.frame, tracking = trackingState.allowsFeedback)
+            val update = repCounter.update(output.frame, tracking = trackingState.allowsFeedback)
+            update.event?.let { ev ->
+                lastSquatEvent = ev
+                say(SessionNarrator.squatLine(ev))
+            }
             if (repCounter.repetitions > before) onEvent(SessionEvent.RepCounted)
         }
         val monitor = formMonitor
         if (monitor != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.formDrill != null) {
-            _form.value = when (output) {
+            val previous = _form.value
+            val now = when (output) {
                 is PoseOutput.Detected -> monitor.update(output.frame, tracking = trackingState.allowsFeedback)
                 else -> FormFeedback.NotAssessing(monitor.jabs)
             }
+            _form.value = now
+            SessionNarrator.formLine(previous, now)?.let(::say)
+            monitor.drainJabs().forEach { r -> SessionNarrator.jabLine(r)?.let(::say) }
+            // a steady, cue-free stance for a few seconds earns one spoken confirmation per step
+            val t = clock()
+            if (now is FormFeedback.Steady) {
+                if (steadySinceMs < 0) steadySinceMs = t
+                if (step.formDrill == eu.motionforge.app.core.movement.BoxingDrill.STANCE && !stancePraised &&
+                    t - steadySinceMs >= SessionNarrator.STANCE_PRAISE_AFTER_MS
+                ) {
+                    stancePraised = true
+                    say(CoachLine(SessionNarrator.STANCE_PRAISE, eu.motionforge.app.core.coaching.CuePriority.PRAISE))
+                }
+            } else {
+                steadySinceMs = -1L
+                if (now is FormFeedback.Cue) stancePraised = false
+            }
         }
+        refreshCoachingCard(s)
+    }
+
+    private fun refreshCoachingCard(s: SessionState) {
+        val step = s.currentStep as? SessionStep.Work
+        val drill = step?.formDrill
+        _coaching.value = when {
+            step == null || !s.cameraUsed -> null
+            drill != null -> _form.value?.let { SessionNarrator.boxingCard(it, drill, formMonitor?.goodJabs ?: 0) }
+            step.countsReps -> SessionNarrator.squatCard(lastSquatEvent, _tracking.value.allowsFeedback)
+            else -> null
+        }
+    }
+
+    private fun say(line: CoachLine) {
+        voice.offer(line.text, line.priority, clock())?.let { _speech.tryEmit(it) }
     }
 
     fun onCameraHidden() {
@@ -148,6 +215,7 @@ class SessionViewModel(
         formMonitor?.reset()
         if (_form.value != null) _form.value = FormFeedback.NotAssessing(formMonitor?.jabs ?: 0)
         _tracking.value = TrackingState.PAUSED
+        refreshCoachingCard(_state.value)
     }
 
     fun saveSession(perceivedEffort: Int?) {
