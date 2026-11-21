@@ -577,3 +577,8 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Push-up: neck closer to neutral (8 deg extension instead of 14).
 - `tools/blender/clip_audit.py` added: prints joint ranges, planted-foot slide and acceleration peaks per clip for an exported GLB.
 - Verified with side renders of both coaches and the audit (planted-foot slide <= 0.3 cm on stationary clips). Device playback still unverified.
+
+## 2026-11-21 — Build clean-up
+- The recording-based clip pipeline (741 lines) moved out of `build_coach_mesh.py` into `tools/blender/legacy_mocap_clips.py`. It runs only with `MF_LEGACY_MOCAP=1`; the normal build goes straight to `authored_clips.py`.
+- Both coaches rebuilt; clip audit values unchanged (squat knees 59-165 deg, jab elbow to 170 deg, march support knee 170 deg). Spec-exact glTF check: squat hips 0.89 m -> 0.43 m with the feet fixed.
+- The legacy path itself was not re-run after the move.
