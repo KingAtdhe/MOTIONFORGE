@@ -607,6 +607,25 @@ for clip, (take, f0, f1, loops, settle) in MOCAP.items():
     print("mocap", clip, take, f0, f1)
 
 
+def _dbg(tag):
+    if not os.environ.get("MF_DEBUG"):
+        return
+    for cn in ("squat_down", "hip_hinge_down"):
+        a_ = bpy.data.actions.get(cn)
+        if a_ is None:
+            continue
+        arm.animation_data.action = a_
+        o = []
+        for f in (int(a_.frame_range[0]), int(a_.frame_range[1])):
+            sc.frame_set(f)
+            o.append((round(arm.pose.bones["hips"].head.z, 3), round(arm.pose.bones["foot_L"].head.z, 3)))
+        arm.animation_data.action = None
+        print("DBG", tag, cn, "hips/foot z first,last", o)
+
+
+_dbg("retarget")
+
+
 def soften(act, keep, ref):
     from mathutils import Quaternion  # noqa: F401
     arm.animation_data.action = act
@@ -947,6 +966,7 @@ for act in list(bpy.data.actions):
     if not act.name.startswith("pushup_"):
         foot_lock(act, planted=act.name in ("boxing_stance", "idle_neutral"), pin_start=act.name.startswith(("squat_", "hip_hinge_")))  # footwork: planted-foot detection pins each landing
 print("foot lock done")
+_dbg("footlock")
 
 
 # ---- guard height: the boxing takes drop the non-punching hand to chest height between punches; a beginner lesson
@@ -1014,6 +1034,7 @@ _guard = guard_targets(bpy.data.actions["boxing_stance"])
 for clip in ("boxing_stance", "boxing_jab", "boxing_cross"):
     guard_fix(bpy.data.actions[clip], _guard)
 print("guard fix done")
+_dbg("guard")
 
 # squat: the recorded performer holds her clasped hands at her chin, which reads as a boxing guard on the coach.
 # Same two-bone fix, hands lowered to the middle of the chest (clasped in front, the usual teaching position).
@@ -1173,6 +1194,7 @@ def _blend_ends(act, at_start, span=0.35):
         hb.keyframe_insert("rotation_quaternion", frame=a_ + i); hb.keyframe_insert("location", frame=a_ + i)
     arm.animation_data.action = None
 print("pose clean-up done")
+_dbg("cleanup")
 
 
 # ---- recorded upper body for the two drills that have no clean recording of their own
@@ -1278,9 +1300,10 @@ for _fw in ("footwork_forward", "footwork_backward"):
     _write(_fw, _n, _footwork)
     guard_fix(bpy.data.actions[_fw], _guard)        # the drill crouches deeper than the stance: keep fists at the chin
 print("recorded upper body on guard_return / footwork")
+_dbg("upper")
 
 # ---- hands: closed fist in every boxing clip, relaxed elsewhere, open and flat for the push-up
-GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0}  # everything else: relaxed hands (below)
+GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5}  # everything else: relaxed hands (below)
 
 
 def key_grip(act, amount):
@@ -1298,6 +1321,11 @@ def key_grip(act, amount):
                 pb.keyframe_insert("rotation_quaternion", frame=f)
 
 
+# ---- demonstration clips: authored from biomechanical rules (tools/blender/authored_clips.py). The recorded takes above
+#      stay available for comparison with MF_LEGACY_MOCAP=1.
+if not os.environ.get("MF_LEGACY_MOCAP"):
+    import authored_clips as ac  # noqa: E402
+    ac.build_all(arm, HEIGHT, NAME)
 for act in bpy.data.actions:
     amt = next((v for k, v in GRIP.items() if act.name.startswith(k)), 0.22)
     key_grip(act, amt)
@@ -1307,7 +1335,8 @@ arm.animation_data.action = None
 foot_vs = np.array([vv.index for vv in lo.data.vertices if vv.co.z < 0.13 * H])
 ground_rest = float(min(lo.data.vertices[i].co.z for i in foot_vs))
 hips_pb = arm.pose.bones["hips"]
-for act in bpy.data.actions:
+# (rigged coaches: the stand-in mesh's feet do not follow the feet reliably, so the floor is fixed on the real mesh after the transfer)
+for act in ([] if RIGGED else bpy.data.actions):
     arm.animation_data.action = act
     a_, b_ = [int(x) for x in act.frame_range]
     fc = [c for c in act.fcurves if c.data_path == 'pose.bones["hips"].location'] if hasattr(act, "fcurves") else []
@@ -1341,6 +1370,7 @@ if RIGGED:
     if "--fix-shorts" in args:
         rc.fix_shorts(mx_mesh, mx_arm)
     rc.prepare_textures(mx_mesh)
+    rc.floor_contact(mx_arm, mx_mesh, sc, names)
     print("transferred", len(names), "clips to the rigged coach")
 
 # ---------------------------------------------------------------- save + export

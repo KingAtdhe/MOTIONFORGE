@@ -548,3 +548,25 @@ Both GLBs: 0 validator errors, 30k tris, 9 clips.
 - Hip hinge: the lowering now starts from, and the rising ends in, a tall standing pose (the recording never stood fully up); back kept flat, arms hang.
 - Squat: arms reach forward at shoulder height as a counterbalance instead of hands clasped at the chest with flared elbows.
 - Both coaches rebuilt sequentially; thumbnails re-rendered. Checked with Blender timeline renders (front and side). Not yet checked on a device.
+
+## 2026-11-21 — Coach animation refinement: root-motion bug fixed, all 14 clips re-authored
+**Audit (tools: per-clip joint/foot metrics on the exported GLB, edge-stretch audit, front/side/three-quarter renders).**
+- Root cause of the "weird" squat: the floor-contact pass measured the stand-in mesh, whose feet do not follow the rig on the Tripo coaches. It cancelled the hips' vertical motion, so in the shipped GLB the hips stayed still and the feet rose 41 cm (and the hinge sank 23 cm into the floor). Confirmed with a spec-exact glTF evaluation.
+- The recorded takes themselves were not demonstration quality: jab elbow never past 114 deg, hinge knees at 127 deg with heels lifting, push-up elbows uneven (62-171 vs 82-180), march foot sliding 23-55 cm, head pitched 40 deg down in squat and march.
+
+**Changes.**
+- `rigged_coach.floor_contact`: floor contact is now measured on the real skinned mesh after the transfer. Largest correction is now 1-3 mm.
+- `tools/blender/authored_clips.py` (new): every clip is built from explicit biomechanical rules with IK (planted feet pinned at the ball, knees over toes, neutral spine, slower lowering than rising, holds at top and bottom, each rep ends in its start pose). Recorded takes remain available with `MF_LEGACY_MOCAP=1`.
+  - Squat: shoulder-width, toes 20 deg out, thighs to parallel, shins ~33 deg, torso ~40 deg, arms rise as counterbalance. 2.0 s down, hold, 1.45 s up.
+  - Hip hinge: hips travel back, shins vertical, knees soft (~22 deg), flat back to ~64 deg, neck in line, hands track the legs.
+  - Push-up: straight plank pivoting on the balls of the feet, hands planted slightly wider than shoulders (palms 3-8 mm above the floor in the final mesh), elbows ~45 deg, 170 deg at the top, shoulder blades spread/retract.
+  - March: pinned stance foot, weight shift over the standing leg, opposite arm swing, chest counter-rotation.
+  - Idle: weight shift, breathing, relaxed arms; seamless 4 s loop.
+  - Boxing (orthodox): one shared stance for stance / jab / cross / guard return / footwork; full straight-line extension with shoulder cover, rear-foot pivot and hip rotation on the cross; push-step footwork.
+- `rigged_coach.transfer`: toes stay flat on the floor when the heel is raised.
+- App: `DemoSequence` plays a footwork step with its return step so the drill loops without a position jump (unit test added).
+- The two coaches share technique; stance width, tempo (+4 %), arm carriage and sway differ slightly with build.
+
+**Verified in Blender on the exported GLBs:** planted-foot slide 0.0-0.3 cm on all stationary clips, worst edge stretch < 0.8 %, no IK over-reach, down/up pairs meet exactly.
+**Not verified:** on-device playback in Filament (no device/emulator here). Clips remain `draft_pending_coach_review`.
+**Known issues:** the legacy mocap pipeline still runs before being replaced (build-time cost only); remove in a separate clean-up.

@@ -55,6 +55,7 @@ object DemoSequence {
     /**
      * - Unknown or missing clip → empty (the UI shows its written fallback instead of a wrong demo).
      * - A "<move>_down" clip with a matching "<move>_up" plays both, so a repetition is complete.
+     * - A footwork step plays with its return step, so the drill loops from where it began.
      * - Anything else plays on its own.
      */
     fun resolve(demoAnimation: String?, available: Set<String>): List<String> {
@@ -63,8 +64,15 @@ object DemoSequence {
             val up = demoAnimation.removeSuffix("_down") + "_up"
             if (up in available) return listOf(demoAnimation, up)
         }
+        // A push-step drill steps in and then back out, so the coach ends where it started and the loop has no jump.
+        PAIRED_RETURN[demoAnimation]?.let { back -> if (back in available) return listOf(demoAnimation, back) }
         return listOf(demoAnimation)
     }
+
+    private val PAIRED_RETURN = mapOf(
+        "footwork_forward" to "footwork_backward",
+        "footwork_backward" to "footwork_forward",
+    )
 
     /** Short human label for the movement phase a clip shows. */
     fun phaseLabel(clip: String): String = when {

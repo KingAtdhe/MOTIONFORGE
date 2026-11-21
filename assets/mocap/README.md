@@ -55,3 +55,7 @@ Checked and not used: 22_14 / 23_14 / 13_30 / 14_14 squats (all go to full depth
 squat stays from video), 14_06 (the "stretch" there is an overhead side bend, not a hip hinge), 14_20 / 13_31 "bend
 over" (toe touches), 20_06 soldiers march (walks forward; the warm-up is on the spot), 17_10 / 79_08 / 80_10 / 13_17
 (big lunging steps or standing still). CMU has no push-up.
+
+## Status (2026-11-21)
+The shipped coach clips are no longer retargeted from these takes. They are authored from biomechanical rules in
+`tools/blender/authored_clips.py`. The takes are kept for reference and can still be built with `MF_LEGACY_MOCAP=1`.

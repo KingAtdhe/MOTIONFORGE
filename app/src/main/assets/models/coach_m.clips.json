@@ -5,72 +5,72 @@
   "clips": [
     {
       "name": "warmup_march",
-      "durationSeconds": 6.033,
+      "durationSeconds": 2.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "hip_hinge_down",
-      "durationSeconds": 1.8,
+      "durationSeconds": 2.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "hip_hinge_up",
-      "durationSeconds": 1.6,
+      "durationSeconds": 2.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "idle_neutral",
-      "durationSeconds": 3.0,
+      "durationSeconds": 4.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_down",
-      "durationSeconds": 1.467,
+      "durationSeconds": 2.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_up",
-      "durationSeconds": 1.267,
+      "durationSeconds": 2.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_stance",
-      "durationSeconds": 0.967,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab",
-      "durationSeconds": 1.0,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross",
-      "durationSeconds": 1.0,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_guard_return",
-      "durationSeconds": 1.4,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_forward",
-      "durationSeconds": 1.433,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_backward",
-      "durationSeconds": 1.433,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "pushup_down",
-      "durationSeconds": 1.433,
+      "durationSeconds": 2.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "pushup_up",
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.8,
       "reviewStatus": "draft_pending_coach_review"
     }
   ]

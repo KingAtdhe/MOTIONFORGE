@@ -6,6 +6,7 @@ from this skeleton's own joint positions (joints()), so both rest poses match; t
 onto the Mixamo bones: every bone takes the world-space rotation change of its MOTIONFORGE counterpart, limbs are
 re-aimed at the posed MOTIONFORGE limb so directions match exactly, and the hips carry the root motion.
 """
+import math
 import bpy
 from mathutils import Matrix, Vector
 
@@ -156,6 +157,19 @@ def transfer(src_arm, dst_arm, act, scene, name):
                         want = (Vector(ps[src[0]].col[1][:3]).normalized() + want).normalized()
                     cur = Vector(R.col[1]).normalized()
                     R = cur.rotation_difference(want).to_matrix() @ R
+                if bn.name.endswith("ToeBase"):
+                    # toes stay flat on the floor while the heel is raised (they bend at the ball instead of pointing down)
+                    fb = src_arm.data.bones[src]
+                    ball_z = (ps[src].translation + Vector(ps[src].col[1][:3]).normalized() * fb.length).z
+                    w = max(0.0, min(1.0, 1.0 - (ball_z - fb.tail_local.z) / 0.035))
+                    D = delta(src)
+                    fw_ = D @ Vector((0, -1, 0))
+                    flat = Matrix.Rotation(math.atan2(fw_.x, -fw_.y), 3, "Z")
+                    if fw_.z < 0 and w > 0:
+                        qd, qf_ = D.to_quaternion(), flat.to_quaternion()
+                        if qd.dot(qf_) < 0:
+                            qf_ = -qf_
+                        R = qd.slerp(qf_, w).to_matrix() @ rest_d[bn.name].to_3x3()
                 if bn.parent is None:
                     loc = rest_d[bn.name].translation + (ps["hips"].translation - rest_s["hips"].translation)
                 else:
@@ -448,3 +462,54 @@ def repair_mesh(mesh):
         filled += 1
     bm.to_mesh(me); bm.free(); me.update()
     print(f"mesh repair: removed {len(frags)} fragment(s) ({len(dead)} faces), closed {filled} pinholes")
+
+
+def floor_contact(arm, mesh, scene, names):
+    """Per frame, move the hips vertically so the lowest point of the shoes rests on the floor (z = rest-pose sole height).
+    Measured on the real skinned mesh, so squats lower the body instead of lifting the feet."""
+    import numpy as np
+    gi = {g.index: g.name for g in mesh.vertex_groups}
+    feet = []
+    for v in mesh.data.vertices:
+        w = sum(g.weight for g in v.groups if any(k in gi[g.group] for k in ("Foot", "ToeBase", "Toe_End")))
+        if w > 0.6:
+            feet.append(v.index)
+    feet = np.array(feet)
+    co = np.empty(len(mesh.data.vertices) * 3, np.float32)
+    mesh.data.vertices.foreach_get("co", co)
+    ground = float(co.reshape(-1, 3)[feet, 2].min())
+    hips = next(pb for pb in arm.pose.bones if pb.parent is None)
+    rest_inv = arm.data.bones[hips.name].matrix_local.to_3x3().inverted()
+    worst = 0.0
+    for n in names:
+        act = bpy.data.actions[n]
+        arm.animation_data.action = act
+        a, b = [int(x) for x in act.frame_range]
+        dzs = []
+        for f in range(a, b + 1):
+            scene.frame_set(f)
+            dg = bpy.context.evaluated_depsgraph_get()
+            ev = mesh.evaluated_get(dg)
+            m2 = ev.to_mesh()
+            m2.vertices.foreach_get("co", co)
+            ev.to_mesh_clear()
+            dzs.append(ground - float(co.reshape(-1, 3)[feet, 2].min()))
+        for f, dz in zip(range(a, b + 1), dzs):
+            scene.frame_set(f)
+            hips.location = hips.location + rest_inv @ Vector((0, 0, dz))
+            hips.keyframe_insert("location", frame=f)
+        worst = max(worst, max(abs(d) for d in dzs))
+        if n.startswith("pushup_"):
+            hands = np.array([v.index for v in mesh.data.vertices if sum(g.weight for g in v.groups if "Hand" in gi[g.group]) > 0.6])
+            gaps = []
+            for f in (a, b):
+                scene.frame_set(f)
+                dg = bpy.context.evaluated_depsgraph_get()
+                ev = mesh.evaluated_get(dg)
+                m2 = ev.to_mesh()
+                m2.vertices.foreach_get("co", co)
+                ev.to_mesh_clear()
+                gaps.append(round(float(co.reshape(-1, 3)[hands, 2].min()) - ground, 3))
+            print("  ", n, "palm height above the floor at first / last frame:", gaps)
+    arm.animation_data.action = None
+    print("floor contact on the rigged mesh: feet verts", len(feet), "largest correction", round(worst, 3), "m")

@@ -87,6 +87,13 @@ class DemoClipsTest {
     }
 
     @Test
+    fun `a footwork step plays with its return step so the drill loops in place`() {
+        assertEquals(listOf("footwork_forward", "footwork_backward"), DemoSequence.resolve("footwork_forward", requiredClips))
+        assertEquals(listOf("footwork_backward", "footwork_forward"), DemoSequence.resolve("footwork_backward", requiredClips))
+        assertEquals(listOf("footwork_forward"), DemoSequence.resolve("footwork_forward", setOf("footwork_forward")))
+    }
+
+    @Test
     fun missingClipGivesEmptySequence() {
         assertEquals(emptyList<String>(), DemoSequence.resolve("not_a_clip_down", requiredClips))
         assertEquals(emptyList<String>(), DemoSequence.resolve(null, requiredClips))
