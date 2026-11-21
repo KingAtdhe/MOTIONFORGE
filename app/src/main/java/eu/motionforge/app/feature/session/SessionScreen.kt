@@ -114,7 +114,7 @@ fun SessionScreen(
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
             // the workout runs on the dark scheme: camera and coach stand out, less glare mid-exercise
-            val window = (LocalContext.current as? android.app.Activity)?.window
+            val window = androidx.activity.compose.LocalActivity.current?.window
             DisposableEffect(window) {
                 val ctl = window?.let { androidx.core.view.WindowCompat.getInsetsController(it, it.decorView) }
                 ctl?.isAppearanceLightStatusBars = false
