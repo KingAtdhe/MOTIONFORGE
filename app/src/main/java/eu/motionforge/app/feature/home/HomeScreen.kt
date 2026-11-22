@@ -2,9 +2,6 @@ package eu.motionforge.app.feature.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import eu.motionforge.app.core.design.stageBrush
-import eu.motionforge.app.core.design.StageFloor
-import eu.motionforge.app.core.design.KindMark
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -49,6 +46,16 @@ import eu.motionforge.app.core.design.LessonTile
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.SectionHeader
+import eu.motionforge.app.core.design.HeavyRule
+import eu.motionforge.app.core.design.ThinRule
+import eu.motionforge.app.core.design.LessonRow
+import eu.motionforge.app.core.design.MfType
+import eu.motionforge.app.core.design.PrimaryButton
+import eu.motionforge.app.core.design.StageFloor
+import eu.motionforge.app.core.design.onAccent
+import eu.motionforge.app.core.design.formatClock
+import androidx.compose.ui.text.font.FontWeight
+import java.time.format.DateTimeFormatter
 import eu.motionforge.app.core.design.accent
 import eu.motionforge.app.core.design.formatLength
 import eu.motionforge.app.core.model.Coach
@@ -83,33 +90,30 @@ fun HomeScreen(
     trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
 ) {
     val coach = preferences.coach
+    val side = Modifier.padding(horizontal = 20.dp)
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+            .padding(bottom = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        val side = Modifier.padding(horizontal = 20.dp)
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp)) {
-            val hour = remember { LocalTime.now().hour }
+        // masthead: the date, set like the top line of a printed programme
+        Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp), verticalAlignment = Alignment.Bottom) {
+            val today = remember { LocalDate.now() }
             Text(
-                when (hour) {
-                    in 5..11 -> "Good morning"
-                    in 12..17 -> "Good afternoon"
-                    else -> "Good evening"
-                },
+                today.format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())),
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
             )
-            Text("Ready to move?", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
+            Text("MOTIONFORGE", style = MaterialTheme.typography.labelLarge.copy(fontFamily = eu.motionforge.app.core.design.DisplayFont, fontWeight = FontWeight.Black))
         }
 
         if (unfinished != null) Box(side) { UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished) }
 
         when (catalog) {
             CatalogUiState.Loading -> Row(side, verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(strokeWidth = 2.dp)
+                CircularProgressIndicator(strokeWidth = 2.dp, color = MfColors.Ink)
                 Spacer(Modifier.width(12.dp))
                 Text("Loading lessons…")
             }
@@ -122,127 +126,177 @@ fun HomeScreen(
                 val exercises = catalog.exercises
                 val quick = SessionPlanner.quick(exercises, preferences.focus)
                 if (quick != null) {
-                    TodayStage(quick, coach, onStartQuickSession)
+                    TodayField(quick, coach, onStartQuickSession)
+                    Programme(quick, side)
+                    Box(side) { PrimaryButton("Start session", onClick = onStartQuickSession, trailing = formatClock(quick.totalSeconds)) }
                 } else {
                     Panel(side) { Text("No lessons are available in this build.") }
                 }
 
                 Box(side) { WeekStrip(trainedDaysThisWeek, sessionsThisWeek) }
 
-                val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
-                val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
-                val picks = listOfNotNull(lastViewed?.let { "Continue" to it }, suggestion?.takeIf { it != lastViewed }?.let { "Suggested" to it })
-                if (picks.isNotEmpty()) {
-                    Box(side) { SectionHeader("For you") }
-                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        picks.forEach { (label, ex) -> HomeTile(ex, coach, onOpenLesson, label) }
+                Box(side) { SectionHeader("Lessons") }
+                Row(side, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    TrainingCategory.entries.forEach { category ->
+                        val inCategory = exercises.filter { it.category == category }
+                        if (inCategory.isNotEmpty()) {
+                            CategoryField(category, inCategory, coach, Modifier.weight(1f)) { onOpenCategory(category) }
+                        }
                     }
                 }
 
-                TrainingCategory.entries.forEach { category ->
-                    val inCategory = exercises.filter { it.category == category }
-                    if (inCategory.isNotEmpty()) {
-                        Box(side) { SectionHeader(category.displayName, trailing = "See all", onTrailing = { onOpenCategory(category) }) }
-                        Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            inCategory.forEach { HomeTile(it, coach, onOpenLesson) }
+                val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
+                val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
+                val picks = listOfNotNull(
+                    lastViewed?.let { "Pick up where you left off" to it },
+                    suggestion?.takeIf { it != lastViewed }?.let { "Suggested for your goal" to it },
+                )
+                if (picks.isNotEmpty()) {
+                    Column(side) {
+                        SectionHeader("For you")
+                        Spacer(Modifier.height(6.dp))
+                        picks.forEachIndexed { i, (note, ex) ->
+                            if (i > 0) ThinRule()
+                            LessonRow(ex.name, note, formatClock(ex.durationSeconds), ex.category.accent, coach.lessonArt(ex.id), { onOpenLesson(ex.id) })
                         }
                     }
                 }
             }
         }
 
-        Panel(side) {
-            Eyebrow("Train safely", color = MfColors.Caution)
+        Column(side.padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            ThinRule()
+            Text("Train safely", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
             Text(
                 "Train in clear space, at your own pace. Stop if you feel pain, dizziness or unusual discomfort. " +
                     "MOTIONFORGE does not replace a qualified trainer or instructor.",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.height(8.dp))
     }
 }
 
 /**
- * The signature block: today's session as an edge-to-edge studio shot of the coach, with the session's name set large in
- * the extra-wide face across the lower part of the picture, like a training poster. One tap starts it.
+ * The signature block: today's session as a full-width field of its colour, the length in huge narrow numerals, the
+ * coach standing in the field and the session's name in the wide face. Tapping anywhere starts it.
  */
 @Composable
-private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
-    val accent = plan.type.accent
+private fun TodayField(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
+    val field = plan.type.accent
+    val on = plan.type.onAccent
     val minutes = (plan.totalSeconds + 30) / 60
     val moves = plan.steps.filterIsInstance<SessionStep.Work>()
     Box(
         Modifier
             .fillMaxWidth()
-            .height(480.dp)
-            .background(stageBrush(accent))
+            .height(470.dp)
+            .background(field)
             .clickable(onClick = onStart)
             .semantics {
                 role = Role.Button
                 contentDescription = "Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves"
             },
     ) {
-        StageFloor(accent, Modifier.align(Alignment.BottomCenter).padding(bottom = 150.dp))
-        CoachArt(coach.heroArt, Modifier.align(Alignment.TopEnd).fillMaxHeight(0.86f).width(250.dp).padding(top = 16.dp, end = 8.dp))
-        // the type sits over the coach's legs; a short fade keeps it readable without boxing it in
-        Box(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(230.dp)
-                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.72f)))),
+        StageFloor(field, Modifier.align(Alignment.BottomEnd).width(240.dp).padding(bottom = 4.dp))
+        CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.9f).width(230.dp).padding(end = 4.dp, bottom = 6.dp))
+        Column(Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 18.dp)) {
+            Text("Today", style = MaterialTheme.typography.titleMedium, color = on)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text("$minutes", style = MfType.NumeralHuge, color = on)
+                Text(
+                    "min",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = on,
+                    modifier = Modifier.padding(start = 6.dp, bottom = 18.dp),
+                )
+            }
+            Text("${moves.size} moves", style = MaterialTheme.typography.titleMedium, color = on)
+        }
+        Text(
+            plan.title,
+            style = MaterialTheme.typography.displaySmall,
+            color = on,
+            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth(0.62f).padding(start = 20.dp, bottom = 22.dp),
         )
-        Column(Modifier.align(Alignment.BottomStart).padding(start = 20.dp, end = 20.dp, bottom = 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Today", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.72f))
-            Text(plan.title, style = MaterialTheme.typography.displayMedium, color = Color.White)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                KindMark(accent)
-                Spacer(Modifier.width(8.dp))
-                Text("$minutes min, ${moves.size} moves", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f))
-                Spacer(Modifier.weight(1f))
-                Surface(shape = RoundedCornerShape(50), color = Color.White) {
-                    Text("Start session", Modifier.padding(horizontal = 20.dp, vertical = 12.dp), style = MaterialTheme.typography.titleSmall, color = Color.Black)
-                }
+    }
+}
+
+/** Today's moves as numbered lines with their times, like a workout card. */
+@Composable
+private fun Programme(plan: SessionPlan, modifier: Modifier) {
+    val work = plan.steps.filterIsInstance<SessionStep.Work>()
+    Column(modifier) {
+        work.forEachIndexed { i, step ->
+            if (i > 0) ThinRule()
+            Row(Modifier.padding(vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("${i + 1}", style = MfType.NumeralSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(36.dp))
+                Text(step.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(formatClock(step.durationSeconds), style = MaterialTheme.typography.titleSmall)
             }
         }
     }
 }
 
-/** Mon–Sun with the days you trained filled in. Labelled per day, so it's not colour-only; no streak counter. */
+/** A category as a tall field of its colour with the coach mid-move; opens the lesson list. */
+@Composable
+private fun CategoryField(category: TrainingCategory, lessons: List<Exercise>, coach: Coach, modifier: Modifier, onClick: () -> Unit) {
+    val on = category.onAccent
+    val art = when (category) {
+        TrainingCategory.FITNESS -> lessons.firstOrNull { it.id.contains("squat") } ?: lessons.first()
+        TrainingCategory.FIGHTING_FUNDAMENTALS -> lessons.firstOrNull { it.id.contains("cross") } ?: lessons.first()
+    }
+    Box(
+        modifier
+            .height(250.dp)
+            .background(category.accent)
+            .clickable(onClick = onClick)
+            .semantics { role = Role.Button; contentDescription = "${category.displayName}, ${lessons.size} lessons" },
+    ) {
+        CoachArt(coach.lessonArt(art.id), Modifier.fillMaxSize().padding(top = 56.dp, bottom = 4.dp))
+        Column(Modifier.padding(14.dp)) {
+            Text(if (category == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else category.displayName, style = MaterialTheme.typography.headlineSmall, color = on)
+            Text("${lessons.size} lessons", style = MaterialTheme.typography.labelLarge, color = on)
+        }
+    }
+}
+
+/** Mon–Sun as seven blocks, filled black on days you trained. Labelled per day, so it's not colour-only. */
 @Composable
 private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
     val today = remember { LocalDate.now().dayOfWeek }
-    Surface(color = Color.Transparent, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text("This week", style = MaterialTheme.typography.titleSmall)
-                Text(
-                    when (sessionsThisWeek) {
-                        null -> " "
-                        0 -> "No sessions yet"
-                        1 -> "1 session"
-                        else -> "$sessionsThisWeek sessions"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    Column(Modifier.fillMaxWidth()) {
+        SectionHeader(
+            "This week",
+            trailing = when (sessionsThisWeek) {
+                null -> null
+                0 -> "No sessions yet"
+                1 -> "1 session"
+                else -> "$sessionsThisWeek sessions"
+            },
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             DayOfWeek.values().forEach { d ->
                 val done = d in trained
                 val name = d.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 Column(
-                    Modifier.padding(start = 6.dp).semantics(mergeDescendants = true) { contentDescription = "$name: " + if (done) "trained" else "no session" },
+                    Modifier.weight(1f).semantics(mergeDescendants = true) { contentDescription = "$name: " + if (done) "trained" else "no session" },
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Box(
                         Modifier
-                            .size(18.dp)
-                            .clip(CircleShape)
+                            .fillMaxWidth()
+                            .height(34.dp)
                             .background(if (done) MfColors.Ink else Color.Transparent)
-                            .then(if (!done) Modifier.border(1.5.dp, if (d == today) MfColors.Ink else MfColors.Rule, CircleShape) else Modifier),
+                            .then(if (!done) Modifier.border(if (d == today) 3.dp else 1.dp, if (d == today) MfColors.Ink else MfColors.Rule) else Modifier),
                     )
-                    Text(name.take(1), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        name.take(2),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (d == today) MfColors.Ink else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -253,14 +307,14 @@ private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
 private fun UnfinishedCard(snap: SessionSnapshot, onResume: (SessionSnapshot) -> Unit, onDiscard: () -> Unit) {
     val st = snap.state
     val finished = st.phase == SessionPhase.FINISHED
-    val accent = st.plan.type.accent
     Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(2.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(3.dp, MfColors.Ink),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Eyebrow(if (finished) "Workout not saved yet" else "Unfinished workout", color = accent)
+            Eyebrow(if (finished) "Workout not saved yet" else "Unfinished workout")
             Text(st.plan.title, style = MaterialTheme.typography.headlineSmall)
             Text(
                 if (finished) "You finished it, but the app closed before saving."
@@ -268,24 +322,10 @@ private fun UnfinishedCard(snap: SessionSnapshot, onResume: (SessionSnapshot) ->
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                androidx.compose.material3.Button(onClick = { onResume(snap) }) { Text(if (finished) "Review and save" else "Resume") }
-                OutlinedButton(onClick = onDiscard) { Text("Discard") }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 6.dp)) {
+                androidx.compose.material3.Button(onClick = { onResume(snap) }, shape = RoundedCornerShape(2.dp)) { Text(if (finished) "Review and save" else "Resume") }
+                OutlinedButton(onClick = { onDiscard() }, shape = RoundedCornerShape(2.dp)) { Text("Discard") }
             }
         }
     }
-}
-
-@Composable
-private fun HomeTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit, badge: String? = null) {
-    LessonTile(
-        title = exercise.name,
-        meta = formatLength(exercise.durationSeconds),
-        accent = exercise.category.accent,
-        artPath = coach.lessonArt(exercise.id),
-        onClick = { onOpenLesson(exercise.id) },
-        modifier = Modifier.width(176.dp),
-        artHeight = 220.dp,
-        badge = badge,
-    )
 }

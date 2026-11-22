@@ -88,11 +88,11 @@ fun TrainerDemo(exercise: Exercise) {
 
     when (val a = availability) {
         DemoAvailability.Checking -> Unit
-        DemoAvailability.WrittenOnly -> Panel {
+        DemoAvailability.WrittenOnly -> Panel(Modifier.padding(start = 20.dp, end = 20.dp, top = 56.dp)) {
             Eyebrow("Demonstration")
             Text("This lesson is taught with written steps only.", style = MaterialTheme.typography.bodyMedium)
         }
-        DemoAvailability.NotReady -> Panel {
+        DemoAvailability.NotReady -> Panel(Modifier.padding(start = 20.dp, end = 20.dp, top = 56.dp)) {
             Eyebrow("3D demonstration")
             Text(
                 "The 3D demonstration for this lesson isn't ready yet. Follow the written steps below.",
@@ -118,7 +118,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
 
     val accent = exercise.category.accent
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        CoachStage(exercise.name, accent, Modifier.fillMaxWidth().height(440.dp)) {
+        CoachStage(exercise.name, accent, Modifier.fillMaxWidth().height(460.dp)) {
             GlbModelView(
                 assetPath = manifest.assetPath,
                 playback = playback,
@@ -139,32 +139,27 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     if (clip != null) {
                         val label = DemoSequence.phaseLabel(clip) +
                             if (playback.sequence.size > 1) "  ${playback.currentStep + 1}/${playback.sequence.size}" else ""
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(12.dp)
+                        Text(
+                            label,
+                            Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(16.dp)
                                 .semantics { liveRegion = LiveRegionMode.Polite },
-                            shape = RoundedCornerShape(50),
-                            color = MaterialTheme.colorScheme.surface,
-                        ) {
-                            Text(
-                                label,
-                                Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = accent,
-                            )
-                        }
+                            style = MaterialTheme.typography.titleSmall,
+                            color = eu.motionforge.app.core.design.onField(accent),
+                        )
                     }
                 }
             }
         }
 
-        if (playback.loadState is GlbLoadState.Loaded) {
+        if (playback.loadState is GlbLoadState.Loaded) Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilledIconButton(
                     onClick = { playback.playing = !playback.playing },
                     modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = eu.motionforge.app.core.design.MfColors.OnGold),
+                    shape = RoundedCornerShape(2.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background),
                 ) {
                     if (playback.playing) {
                         Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Pause" })
@@ -172,7 +167,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                         Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
                     }
                 }
-                OutlinedIconButton(onClick = { playback.replay() }, modifier = Modifier.size(52.dp)) {
+                OutlinedIconButton(onClick = { playback.replay() }, modifier = Modifier.size(52.dp), shape = RoundedCornerShape(2.dp), border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.onBackground)) {
                     Icon(Icons.Filled.Refresh, contentDescription = "Replay")
                 }
                 SegmentedPill(
@@ -180,7 +175,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     selectedIndex = speeds.indexOf(playback.speed).coerceAtLeast(0),
                     onSelect = { playback.speed = speeds[it] },
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    accent = MfColors.Ink,
+                    compact = true,
                 )
             }
             SegmentedPill(
@@ -188,7 +183,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                 selectedIndex = ViewAngle.entries.indexOf(playback.viewAngle),
                 onSelect = { playback.viewAngle = ViewAngle.entries[it] },
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
-                accent = accent,
+                compact = true,
             )
             if (reduceMotion && !playback.playing) {
                 Text(
@@ -224,7 +219,7 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
     LaunchedEffect(playback, ready?.sequence) { ready?.let { playback.playSequence(it.sequence) } }
     LaunchedEffect(playback, playing) { playback.playing = playing }
 
-    Box(modifier.clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surface)) {
+    Box(modifier.clip(RoundedCornerShape(2.dp)).background(exercise.category.accent)) {
         val failed = playback.loadState is GlbLoadState.Failed
         if (ready != null && !failed) {
             GlbModelView(

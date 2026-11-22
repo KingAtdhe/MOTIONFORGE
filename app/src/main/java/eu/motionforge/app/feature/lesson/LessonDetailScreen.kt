@@ -85,30 +85,31 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        androidx.compose.material3.IconButton(onClick = onBack) {
-            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
-        TrainerDemo(exercise)
-        Column(Modifier.padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                eu.motionforge.app.core.design.KindMark(exercise.category.accent)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "${exercise.category.displayName}, ${exercise.level.displayName.lowercase()}, ${formatLength(exercise.durationSeconds)}",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Box {
+            TrainerDemo(exercise)
+            androidx.compose.material3.IconButton(onClick = onBack, modifier = Modifier.padding(4.dp)) {
+                androidx.compose.material3.Icon(
+                    androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = eu.motionforge.app.core.design.onField(exercise.category.accent),
                 )
             }
+        }
+        Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(exercise.name, style = MaterialTheme.typography.displaySmall, modifier = Modifier.semantics { heading() })
             Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                "Best seen by the camera from the ${exercise.recommendedView.displayName.lowercase()}.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        }
+        Column {
+            eu.motionforge.app.core.design.HeavyRule()
+            Row(Modifier.padding(top = 10.dp)) {
+                LessonFact(eu.motionforge.app.core.design.formatClock(exercise.durationSeconds), "Length", Modifier.weight(1f))
+                LessonFact(exercise.level.displayName, "Level", Modifier.weight(1f))
+                LessonFact(exercise.recommendedView.displayName, "Camera view", Modifier.weight(1f))
+            }
         }
 
         if (exercise.reviewStatus == ReviewStatus.DRAFT_PENDING_COACH_REVIEW) {
@@ -119,8 +120,10 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             )
         }
 
+        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) }, trailing = eu.motionforge.app.core.design.formatClock(exercise.durationSeconds))
+
         Panel {
-            Eyebrow("Safety", color = MfColors.Caution)
+            Eyebrow("Safety")
             Text(exercise.safety, style = MaterialTheme.typography.bodyMedium)
         }
 
@@ -134,18 +137,15 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             )
         }
 
-        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) })
-
         SectionTitle("How to do it")
         Column {
             exercise.instructions.forEachIndexed { i, step ->
-                androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                if (i > 0) androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Row(Modifier.padding(vertical = 14.dp), verticalAlignment = Alignment.Top) {
-                    Text("${i + 1}", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(44.dp))
+                    Text("${i + 1}", style = eu.motionforge.app.core.design.MfType.NumeralSmall, modifier = Modifier.width(40.dp))
                     Text(step, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 2.dp))
                 }
             }
-            androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         }
 
         if (exercise.commonCues.isNotEmpty()) {
@@ -179,10 +179,19 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        }
+    }
+}
+
+@Composable
+private fun LessonFact(value: String, label: String, modifier: Modifier) {
+    Column(modifier) {
+        Text(value, style = MaterialTheme.typography.titleLarge)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 10.dp).semantics { heading() })
+    eu.motionforge.app.core.design.SectionHeader(text)
 }

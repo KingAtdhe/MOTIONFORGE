@@ -79,8 +79,8 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
             return@ScreenColumn
         }
 
-        Panel {
-            Eyebrow("Last 4 weeks")
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            eu.motionforge.app.core.design.SectionHeader("Last 4 weeks")
             val max = summary.recentWeeks.maxOf { it.sessions }.coerceAtLeast(1)
             val weekFormat = remember { DateTimeFormatter.ofPattern("d MMM") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Bottom) {
@@ -95,7 +95,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                             Modifier
                                 .fillMaxWidth()
                                 .height((8 + 72 * w.sessions / max).dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                
                                 .background(if (w.sessions > 0) MfColors.Ink else MfColors.Rule),
                         )
                         Text(w.weekStart.format(weekFormat), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -105,68 +105,57 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
             Text("${summary.totalSessions} sessions saved in total", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
-        Eyebrow("History")
+        eu.motionforge.app.core.design.SectionHeader("History")
         val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm") }
-        history.forEach { r ->
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.surface,
-            ) {
-                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                    Box(
-                        Modifier
-                            .width(84.dp)
-                            .fillMaxHeight()
-                            .background(eu.motionforge.app.core.design.stageBrush(r.type.accent)),
-                    ) {
-                        r.exercises.firstOrNull()?.let { CoachArt(coach.lessonArt(it.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp)) }
+        Column {
+            history.forEachIndexed { i, r ->
+                if (i > 0) eu.motionforge.app.core.design.ThinRule()
+                Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.width(64.dp).height(80.dp).background(r.type.accent)) {
+                        r.exercises.firstOrNull()?.let { CoachArt(coach.lessonArt(it.exerciseId), Modifier.fillMaxSize().padding(top = 4.dp)) }
                     }
-                    Column(Modifier.padding(14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat))
+                    Column(Modifier.padding(horizontal = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(r.title, style = MaterialTheme.typography.titleLarge)
                         val reps = r.exercises.mapNotNull { it.repetitions }
                         val parts = buildList {
-                            add(formatClock(r.durationSeconds))
                             add("${r.exercises.size} exercise${if (r.exercises.size == 1) "" else "s"}")
                             if (reps.isNotEmpty()) add("${reps.sum()} reps")
                             r.perceivedEffort?.let { add("effort $it/10") }
                             if (!r.completed) add("ended early")
                         }
                         Text(parts.joinToString(", "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(r.exercises.joinToString(", ") { it.name }, style = MaterialTheme.typography.bodyMedium)
                     }
+                    Text(formatClock(r.durationSeconds), style = eu.motionforge.app.core.design.MfType.NumeralSmall)
                 }
             }
         }
     }
 }
 
-/** Mon–Sun row: filled when a session was saved that day. Text label per day, so it's not colour-only. */
+/** Mon–Sun as seven blocks, filled black on days you trained. Text label per day, so it's not colour-only. */
 @Composable
 private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
-    Panel {
-        Eyebrow("This week")
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        eu.motionforge.app.core.design.SectionHeader("This week")
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             DayOfWeek.values().forEach { d ->
                 val done = d in trained
                 val name = d.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.semantics(mergeDescendants = true) {
+                    modifier = Modifier.weight(1f).semantics(mergeDescendants = true) {
                         contentDescription = "$name: " + if (done) "trained" else "no session"
                     },
                 ) {
                     Box(
                         Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(if (done) MfColors.Ink else MfColors.Ground)
-                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Ink, CircleShape) else Modifier),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (done) Text("✓", color = eu.motionforge.app.core.design.MfColors.OnGold, style = MaterialTheme.typography.titleMedium)
-                    }
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .background(if (done) MfColors.Ink else androidx.compose.ui.graphics.Color.Transparent)
+                            .then(if (!done) Modifier.border(if (d == today) 3.dp else 1.dp, if (d == today) MfColors.Ink else MfColors.Rule) else Modifier),
+                    )
                     Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Ink else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

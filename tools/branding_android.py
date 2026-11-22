@@ -16,15 +16,15 @@ def sq(color, named=False):
         {p}
     </group>\n'''
     return '    ' + p + '\n'
-open(f'{R}/drawable/ic_launcher_foreground.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<!-- MOTIONFORGE mark: a heavy extra-wide "M" (Archivo, wdth 125 / wght 900, as outlines) and the chalk-blue square the app\n     uses to mark lessons. Source: assets/branding/icon.svg (tools/branding_icon.py) -->\n' + HDR + m("#FFFFFFFF") + sq("#FF9CC4FF") + '</vector>\n')
+open(f'{R}/drawable/ic_launcher_foreground.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<!-- MOTIONFORGE mark: a heavy extra-wide "M" (Archivo, wdth 125 / wght 900, as outlines) and the chalk-blue square the app\n     uses to mark lessons. Source: assets/branding/icon.svg (tools/branding_icon.py) -->\n' + HDR + m("#FFFFFFFF") + sq("#FFFF5A1F") + '</vector>\n')
 open(f'{R}/drawable/ic_launcher_monochrome.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<!-- Single-colour layer for Android 13+ themed icons -->\n' + HDR + m("#FF000000") + sq("#FF000000") + '</vector>\n')
-open(f'{R}/drawable/ic_launcher_background.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n' + HDR + '    <path android:pathData="M0,0h108v108h-108z" android:fillColor="#FF000000" />\n</vector>\n')
+open(f'{R}/drawable/ic_launcher_background.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n' + HDR + '    <path android:pathData="M0,0h108v108h-108z" android:fillColor="#FF2B3BFF" />\n</vector>\n')
 anim = ('<?xml version="1.0" encoding="utf-8"?>\n'
  '<!-- Launch icon for Android 12+: one moment only — the square lands beside the M (about 0.6 s). -->\n'
  '<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"\n    xmlns:aapt="http://schemas.android.com/aapt">\n'
  '    <aapt:attr name="android:drawable">\n        <vector android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">\n'
  + m("#FFFFFFFF").replace('\n    ', '\n            ').replace('    <group', '            <group', 1)
- + sq("#FF9CC4FF", True).replace('\n    ', '\n            ').replace('    <group', '            <group', 1)
+ + sq("#FFFF5A1F", True).replace('\n    ', '\n            ').replace('    <group', '            <group', 1)
  + '        </vector>\n    </aapt:attr>\n' + '''    <target android:name="dot">
         <aapt:attr name="android:animation">
             <set>

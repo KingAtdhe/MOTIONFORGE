@@ -120,8 +120,8 @@ fun SessionScreen(
                 ctl?.isAppearanceLightStatusBars = false
                 ctl?.isAppearanceLightNavigationBars = false
                 onDispose {
-                    ctl?.isAppearanceLightStatusBars = false     // the whole app is dark now
-                    ctl?.isAppearanceLightNavigationBars = false
+                    ctl?.isAppearanceLightStatusBars = true      // back to the light app chrome
+                    ctl?.isAppearanceLightNavigationBars = true
                 }
             }
             MotionForgeTheme(night = true) {

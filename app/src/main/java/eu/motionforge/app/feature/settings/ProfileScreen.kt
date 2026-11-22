@@ -184,9 +184,8 @@ private fun ProfileSection(title: String, onClick: (() -> Unit)? = null, content
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        Spacer(Modifier.height(10.dp))
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        eu.motionforge.app.core.design.SectionHeader(title)
+        Spacer(Modifier.height(4.dp))
         content()
     }
 }

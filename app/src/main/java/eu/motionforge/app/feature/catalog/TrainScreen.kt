@@ -1,6 +1,12 @@
 package eu.motionforge.app.feature.catalog
 
-import androidx.compose.foundation.horizontalScroll
+import eu.motionforge.app.core.design.LessonRow
+import eu.motionforge.app.core.design.ThinRule
+import eu.motionforge.app.core.design.SectionHeader
+import eu.motionforge.app.core.design.formatClock
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +51,6 @@ fun TrainScreen(
             selectedIndex = categories.indexOf(filter.category),
             onSelect = { onCategory(categories[it]) },
             modifier = Modifier.horizontalScroll(rememberScrollState()),
-            accent = filter.category?.accent ?: MfColors.Ink,
         )
         // length and equipment share one quiet, scrollable row under the category switch
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -85,15 +90,19 @@ fun TrainScreen(
                         OutlinedButton(onClick = onClearFilters) { Text("Clear filters") }
                     }
                     else -> {
-                        Text(
-                            "${visible.size} beginner lesson${if (visible.size == 1) "" else "s"}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        visible.chunked(2).forEach { pair ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                pair.forEach { LessonGridTile(it, coach, onOpenLesson, Modifier.weight(1f)) }
-                                if (pair.size == 1) Spacer(Modifier.weight(1f))
+                        val groups = visible.groupBy { it.category }
+                        groups.forEach { (category, lessons) ->
+                            Column {
+                                SectionHeader(
+                                    if (category == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else category.displayName,
+                                    trailing = "${lessons.size} lesson${if (lessons.size == 1) "" else "s"}",
+                                    trailingColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                lessons.forEachIndexed { i, ex ->
+                                    if (i > 0) ThinRule()
+                                    LessonLine(ex, coach, onOpenLesson)
+                                }
                             }
                         }
                     }
@@ -104,18 +113,18 @@ fun TrainScreen(
 }
 
 @Composable
-private fun LessonGridTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit, modifier: Modifier) {
-    LessonTile(
+private fun LessonLine(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit) {
+    val note = buildList {
+        add(exercise.level.displayName)
+        if (exercise.needsEquipment) add(exercise.equipment.first().substringBefore(" (").replaceFirstChar { it.uppercase() })
+        else add("No equipment")
+    }.joinToString(", ")
+    LessonRow(
         title = exercise.name,
-        meta = if (exercise.needsEquipment) {
-            formatLength(exercise.durationSeconds) + ", " + exercise.equipment.first().substringBefore(" (").lowercase()
-        } else {
-            formatLength(exercise.durationSeconds)
-        },
+        note = note,
+        length = formatClock(exercise.durationSeconds),
         accent = exercise.category.accent,
         artPath = coach.lessonArt(exercise.id),
         onClick = { onOpenLesson(exercise.id) },
-        modifier = modifier,
-        artHeight = 210.dp,
     )
 }

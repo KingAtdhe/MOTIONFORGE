@@ -12,10 +12,10 @@ SQ = (75.1, BASE - 6.0, 6.0)          # the blue square, sitting on the baseline
 def svg(bg=True, mono=False):
     s = '<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">'
     if bg:
-        s += '<rect width="108" height="108" fill="#000000"/>'
+        s += '<rect width="108" height="108" fill="#2B3BFF"/>'
     fg = '#000' if mono else '#FFFFFF'
     s += f'<g transform="translate({TX:.3f} {BASE}) scale({S:.6f})"><path d="{G["m"]}" fill="{fg}"/></g>'
-    s += f'<rect x="{SQ[0]}" y="{SQ[1]}" width="{SQ[2]}" height="{SQ[2]}" fill="{"#000" if mono else "#9CC4FF"}"/>'
+    s += f'<rect x="{SQ[0]}" y="{SQ[1]}" width="{SQ[2]}" height="{SQ[2]}" fill="{"#000" if mono else "#FF5A1F"}"/>'
     return s + '</svg>'
 open(f'{OUT}/icon.svg', 'w').write(svg())
 cairosvg.svg2png(bytestring=svg().encode(), write_to=f'{OUT}/icon_512.png', output_width=512, output_height=512)

@@ -21,57 +21,72 @@ import eu.motionforge.app.R
 import eu.motionforge.app.core.model.TrainingCategory
 
 /**
- * MOTIONFORGE identity v3 — "training campaign".
+ * MOTIONFORGE identity v4 — "gym floor".
  *
- * The coach renders are the brand: they sit large on a photo-studio grey backdrop, and heavy, extra-wide Archivo
- * lettering is set over them like a sports poster. Everything around that stays quiet: true black and white, no card
- * outlines, no glows, sentence-case labels. Colour is information only — a small chalk-blue or glove-red marker says
- * which kind of lesson it is, and the workout timer uses the same hue. The primary action is a white pill.
- * v1 colour names are kept so every screen picks up the palette.
+ * A light, concrete-grey page with black type, like a printed training programme pinned up in a gym. The coach always
+ * stands in a flat field of colour — electric cobalt for fitness, blaze orange for fighting — so a lesson's kind is
+ * the size of the picture, not a dot. Big numbers (minutes, reps, the timer) use Archivo at its narrowest width, titles
+ * at its widest. Buttons are square-cut black bars. The workout screen stays dark for the camera.
+ * Older colour names are kept so every screen picks up the palette.
  */
 object MfColors {
-    val Ground = Color(0xFF000000)          // the page
-    val Paper = Color(0xFF171716)           // quiet blocks (notes, settings groups)
-    val Raised = Color(0xFF232321)          // pressed / nested
-    val Rule = Color(0xFF2E2E2C)            // dividers, only where rows need separating
-    val Ink = Color(0xFFFFFFFF)
-    val Slate = Color(0xFF8F8F8A)           // secondary text
+    val Ground = Color(0xFFE3E3DE)          // the page: concrete grey
+    val Paper = Color(0xFFF1F1EE)           // quiet blocks
+    val Raised = Color(0xFFD3D3CD)          // pressed / tracks
+    val Rule = Color(0xFFBDBDB6)            // hairlines
+    val Ink = Color(0xFF000000)
+    val Slate = Color(0xFF5E5E59)           // secondary text (7:1 on the page)
 
-    // the studio backdrop behind every coach render (a seamless paper sweep: lighter at the top, darker at the floor)
-    val StudioTop = Color(0xFF3A3A37)
-    val StudioFloor = Color(0xFF1C1C1B)
+    // the two fields the coach stands in
+    val Cobalt = Color(0xFF2B3BFF)          // fitness
+    val Blaze = Color(0xFFFF5A1F)           // fighting fundamentals
+    val OnCobalt = Color(0xFFFFFFFF)
+    val OnBlaze = Color(0xFF000000)
+    val Chalk = Cobalt                      // older names
+    val GloveRed = Blaze
+    val Glove = Blaze
+    val Gold = Cobalt
+    val OnGold = Color(0xFFFFFFFF)          // text on a filled accent or black button
+    val StudioTop = Cobalt
+    val StudioFloor = Cobalt
 
-    // information colours
-    val Chalk = Color(0xFF9CC4FF)           // fitness
-    val GloveRed = Color(0xFFFF5A4E)        // fighting fundamentals
-    val Cobalt = Chalk                      // v1 names
-    val Glove = GloveRed
-    val Gold = Chalk                        // v2 name (now: fitness marker)
-    val OnGold = Color(0xFF000000)          // text on a filled accent or white button
+    val Signal = Color(0xFF0B7A43)
+    val Caution = Color(0xFF8A5A00)
+    val Halt = Color(0xFFC8261B)
 
-    val Signal = Color(0xFF6CD49B)
-    val Caution = Color(0xFFF2C14E)
-    val Halt = Color(0xFFFF6159)
-
-    // the workout screen uses the same ground
-    val Night = Ground
-    val NightRaised = Paper
-    val NightRule = Rule
-    val OnNight = Ink
-    val OnNightMuted = Slate
-    val CautionOnNight = Caution
-    val SignalOnNight = Signal
+    // the workout screen: black, for the camera picture
+    val Night = Color(0xFF000000)
+    val NightRaised = Color(0xFF1A1A19)
+    val NightRule = Color(0xFF2E2E2C)
+    val OnNight = Color(0xFFFFFFFF)
+    val OnNightMuted = Color(0xFF9A9A94)
+    val CautionOnNight = Color(0xFFF2C14E)
+    val SignalOnNight = Color(0xFF6CD49B)
 }
 
 /** Category colour (always paired with a text label). */
 val TrainingCategory.accent: Color
     get() = when (this) {
-        TrainingCategory.FITNESS -> MfColors.Chalk
-        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.GloveRed
+        TrainingCategory.FITNESS -> MfColors.Cobalt
+        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.Blaze
     }
 
+/** Text colour that reads on [accent] used as a field. */
+val TrainingCategory.onAccent: Color
+    get() = when (this) {
+        TrainingCategory.FITNESS -> MfColors.OnCobalt
+        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.OnBlaze
+    }
+
+/** On the black workout screen. */
 val TrainingCategory.accentOnNight: Color
-    get() = accent
+    get() = when (this) {
+        TrainingCategory.FITNESS -> Color(0xFF8A96FF)
+        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.Blaze
+    }
+
+/** Text colour for a field of [c] (one of the two category colours). */
+fun onField(c: Color): Color = if (c == MfColors.Blaze) MfColors.OnBlaze else Color.White
 
 /** Archivo (variable, OFL): one family; width and weight carry the hierarchy. */
 @OptIn(ExperimentalTextApi::class)
@@ -86,27 +101,51 @@ private fun archivo(weight: Int, width: Float) = Font(
 val DisplayFont = FontFamily(archivo(700, 125f), archivo(800, 125f), archivo(900, 125f))
 /** Semi-wide: card and section titles. */
 val TitleFont = FontFamily(archivo(600, 110f), archivo(700, 110f))
+/** Narrowest, heaviest: big numbers only (minutes, reps, the timer). */
+val NumeralFont = FontFamily(archivo(800, 62f), archivo(900, 62f))
 /** Normal width: everything you read. */
 val BodyFont = FontFamily(archivo(400, 100f), archivo(500, 100f), archivo(600, 100f), archivo(700, 100f))
 
-private val scheme = darkColorScheme(
+private val scheme = androidx.compose.material3.lightColorScheme(
     primary = MfColors.Ink,
-    onPrimary = Color.Black,
+    onPrimary = Color.White,
     primaryContainer = MfColors.Raised,
     onPrimaryContainer = MfColors.Ink,
-    secondary = MfColors.GloveRed,
+    secondary = MfColors.Blaze,
     onSecondary = Color.Black,
     background = MfColors.Ground,
     onBackground = MfColors.Ink,
-    surface = MfColors.Paper,
+    surface = MfColors.Ground,
     onSurface = MfColors.Ink,
     surfaceVariant = MfColors.Raised,
     onSurfaceVariant = MfColors.Slate,
     surfaceContainer = MfColors.Paper,
-    surfaceContainerHigh = MfColors.Raised,
+    surfaceContainerHigh = MfColors.Paper,
+    surfaceContainerLow = MfColors.Paper,
     outline = MfColors.Rule,
     outlineVariant = MfColors.Rule,
     error = MfColors.Halt,
+    onError = Color.White,
+)
+
+private val nightScheme = darkColorScheme(
+    primary = Color.White,
+    onPrimary = Color.Black,
+    primaryContainer = MfColors.NightRaised,
+    onPrimaryContainer = Color.White,
+    secondary = MfColors.Blaze,
+    onSecondary = Color.Black,
+    background = MfColors.Night,
+    onBackground = MfColors.OnNight,
+    surface = MfColors.NightRaised,
+    onSurface = MfColors.OnNight,
+    surfaceVariant = Color(0xFF262624),
+    onSurfaceVariant = MfColors.OnNightMuted,
+    surfaceContainer = MfColors.NightRaised,
+    surfaceContainerHigh = Color(0xFF262624),
+    outline = MfColors.NightRule,
+    outlineVariant = MfColors.NightRule,
+    error = Color(0xFFFF6159),
     onError = Color.Black,
 )
 
@@ -131,16 +170,23 @@ private val typography = Typography(
 // radii follow hierarchy: pictures are nearly square-cut, blocks softer, buttons are pills
 private val shapes = Shapes(
     extraSmall = RoundedCornerShape(2.dp),
-    small = RoundedCornerShape(4.dp),
-    medium = RoundedCornerShape(10.dp),
-    large = RoundedCornerShape(14.dp),
+    small = RoundedCornerShape(2.dp),
+    medium = RoundedCornerShape(3.dp),
+    large = RoundedCornerShape(4.dp),
 )
 
-/** [night] kept for callers; the whole app now runs on the same black ground. */
+/** Big narrow numbers. */
+object MfType {
+    val Numeral = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.Black, fontSize = 64.sp, lineHeight = 60.sp, letterSpacing = (-0.01).em)
+    val NumeralHuge = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.Black, fontSize = 148.sp, lineHeight = 132.sp, letterSpacing = (-0.02).em)
+    val NumeralSmall = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 30.sp)
+}
+
+/** Light "gym floor" theme; [night] = the black workout screen. */
 @Composable
 fun MotionForgeTheme(night: Boolean = false, content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = scheme, typography = typography, shapes = shapes) {
-        // text outside a Surface (onboarding, page headings) defaults to white, not the platform's black
-        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides scheme.onBackground, content = content)
+    val cs = if (night) nightScheme else scheme
+    MaterialTheme(colorScheme = cs, typography = typography, shapes = shapes) {
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides cs.onBackground, content = content)
     }
 }

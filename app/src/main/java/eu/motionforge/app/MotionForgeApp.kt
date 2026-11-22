@@ -116,14 +116,24 @@ fun MotionForgeApp(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                    topLevel.forEach { dest ->
-                        NavigationBarItem(
-                            selected = currentRoute == dest.route,
-                            onClick = { navController.navigateTopLevel(dest.route) },
-                            icon = { Icon(dest.icon, contentDescription = null) },
-                            label = { Text(dest.label) },
-                        )
+                androidx.compose.foundation.layout.Column {
+                    eu.motionforge.app.core.design.ThinRule()
+                    NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = androidx.compose.ui.unit.Dp(0f)) {
+                        topLevel.forEach { dest ->
+                            NavigationBarItem(
+                                selected = currentRoute == dest.route,
+                                onClick = { navController.navigateTopLevel(dest.route) },
+                                icon = { Icon(dest.icon, contentDescription = null) },
+                                label = { Text(dest.label, style = MaterialTheme.typography.labelLarge) },
+                                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                                    selectedIconColor = eu.motionforge.app.core.design.MfColors.Ink,
+                                    selectedTextColor = eu.motionforge.app.core.design.MfColors.Ink,
+                                    indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    unselectedIconColor = eu.motionforge.app.core.design.MfColors.Slate,
+                                    unselectedTextColor = eu.motionforge.app.core.design.MfColors.Slate,
+                                ),
+                            )
+                        }
                     }
                 }
             }
