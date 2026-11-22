@@ -757,3 +757,9 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - **Screenshot tests** (`app/src/test/.../screenshots/ScreenshotTest.kt`, see DEPENDENCY_DECISIONS): Home, Train, Lesson,
   Progress (empty / with history), Onboarding, Profile. CI publishes them to the `ci-screenshots` branch.
 **Not verified on a device:** the splash animation and the variable-font rendering on older Android versions.
+
+## 2026-11-22 — Design v3 "training campaign"
+- Feedback: v2 "has that AI look". New direction: one bold element (extra-wide Archivo display type over edge-to-edge studio-grey coach images), everything else quiet: true black #000 and white, no card borders or glows, sentence case, no dot separators, colour only in 8dp kind marks (chalk blue fitness, glove red fighting) and the workout timer. Primary button is a white pill.
+- Font: Archivo variable (OFL, assets/licenses/Archivo-OFL.txt) replaces Manrope. Theme.kt/Components.kt rewritten with the same public API.
+- Home poster hero, lesson page (display title, divided numbered steps, plain mistakes list), Train captions show equipment, Progress neutral white, Profile as divided sections.
+- Icon v4: Archivo "M" (wdth 125, wght 900) + chalk-blue square on black; splash square drops in (0.6 s) with Archivo wordmark. Generators: tools/branding_glyphs.py, branding_icon.py, branding_android.py. v1–v3 kept as *_v3 etc.

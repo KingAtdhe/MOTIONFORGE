@@ -65,4 +65,4 @@ a device; CI runs it in its own step (MF_SCREENSHOTS=1) and pushes the PNGs to t
 4.16 is the current release and supports SDK 36; tests run on SDK 35 with JDK 17. Roborazzi was not used: its current
 release is built with Kotlin 2.3, newer than this project's Kotlin 2.2. `ui-test-junit4` / `ui-test-manifest` come from
 the Compose BOM.
-## Font: Manrope (variable, OFL) replaces Big Shoulders Display + Schibsted Grotesk (2026-11-22)
+## Font: Archivo (variable, OFL; replaced Manrope 2026-11-22) (variable, OFL) replaces Big Shoulders Display + Schibsted Grotesk (2026-11-22)

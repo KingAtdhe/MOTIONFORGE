@@ -47,3 +47,6 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 - Nothing has been confirmed on a real phone by measurement (inference ms, squat count accuracy, 3D frame rate).
 - Squat counter thresholds are hypotheses; lesson text and all clips are drafts pending qualified-coach review.
 - Sessions do not survive process death; no boxing-stance evaluator; no Supabase sync; no billing.
+
+## Update 2026-11-22
+Design v3 "training campaign" is live (see BUILD_LOG). Screenshot review: push, then read PNGs from the `ci-screenshots` branch. Next: wait for the user's verdict on v3 and the new lettermark icon.
