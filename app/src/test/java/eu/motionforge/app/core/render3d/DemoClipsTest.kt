@@ -160,6 +160,7 @@ class DemoClipsTest {
             catalog.forEach {
                 assertTrue("${coach.studyArt(it.id)} missing", File(assets, coach.studyArt(it.id)).isFile)
                 assertTrue("${coach.stripArt(it.id)} missing", File(assets, coach.stripArt(it.id)).isFile)
+                assertTrue("${coach.framesArt(it.id)} missing", File(assets, coach.framesArt(it.id)).isFile)
             }
         }
     }

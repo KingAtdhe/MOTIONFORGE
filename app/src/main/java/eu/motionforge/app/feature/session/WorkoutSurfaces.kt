@@ -57,6 +57,8 @@ class WorkoutNotifier(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .setContentIntent(open)
             .setProgress(state.plan.totalSeconds, state.elapsedTotal.coerceAtMost(state.plan.totalSeconds), false)
+            // if Android closes the app mid-workout, the notification goes away by itself instead of going stale
+            .setTimeoutAfter(((state.plan.totalSeconds - state.elapsedTotal).coerceAtLeast(0) + if (paused) 1800 else 120) * 1000L)
         if (!paused) {
             b.setUsesChronometer(true).setChronometerCountDown(true)
                 .setWhen(System.currentTimeMillis() + state.remainingInStep * 1000L).setShowWhen(true)
@@ -72,6 +74,11 @@ class WorkoutNotifier(private val context: Context) {
 
     fun clear() = manager.cancel(ID)
 
+    companion object {
+        /** A fresh app process has no workout running: drop a notification left behind by a closed one. */
+        fun clearStale(context: Context) = NotificationManagerCompat.from(context).cancel(ID)
+    }
+
     private fun ensureChannel() {
         val nm = context.getSystemService(NotificationManager::class.java)
         if (nm.getNotificationChannel(CHANNEL) == null) {
@@ -84,11 +91,10 @@ class WorkoutNotifier(private val context: Context) {
         }
     }
 
-    private companion object {
-        const val CHANNEL = "workout"
-        const val ID = 4201
-    }
 }
+
+private const val CHANNEL = "workout"
+private const val ID = 4201
 
 /**
  * Headphone and earbud buttons while a workout runs: play/pause pauses or resumes, next skips. Uses the platform media

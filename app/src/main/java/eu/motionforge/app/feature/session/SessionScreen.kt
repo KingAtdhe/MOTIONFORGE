@@ -13,6 +13,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -219,6 +220,7 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
                 }
                 eu.motionforge.app.core.design.SectionHeader("Set up the phone")
                 PlacementDiagram(Modifier.fillMaxWidth().height(170.dp))
+                FramingCheck()
                 Text(
                     "Prop the phone at hip height, about 2 m away, turned so it sees you from a front corner. " +
                         "Your whole body, head to feet, should fit in the picture.",
@@ -253,6 +255,53 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
             SecondaryButton("Start without camera", onClick = { begin(false) })
         }
     }
+}
+
+/**
+ * Optional live check before starting: the camera picture with the body trace; the frame turns timing yellow once
+ * the whole body is steadily in view. Camera permission is asked for only when this is opened.
+ */
+@Composable
+private fun FramingCheck() {
+    val context = LocalContext.current
+    var open by rememberSaveable { mutableStateOf(false) }
+    var refused by rememberSaveable { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) open = true else refused = true
+    }
+    if (!open) {
+        SecondaryButton("Check the camera picture", onClick = {
+            val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            if (granted) open = true else launcher.launch(Manifest.permission.CAMERA)
+        })
+        if (refused) Text("Camera access was denied, so the picture can't be checked.", style = MaterialTheme.typography.bodySmall, color = MfColors.Halt)
+        return
+    }
+    val evaluator = remember { eu.motionforge.app.core.pose.TrackingStateEvaluator(eu.motionforge.app.core.pose.TrackingStateEvaluator.FULL_BODY) }
+    var status by remember { mutableStateOf(TrackingState.CAMERA_INITIALIZING) }
+    val ok = status == TrackingState.TRACKING
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(340.dp)
+            .clip(PlateShape)
+            .background(MfColors.Plate)
+            .then(if (ok) Modifier.border(4.dp, MfColors.Yellow, PlateShape) else Modifier),
+    ) {
+        PoseCameraPane(
+            lensFacing = CameraSelector.LENS_FACING_FRONT,
+            showOverlay = true,
+            onOutput = { status = evaluator.update(it) },
+            modifier = Modifier.fillMaxSize(),
+        )
+        TrackingStatusChip(status, Modifier.align(Alignment.TopStart).padding(10.dp))
+    }
+    Text(
+        if (ok) "Your whole body is in view. You're ready to start." else "Step back or move the phone until the frame turns yellow.",
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    )
+    TextButton(onClick = { open = false }) { Text("Close the camera", color = MaterialTheme.colorScheme.onBackground) }
 }
 
 /** Side view: the phone on a low stand, about 2 m from where you stand, sightline dashed. */

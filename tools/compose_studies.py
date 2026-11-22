@@ -33,4 +33,11 @@ for lid in ids:
         bg = bg.crop(((fw - tw) // 2, 0, (fw + tw) // 2, fh)).resize((cw, ch), Image.LANCZOS)
         strip.paste(bg.convert("RGB"), (i * cw, 0))
     strip.save(os.path.join(out, f"{lid}_strip.webp"), quality=74, method=6)
+    # every exposure as its own frame, side by side, for the looping flipbook (360x450 per frame)
+    fw, fh = 360, 450
+    sprite = Image.new("RGB", (fw * n, fh), (0, 0, 0))
+    for i, f in enumerate(frames):
+        bg = Image.new("RGBA", f.size, (0, 0, 0, 255)); bg.alpha_composite(f)
+        sprite.paste(bg.convert("RGB").resize((fw, fh), Image.LANCZOS), (i * fw, 0))
+    sprite.save(os.path.join(out, f"{lid}_frames.webp"), quality=70, method=6)
     print("composed", lid)

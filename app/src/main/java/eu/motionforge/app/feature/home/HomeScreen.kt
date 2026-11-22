@@ -131,8 +131,15 @@ fun HomeScreen(
                 is CatalogUiState.Ready -> {
                     val exercises = catalog.exercises
                     if (quick != null) {
-                        TodayPlate(quick, coach, onStartQuickSession, side)
-                        Filmstrip(quick, coach, side)
+                        // the plate plays each move of today's session in turn, and the filmstrip marks which one
+                        val moveCount = quick.steps.count { it is SessionStep.Work }
+                        var active by remember(quick) { androidx.compose.runtime.mutableIntStateOf(0) }
+                        val reduce = eu.motionforge.app.core.design.rememberReduceMotion()
+                        if (!reduce) LaunchedEffect(quick) {
+                            while (true) { kotlinx.coroutines.delay(4200); active = (active + 1) % moveCount }
+                        }
+                        TodayPlate(quick, coach, active, onStartQuickSession, side)
+                        Filmstrip(quick, coach, active, side)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -206,12 +213,12 @@ fun HomeScreen(
     }
 }
 
-/** Today's session: the first move's motion study on a black plate, the session's name and length under it. */
+/** Today's session: each move's exposures playing in turn on a black plate, the session's name and length under it. */
 @Composable
-private fun TodayPlate(plan: SessionPlan, coach: Coach, onStart: () -> Unit, modifier: Modifier) {
+private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: () -> Unit, modifier: Modifier) {
     val minutes = (plan.totalSeconds + 30) / 60
     val moves = plan.steps.filterIsInstance<SessionStep.Work>()
-    val first = moves.first()
+    val shown = moves[active.coerceIn(0, moves.lastIndex)]
     Column(
         modifier
             .clickable(onClick = onStart)
@@ -222,12 +229,20 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, onStart: () -> Unit, mod
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box {
-            MotionStudy(coach.studyArt(first.exerciseId), Modifier.fillMaxWidth().height(380.dp))
+            eu.motionforge.app.core.design.MotionFlipbook(
+                coach.framesArt(shown.exerciseId), coach.studyArt(shown.exerciseId), Modifier.fillMaxWidth().height(380.dp),
+            )
             Text(
                 "Today",
                 style = MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.padding(14.dp),
+            )
+            Text(
+                "${moves.indexOf(shown) + 1}  ${shown.name}",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.BottomStart).padding(start = 14.dp, bottom = 32.dp),
             )
             MeasureScale(Modifier.align(Alignment.BottomCenter).padding(horizontal = 14.dp, vertical = 10.dp), color = Color.White.copy(alpha = 0.5f))
         }
@@ -241,7 +256,7 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, onStart: () -> Unit, mod
 
 /** The session's moves as a filmstrip of small plates, numbered in order. */
 @Composable
-private fun Filmstrip(plan: SessionPlan, coach: Coach, modifier: Modifier) {
+private fun Filmstrip(plan: SessionPlan, coach: Coach, active: Int, modifier: Modifier) {
     val work = plan.steps.filterIsInstance<SessionStep.Work>()
     // four moves fill the width; a longer session scrolls sideways instead of shrinking the frames
     val fits = work.size <= 4
@@ -252,6 +267,7 @@ private fun Filmstrip(plan: SessionPlan, coach: Coach, modifier: Modifier) {
         work.forEachIndexed { i, step ->
             Column(if (fits) Modifier.weight(1f) else Modifier.width(84.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 MotionStudy(coach.studyArt(step.exerciseId), Modifier.fillMaxWidth().height(96.dp), crop = true)
+                Box(Modifier.fillMaxWidth().height(3.dp).background(if (i == active) MfColors.Yellow else Color.Transparent))
                 Text("${i + 1}  ${step.name}", style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(formatClock(step.durationSeconds), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

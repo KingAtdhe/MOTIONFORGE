@@ -793,3 +793,8 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - Setup explains the workout notification before Android asks for it.
 - Removed the old coach thumbnails (1.6 MB); lessonArt/heroArt point at the studies. DemoClipsTest checks every study and strip exists.
 - Screenshot test now also renders the workout (portrait, landscape) and the phone setup.
+
+## 2026-11-22 (follow-ups)
+- Today plate plays each session move in turn as a flipbook (`<id>_frames.webp`: the 7 study exposures side by side, 360x450 each; `MotionFlipbook`, still study with reduced motion); the filmstrip marks the move playing. Assets +2.3 MB.
+- Workout notification expires by itself (`setTimeoutAfter`) and is cleared when a new app process starts, so a workout closed by Android never leaves a stale notification; the session itself is still restored from disk.
+- Phone setup: optional "Check the camera picture" — live camera with body trace, frame turns yellow when the whole body is steadily tracked (TrackingStateEvaluator FULL_BODY); camera permission asked only when opened.

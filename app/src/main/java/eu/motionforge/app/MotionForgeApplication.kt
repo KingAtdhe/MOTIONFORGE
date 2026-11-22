@@ -24,5 +24,6 @@ class MotionForgeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        eu.motionforge.app.feature.session.WorkoutNotifier.clearStale(this)
     }
 }

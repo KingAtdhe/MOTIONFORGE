@@ -16,8 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private object ArtCache {
-    // ~10 MB of decoded stills is plenty for one screen of cards plus the hero
-    val bitmaps = object : LruCache<String, ImageBitmap>(10 * 1024 * 1024) {
+    // ~24 MB of decoded stills: a screen of plates plus a flipbook sprite or two
+    val bitmaps = object : LruCache<String, ImageBitmap>(24 * 1024 * 1024) {
         override fun sizeOf(key: String, value: ImageBitmap) = value.width * value.height * 4
     }
 
@@ -43,4 +43,12 @@ fun CoachArt(
     val context = LocalContext.current
     val bitmap by produceState(ArtCache.bitmaps.get(path), path) { value = ArtCache.load(context, path) }
     bitmap?.let { Image(it, contentDescription, modifier, contentScale = contentScale) }
+}
+
+/** A still from app assets, decoded off the main thread and cached; null while loading or if missing. */
+@Composable
+fun rememberArt(path: String): ImageBitmap? {
+    val context = LocalContext.current
+    val bitmap by produceState(ArtCache.bitmaps.get(path), path) { value = ArtCache.load(context, path) }
+    return bitmap
 }

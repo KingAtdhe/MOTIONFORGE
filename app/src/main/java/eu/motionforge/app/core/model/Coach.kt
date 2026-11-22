@@ -15,6 +15,9 @@ enum class Coach(val displayName: String, val manifestPath: String, val artDir: 
     /** Four frames of the movement side by side, for the lesson contact sheet. */
     fun stripArt(exerciseId: String) = "${artDir}/${exerciseId}_strip.webp"
 
+    /** Every exposure of the study side by side (360x450 each), played as a loop. */
+    fun framesArt(exerciseId: String) = "${artDir}/${exerciseId}_frames.webp"
+
     /** A representative picture of this coach: the squat study. */
     val heroArt: String get() = studyArt("bodyweight_squat")
 
