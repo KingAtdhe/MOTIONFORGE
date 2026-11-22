@@ -302,8 +302,9 @@ class LungeRepCounter(
     private var peak = 0.0
     private var valley = 0.0
     private var cycleStartMs = 0L
-    private var sideBottom = 0
-    private var lean = 0
+    /** This cycle's frames: hip height, and the torso lean when side-on (null otherwise). Judged when the rep ends,
+     *  against the final lowest point — the running lowest point would count the whole descent as "bottom". */
+    private val cycle = ArrayList<Pair<Double, Double?>>()
     private val window = ArrayDeque<Double>()
 
     override val repetitions: Int get() = count
@@ -354,37 +355,42 @@ class LungeRepCounter(
             RepPhase.TOP -> {
                 peak = maxOf(peak, x)
                 if (x < peak - drop) {
-                    phase = RepPhase.BOTTOM; valley = x; cycleStartMs = t; sideBottom = 0; lean = 0
+                    phase = RepPhase.BOTTOM; valley = x; cycleStartMs = t; cycle.clear()
                 }
             }
             RepPhase.DESCENDING, RepPhase.BOTTOM -> {
                 valley = minOf(valley, x)
+                cycle.add(x to sideLean(frame))
                 if (x > valley + rise) {
                     if (t - cycleStartMs >= minRepMs) {
                         count++
-                        val cues = if (sideBottom >= minRuleFrames && lean >= ruleFraction * sideBottom) setOf<FormCue>(LungeIssue.LEANING) else emptySet()
-                        event = RepEvent.RepCompleted(count, cues)
+                        val bottom = cycle.filter { it.first <= valley + BOTTOM_BAND }.mapNotNull { it.second }
+                        val leaning = bottom.size >= minRuleFrames && bottom.count { it > maxLean } >= ruleFraction * bottom.size
+                        event = RepEvent.RepCompleted(count, if (leaning) setOf<FormCue>(LungeIssue.LEANING) else emptySet())
                     }
                     phase = RepPhase.TOP; peak = x
-                } else if (x <= valley + 0.03) {
-                    observeBottom(frame)
                 }
             }
         }
         return RepUpdate(count, phase, x, event)
     }
 
-    private fun observeBottom(f: PoseFrame) {
-        if (!f.seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return
+    /** Torso lean from vertical (degrees) when filmed side-on, else null (the lean can't be read head-on). */
+    private fun sideLean(f: PoseFrame): Double? {
+        if (!f.seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return null
         val w = f.imageWidth.toDouble(); val h = f.imageHeight.toDouble()
         fun d(a: BodyLandmark, b: BodyLandmark) = hypot((f[a].x - f[b].x) * w, (f[a].y - f[b].y) * h)
         val torso = (d(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_HIP) + d(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_HIP)) / 2
-        if (torso < 5.0 || d(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER) / torso > 0.45) return   // side-on only
+        if (torso < 5.0 || d(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER) / torso > 0.45) return null
         val sx = (f[BodyLandmark.LEFT_SHOULDER].x + f[BodyLandmark.RIGHT_SHOULDER].x) / 2.0 * w
         val sy = (f[BodyLandmark.LEFT_SHOULDER].y + f[BodyLandmark.RIGHT_SHOULDER].y) / 2.0 * h
         val hx = (f[BodyLandmark.LEFT_HIP].x + f[BodyLandmark.RIGHT_HIP].x) / 2.0 * w
         val hy = (f[BodyLandmark.LEFT_HIP].y + f[BodyLandmark.RIGHT_HIP].y) / 2.0 * h
-        sideBottom++
-        if (Math.toDegrees(atan2(abs(sx - hx), hy - sy)) > maxLean) lean++
+        return Math.toDegrees(atan2(abs(sx - hx), hy - sy))
+    }
+
+    private companion object {
+        /** Frames within this much of the cycle's lowest hip height count as the bottom of the lunge. */
+        const val BOTTOM_BAND = 0.05
     }
 }

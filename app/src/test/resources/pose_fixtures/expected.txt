@@ -29,3 +29,4 @@ squat_kneesin_f_front|bodyweight_squat|3|KNEES_IN
 jab_reardrop_f_front|boxing_jab|4|REAR_HAND_DROPS
 squat_chest_m_side|bodyweight_squat|3|CHEST_DROP
 stance_handslow_m_front|boxing_stance|0|HANDS_LOW
+lunge_lean_f_side|reverse_lunge|2|LEANING
