@@ -239,12 +239,8 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
                 contentDescription = "3D trainer demonstrating ${exercise.name}",
             )
         } else if (availability != DemoAvailability.Checking) {
-            Panel(Modifier.align(Alignment.Center)) {
-                Eyebrow("Steps")
-                exercise.instructions.forEachIndexed { i, step ->
-                    Text("${i + 1}. $step", style = MaterialTheme.typography.bodyLarge)
-                }
-            }
+            // no 3D here: the lesson's motion study shows the movement instead
+            eu.motionforge.app.core.design.MotionStudy(coach.studyArt(exercise.id), Modifier.matchParentSize(), description = "Motion study of ${exercise.name}")
         }
     }
 }

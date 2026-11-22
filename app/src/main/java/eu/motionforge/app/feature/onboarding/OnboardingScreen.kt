@@ -131,7 +131,11 @@ private fun ColumnScope.Heading(title: String, body: String) {
 
 @Composable
 private fun ColumnScope.WelcomeStep() {
-    CoachPair(Modifier.fillMaxWidth().height(320.dp))
+    eu.motionforge.app.core.design.MotionStudy(
+        Coach.FEMALE.studyArt("bodyweight_squat"),
+        Modifier.fillMaxWidth().height(340.dp),
+        description = "A squat shown as a motion study: several moments of the movement on one picture",
+    )
     Heading(
         "See the movement. Practise it. Understand your progress.",
         "Short guided sessions for beginner fitness and non-contact boxing fundamentals. A 3D coach demonstrates " +

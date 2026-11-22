@@ -227,7 +227,8 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
                 Text(
                     "With the camera on you see yourself with a tracking trace" +
                         (if (hasRepCounting) ", and squats are counted (experimental)." else ".") +
-                        " Images are processed on this phone, kept in memory only and never saved or uploaded.",
+                        " Images are processed on this phone, kept in memory only and never saved or uploaded." +
+                        (if (Build.VERSION.SDK_INT >= 33) " Your phone may also ask to allow a notification that shows the current move while the screen is off; the workout runs either way." else ""),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
