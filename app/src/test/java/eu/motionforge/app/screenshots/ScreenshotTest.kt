@@ -72,7 +72,7 @@ class ScreenshotTest {
             }
         }
         compose.mainClock.autoAdvance = false
-        repeat(6) {
+        repeat(10) {
             compose.mainClock.advanceTimeBy(200)
             ShadowLooper.idleMainLooper()
             Thread.sleep(150)                                     // coach stills load on Dispatchers.IO
@@ -120,4 +120,24 @@ class ScreenshotTest {
     }
 
     @Test fun profile() = shot("08_profile") { ProfileScreen(prefs, onOpenTechnicalChecks = {}, onResetData = {}) }
+
+    @Composable
+    private fun workout(started: Boolean) {
+        val ctx = androidx.compose.ui.platform.LocalContext.current.applicationContext
+        val vm = androidx.compose.runtime.remember {
+            val plan = eu.motionforge.app.feature.session.SessionPlanner.quick(catalog.exercises, TrainingCategory.FITNESS)!!
+            eu.motionforge.app.feature.session.SessionViewModel(
+                plan, eu.motionforge.app.data.SessionRepository(ctx), eu.motionforge.app.data.ActiveSessionStore(ctx), "quick",
+            ).also { if (started) it.onEvent(eu.motionforge.app.feature.session.SessionEvent.Start(false)) }
+        }
+        eu.motionforge.app.feature.session.SessionScreen(vm, catalog.exercises.associateBy { it.id }, Coach.DEFAULT, true, {}, {}, {})
+    }
+
+    @Test @Config(qualifiers = "w411dp-h891dp-xhdpi")
+    fun workoutPortrait() = shot("09_workout") { workout(started = true) }
+
+    @Test @Config(qualifiers = "w891dp-h411dp-land-xhdpi")
+    fun workoutLandscape() = shot("10_workout_landscape") { workout(started = true) }
+
+    @Test fun phoneSetup() = shot("11_phone_setup") { workout(started = false) }
 }

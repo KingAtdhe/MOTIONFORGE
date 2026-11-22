@@ -88,15 +88,19 @@ fun TrainerDemo(exercise: Exercise) {
 
     when (val a = availability) {
         DemoAvailability.Checking -> Unit
-        DemoAvailability.WrittenOnly -> Panel(Modifier.padding(start = 20.dp, end = 20.dp, top = 56.dp)) {
-            Eyebrow("Demonstration")
-            Text("This lesson is taught with written steps only.", style = MaterialTheme.typography.bodyMedium)
-        }
-        DemoAvailability.NotReady -> Panel(Modifier.padding(start = 20.dp, end = 20.dp, top = 56.dp)) {
-            Eyebrow("3D demonstration")
+        DemoAvailability.WrittenOnly, DemoAvailability.NotReady -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // no 3D clip for this lesson: its motion study stands in, so the stage is never empty
+            eu.motionforge.app.core.design.MotionStudy(
+                coach.studyArt(exercise.id),
+                Modifier.fillMaxWidth().height(460.dp),
+                description = "Motion study of ${exercise.name}",
+            )
             Text(
-                "The 3D demonstration for this lesson isn't ready yet. Follow the written steps below.",
-                style = MaterialTheme.typography.bodyMedium,
+                if (a == DemoAvailability.WrittenOnly) "This lesson is taught with the picture and written steps."
+                else "The 3D demonstration for this lesson isn't ready yet. Follow the picture and the written steps.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
         is DemoAvailability.Ready -> DemoPlayer(exercise, a.manifest, a.sequence)
@@ -128,11 +132,16 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                 contentDescription = "3D trainer demonstrating ${exercise.name}",
             )
             when (val s = playback.loadState) {
-                GlbLoadState.Loading -> Text("Loading trainer…", Modifier.align(Alignment.Center))
-                is GlbLoadState.Failed -> Panel(Modifier.align(Alignment.Center).padding(16.dp)) {
-                    Eyebrow("3D demonstration unavailable", color = MfColors.Caution)
-                    Text(s.reason, style = MaterialTheme.typography.bodyMedium)
-                    Text("Follow the written steps below.", style = MaterialTheme.typography.bodyMedium)
+                GlbLoadState.Loading -> Text("Loading the 3D coach…", Modifier.align(Alignment.Center), color = androidx.compose.ui.graphics.Color.White)
+                is GlbLoadState.Failed -> {
+                    // 3D can't run here: show the motion study on the same stage, with a short note
+                    eu.motionforge.app.core.design.MotionStudy(rememberCoach().studyArt(exercise.id), Modifier.fillMaxSize(), description = "Motion study of ${exercise.name}")
+                    Text(
+                        "3D isn't available on this phone. Showing the motion study.",
+                        Modifier.align(Alignment.BottomStart).padding(16.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = androidx.compose.ui.graphics.Color.White,
+                    )
                 }
                 is GlbLoadState.Loaded -> {
                     val clip = playback.sequence.getOrNull(playback.currentStep)

@@ -157,8 +157,10 @@ class DemoClipsTest {
     fun everyLessonHasCoachArtForBothCoaches() {
         val catalog = ExerciseCatalogParser.parse(File(assets, ExerciseCatalogParser.ASSET_PATH).readText())
         bundled.forEach { coach ->
-            assertTrue("${coach.heroArt} missing", File(assets, coach.heroArt).isFile)
-            catalog.forEach { assertTrue("${coach.lessonArt(it.id)} missing", File(assets, coach.lessonArt(it.id)).isFile) }
+            catalog.forEach {
+                assertTrue("${coach.studyArt(it.id)} missing", File(assets, coach.studyArt(it.id)).isFile)
+                assertTrue("${coach.stripArt(it.id)} missing", File(assets, coach.stripArt(it.id)).isFile)
+            }
         }
     }
 }

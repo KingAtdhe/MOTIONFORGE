@@ -137,7 +137,7 @@ fun TrainScreen(
                 )
                 Spacer(Modifier.height(4.dp))
                 PrimaryButton("Show lessons", onClick = { sheet = false })
-                SecondaryButton("Clear filters", onClick = { onClearFilters(); sheet = false })
+                SecondaryButton("Clear length and equipment", onClick = { onDuration(DurationFilter.ANY); onEquipment(EquipmentFilter.ANY); sheet = false })
             }
         }
     }
@@ -147,8 +147,8 @@ fun TrainScreen(
 private fun LessonLine(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit) {
     val note = buildList {
         add(exercise.level.displayName)
-        if (exercise.needsEquipment) add(exercise.equipment.first().substringBefore(" (").replaceFirstChar { it.uppercase() })
-        else add("No equipment")
+        if (exercise.needsEquipment) add(exercise.equipment.first().substringBefore(" (").lowercase())
+        else add("no equipment")
     }.joinToString(", ")
     LessonRow(
         title = exercise.name,

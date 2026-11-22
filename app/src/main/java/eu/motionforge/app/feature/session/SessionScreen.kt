@@ -144,7 +144,13 @@ fun SessionScreen(
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
             BackHandler { viewModel.onEvent(SessionEvent.Stop) }
             // the workout runs on the black plate: camera and coach stand out, light status icons
-            val window = androidx.activity.compose.LocalActivity.current?.window
+            // the phone may stand on its side during a workout; the rest of the app stays portrait
+            val activity = androidx.activity.compose.LocalActivity.current
+            DisposableEffect(activity) {
+                activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+                onDispose { activity?.let(::restorePortrait) }
+            }
+            val window = activity?.window
             DisposableEffect(window) {
                 val ctl = window?.let { androidx.core.view.WindowCompat.getInsetsController(it, it.decorView) }
                 ctl?.isAppearanceLightStatusBars = false
@@ -313,8 +319,11 @@ private fun RunningStage(
     // a counted rep: a short tick under the finger and the number briefly swelling, like an exposure landing
     val haptics = LocalHapticFeedback.current
     val pulse = remember { Animatable(1f) }
+    var lastReps by remember { mutableIntStateOf(state.stepReps) }
     LaunchedEffect(state.stepReps) {
-        if (state.stepReps > 0) {
+        val counted = state.stepReps > lastReps
+        lastReps = state.stepReps
+        if (counted) {
             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             if (!reduceMotion) { pulse.snapTo(1.14f); pulse.animateTo(1f, tween(260)) }
         }
@@ -335,20 +344,9 @@ private fun RunningStage(
                 onClickLabel = "Pause",
             ) { viewModel.onEvent(SessionEvent.Pause) },
     ) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            var showRestored by rememberSaveable { mutableStateOf(viewModel.wasRestored) }
-            LaunchedEffect(paused) { if (!paused) showRestored = false }
-            if (showRestored && paused) {
-                Surface(shape = PlateShape, color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
-                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
-                        Eyebrow("Picked up where you left off", color = MfColors.Yellow)
-                        Text(
-                            "The app was closed during your workout. Everything you'd done is kept; time while it was closed isn't counted. Press Resume when you're ready.",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-            }
+        // phone on its side: numbers on the left, the camera on the right
+        val wide = androidx.compose.ui.platform.LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val headerPart: @Composable () -> Unit = {
             Text(
                 when (step) {
                     is SessionStep.Work -> "Exercise ${state.workIndex} of ${state.plan.workCount}"
@@ -367,6 +365,8 @@ private fun RunningStage(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
 
+        }
+        val numberPart: @Composable () -> Unit = {
             // the live number: reps when they're counted, otherwise the time left
             val countsReps = step is SessionStep.Work && step.countsReps && state.cameraUsed
             Row(verticalAlignment = Alignment.Bottom) {
@@ -394,7 +394,10 @@ private fun RunningStage(
                 fill = if (step is SessionStep.Rest) MfColors.SignalOnNight else MfColors.Yellow,
             )
 
-            Box(Modifier.fillMaxWidth().weight(1f).clip(PlateShape).background(MfColors.NightRaised)) {
+
+        }
+        val viewportPart: @Composable (Modifier) -> Unit = { vpModifier ->
+            Box(vpModifier.clip(PlateShape).background(MfColors.NightRaised)) {
                 val exercise = (step as? SessionStep.Work)?.let { exercisesById[it.exerciseId] }
                     ?: (step as? SessionStep.Rest)?.let { rest -> exercisesById.values.firstOrNull { it.name == rest.nextName } }
                 when {
@@ -411,6 +414,9 @@ private fun RunningStage(
                 }
             }
 
+
+        }
+        val footerPart: @Composable () -> Unit = {
             val cue: String? = when (step) {
                 is SessionStep.Rest -> "Breathe and shake out."
                 is SessionStep.Work -> {
@@ -434,8 +440,54 @@ private fun RunningStage(
                     if (step is SessionStep.Rest) "Tap anywhere to pause. Skip the rest from the pause screen." else "Tap anywhere to pause",
                     style = MaterialTheme.typography.labelLarge,
                     color = MfColors.OnNightMuted,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 10.dp),
+                    modifier = Modifier.padding(vertical = 10.dp),
                 )
+            }
+
+        }
+        if (wide) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.weight(0.46f).fillMaxHeight().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            var showRestored by rememberSaveable { mutableStateOf(viewModel.wasRestored) }
+            LaunchedEffect(paused) { if (!paused) showRestored = false }
+            if (showRestored && paused) {
+                Surface(shape = PlateShape, color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        Eyebrow("Picked up where you left off", color = MfColors.Yellow)
+                        Text(
+                            "The app was closed during your workout. Everything you'd done is kept; time while it was closed isn't counted. Press Resume when you're ready.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+
+                    headerPart()
+                    numberPart()
+                    footerPart()
+                }
+                viewportPart(Modifier.weight(0.54f).fillMaxHeight())
+            }
+        } else {
+            Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            var showRestored by rememberSaveable { mutableStateOf(viewModel.wasRestored) }
+            LaunchedEffect(paused) { if (!paused) showRestored = false }
+            if (showRestored && paused) {
+                Surface(shape = PlateShape, color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite }) {
+                    Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                        Eyebrow("Picked up where you left off", color = MfColors.Yellow)
+                        Text(
+                            "The app was closed during your workout. Everything you'd done is kept; time while it was closed isn't counted. Press Resume when you're ready.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+
+                headerPart()
+                numberPart()
+                viewportPart(Modifier.fillMaxWidth().weight(1f))
+                footerPart()
             }
         }
         // shutter blades on a step change
@@ -605,4 +657,10 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
             Text("$n", style = MfType.NumeralSmall, color = if (selected) Color.White else MfColors.Ink)
         }
     }
+}
+
+/** Back to the app's portrait lock (manifest) after a workout that allowed rotation. */
+@android.annotation.SuppressLint("SourceLockedOrientationActivity")
+private fun restorePortrait(activity: android.app.Activity) {
+    activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 }

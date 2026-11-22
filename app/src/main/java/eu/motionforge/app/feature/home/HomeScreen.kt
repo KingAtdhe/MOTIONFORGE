@@ -243,9 +243,14 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, onStart: () -> Unit, mod
 @Composable
 private fun Filmstrip(plan: SessionPlan, coach: Coach, modifier: Modifier) {
     val work = plan.steps.filterIsInstance<SessionStep.Work>()
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    // four moves fill the width; a longer session scrolls sideways instead of shrinking the frames
+    val fits = work.size <= 4
+    Row(
+        if (fits) modifier else modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         work.forEachIndexed { i, step ->
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(if (fits) Modifier.weight(1f) else Modifier.width(84.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 MotionStudy(coach.studyArt(step.exerciseId), Modifier.fillMaxWidth().height(96.dp), crop = true)
                 Text("${i + 1}  ${step.name}", style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(formatClock(step.durationSeconds), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
