@@ -142,11 +142,10 @@ class BoxingFormMonitor(
     }
 
     private fun evaluate(f: PoseFrame): Set<FormIssue>? {
-        val need = listOf(
-            BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.RIGHT_ELBOW,
-            BodyLandmark.LEFT_WRIST, BodyLandmark.RIGHT_WRIST, BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE,
-        )
-        if (need.any { f[it].visibility < minVisibility }) return null
+        fun seen(vararg l: BodyLandmark) = l.all { f[it].visibility >= minVisibility }
+        // the torso must be seen; arms and feet are each used only when visible (a bladed stance filmed from the
+        // diagonal hides the rear arm and the far foot behind the body)
+        if (!seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return null
         val w = f.imageWidth.toDouble()
         val h = f.imageHeight.toDouble()
         fun px(l: Landmark) = (l.x * w) to (l.y * h)
@@ -155,11 +154,18 @@ class BoxingFormMonitor(
         }
         val ls = f[BodyLandmark.LEFT_SHOULDER]; val rs = f[BodyLandmark.RIGHT_SHOULDER]
         val sw = dist(ls, rs)
-        if (sw < 20.0) return null                                   // side-on or too far: shoulder width unreliable
+        val torso = (dist(ls, f[BodyLandmark.LEFT_HIP]) + dist(rs, f[BodyLandmark.RIGHT_HIP])) / 2
+        // Distances are measured in "shoulder widths". Seen from the front that is the real shoulder width; when the
+        // body turns, the shoulders shrink in the image but the torso does not, so the unit falls back to the
+        // shoulder width a front view would show for this torso.
+        val unit = maxOf(sw, FRONTAL_SHOULDERS_PER_TORSO * torso)
+        if (unit < 20.0) return null                                 // too far away to read
         val shoulderY = (ls.y + rs.y) / 2 * h
         val issues = mutableSetOf<FormIssue>()
+        val leftArm = seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.LEFT_WRIST)
+        val rightArm = seen(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_ELBOW, BodyLandmark.RIGHT_WRIST)
 
-        fun wristLow(wrist: Landmark) = wrist.y * h > shoulderY + handsLowBelowShoulder * sw
+        fun wristLow(wrist: Landmark) = wrist.y * h > shoulderY + handsLowBelowShoulder * unit
         fun reachRatio(side: String): Double {
             val s = f[if (side == "L") BodyLandmark.LEFT_SHOULDER else BodyLandmark.RIGHT_SHOULDER]
             val e = f[if (side == "L") BodyLandmark.LEFT_ELBOW else BodyLandmark.RIGHT_ELBOW]
@@ -172,7 +178,7 @@ class BoxingFormMonitor(
         // the diagonal lines the feet up behind each other and shrinks the shoulder width, which would look "narrow"
         // although the stance is fine. The torso length does not shrink when the body turns, so shoulders that are
         // short compared with the torso mean "turned away": skip the feet rules instead of guessing.
-        if (frontalEnough(f, sw, ::dist)) {
+        if (seen(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE) && frontalEnough(f, sw, ::dist)) {
             val feet = dist(f[BodyLandmark.LEFT_ANKLE], f[BodyLandmark.RIGHT_ANKLE]) / sw
             if (feet < feetNarrow) issues += FormIssue.FEET_NARROW
             if (feet > feetWide) issues += FormIssue.FEET_WIDE
@@ -180,20 +186,26 @@ class BoxingFormMonitor(
 
         val lw = f[BodyLandmark.LEFT_WRIST]; val rw = f[BodyLandmark.RIGHT_WRIST]
         when (drill) {
-            BoxingDrill.STANCE -> if (wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
+            BoxingDrill.STANCE -> {
+                if (!leftArm || !rightArm) return null                 // the guard needs both hands in view
+                if (wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
+            }
             BoxingDrill.JAB -> {
-                val rl = reachRatio("L"); val rr = reachRatio("R")
+                if (!leftArm && !rightArm) return null
+                val rl = if (leftArm) reachRatio("L") else -1.0
+                val rr = if (rightArm) reachRatio("R") else -1.0
                 val leadIsLeft = rl >= rr
                 val lead = if (leadIsLeft) rl else rr
+                val rearSeen = if (leadIsLeft) rightArm else leftArm
                 val rear = if (leadIsLeft) rw else lw
                 val t = f.timestampMs
                 val leadWrist = if (leadIsLeft) lw else rw
-                val atShoulderHeight = leadWrist.y * h < shoulderY + jabHeight * sw
+                val atShoulderHeight = leadWrist.y * h < shoulderY + jabHeight * unit
                 if (!extended && lead > extendedRatio && atShoulderHeight && t - lastJabAt > minJabMs) {
                     extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false; slowThisJab = false
                 }
                 if (extended) {
-                    if (wristLow(rear)) rearDroppedThisJab = true
+                    if (rearSeen && wristLow(rear)) rearDroppedThisJab = true
                     if (lead < guardRatio) {
                         extended = false
                         val clean = !rearDroppedThisJab && !slowThisJab
@@ -204,9 +216,14 @@ class BoxingFormMonitor(
                     }
                 }
                 if (extended && rearDroppedThisJab) issues += FormIssue.REAR_HAND_DROPS
-                if (!extended && wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
+                if (!extended && leftArm && rightArm && wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
             }
         }
         return issues
+    }
+
+    private companion object {
+        /** Shoulder width over torso length of a person facing the camera (0.66–0.70 measured on the rendered test videos). */
+        const val FRONTAL_SHOULDERS_PER_TORSO = 0.68
     }
 }

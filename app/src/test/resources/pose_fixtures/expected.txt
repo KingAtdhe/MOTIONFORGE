@@ -13,3 +13,4 @@ march_f_front|reverse_lunge|0
 march_f_front|push_up|0
 lunge_m_front|reverse_lunge|2
 jab_m_q45|boxing_jab|4
+knee_pushup_f_q45|knee_push_up|3
