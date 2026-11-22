@@ -71,6 +71,7 @@ class RenderedVideoRepTest {
         println(table)
         assertTrue("Rendered-video counts:\n$table", results.all { it.got == it.expected })
         // the coaches lower with control: no rep of theirs may be called rushed
-        assertTrue("Controlled coach squats flagged as rushed:\n$table", results.none { "RUSHED" in it.detail })
+        // the coaches demonstrate good form: no rep of theirs may get a correction, and the boxing coach no cue
+        assertTrue("A correct coach demo got a form correction:\n$table", results.none { "[" in it.detail.substringBefore("cues[") || !it.detail.endsWith("cues[]") })
     }
 }

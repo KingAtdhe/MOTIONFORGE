@@ -145,9 +145,33 @@ def run(path, counter, verbose=False):
     if verbose:
         for i in range(0,len(trace),15): print("   ",i//15," ".join(trace[i:i+15]))
     return counter.count, counter.events, states
+class Lunge2:
+    """hysteresis peak/valley detector on hip height / standing hip height"""
+    def __init__(s,drop=0.12,rise=0.12,upright=50,lean=30,minrep=700):
+        s.drop,s.rise,s.up,s.lean,s.minrep=drop,rise,upright,lean,minrep; s.count=0; s.events=[]; s.base=None; s.state="U"; s.peak=None
+    def update(s,t,w,h,L,tracking):
+        if not tracking or L is None: s.state="U"; return None
+        tl=torso_tilt(L,w,h)
+        if tl is None or tl>s.up or not vis(L,LS,RS,LH,RH): s.state="U"; return None
+        sm=mid(L,LS,RS,w,h); hp=mid(L,LH,RH,w,h); torso=math.hypot(sm[0]-hp[0],sm[1]-hp[1])
+        an=[L[i][1]*h for i in (LA,RA) if L[i][3]>=0.6]
+        if torso<5 or not an: s.state="U"; return None
+        r=(max(an)-hp[1])/torso
+        s.base=r if s.base is None else max(s.base,r); x=r/s.base
+        if s.state=="U": s.state="T"; s.peak=x; return x
+        if s.state=="T":
+            s.peak=max(s.peak,x)
+            if x<s.peak-s.drop: s.state="D"; s.valley=x; s.t0=t
+        elif s.state=="D":
+            s.valley=min(s.valley,x)
+            if x>s.valley+s.rise:
+                if t-s.t0>=s.minrep: s.count+=1; s.events.append((t,"rep%d"%s.count,[]))
+                s.state="T"; s.peak=x
+        return x
+
 if __name__=="__main__":
     kind=sys.argv[1]
     for p in sys.argv[2:]:
-        c={"squat":Squat,"pushup":PushUp,"kpushup":lambda:PushUp(knees=True),"lunge":Lunge}[kind]()
+        c={"lunge2":Lunge2,"squat":Squat,"pushup":PushUp,"kpushup":lambda:PushUp(knees=True),"lunge":Lunge}[kind]()
         n,ev,st=run(p,c,verbose="-v" in sys.argv[0:1] or len(sys.argv)==3)
         print(p.split('/')[-1], "count",n, ev, st)

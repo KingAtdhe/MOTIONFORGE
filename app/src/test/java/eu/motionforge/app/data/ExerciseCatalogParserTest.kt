@@ -80,8 +80,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun unvalidatedMovementsDoNotAllowLiveCues() {
         val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
-        assertEquals(AnalysisMode.DEMO_GUIDED_INITIALLY, byId.getValue("push_up").analysisMode)
-        assertFalse(byId.getValue("push_up").analysisMode.allowsLiveCues)
+        assertFalse(byId.getValue("glute_bridge").analysisMode.allowsLiveCues)
         assertFalse(byId.getValue("boxing_cross").analysisMode.allowsLiveCues)
     }
 
@@ -112,7 +111,11 @@ class ExerciseCatalogParserTest {
             "standing_mobility_warmup", "bodyweight_squat", "hip_hinge", "push_up", "boxing_stance", "boxing_jab", "boxing_cross",
             "boxing_guard_return", "footwork_forward_backward",
         )
-        byId.values.filter { it.id !in mvp }.forEach { assertFalse(it.id, it.analysisMode.allowsLiveCues) }
+        // only lessons with a camera rule (a rep counter checked on rendered videos, or the MVP set) may show cues,
+        // and every counted lesson says so
+        byId.values.filter { it.id !in mvp }.forEach {
+            assertEquals(it.id, eu.motionforge.app.core.movement.CountedMove.forExercise(it.id) != null, it.analysisMode.allowsLiveCues)
+        }
     }
 
     @Test

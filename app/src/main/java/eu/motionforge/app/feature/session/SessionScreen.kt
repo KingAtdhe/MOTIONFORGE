@@ -221,14 +221,16 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
                 eu.motionforge.app.core.design.SectionHeader("Set up the phone")
                 PlacementDiagram(Modifier.fillMaxWidth().height(170.dp))
                 FramingCheck()
+                val floorMoves = plan.steps.any { it is SessionStep.Work && eu.motionforge.app.core.movement.CountedMove.forExercise(it.exerciseId) == eu.motionforge.app.core.movement.CountedMove.PUSH_UP }
                 Text(
                     "Prop the phone at hip height, about 2 m away, turned so it sees you from a front corner. " +
-                        "Your whole body, head to feet, should fit in the picture.",
+                        "Your whole body, head to feet, should fit in the picture." +
+                        (if (floorMoves) " For push-ups, set it lower and to your side so it sees your body from shoulder to feet." else ""),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     "With the camera on you see yourself with a tracking trace" +
-                        (if (hasRepCounting) ", and squats are counted (experimental)." else ".") +
+                        (if (hasRepCounting) ", and reps are counted (experimental)." else ".") +
                         " Images are processed on this phone, kept in memory only and never saved or uploaded." +
                         (if (Build.VERSION.SDK_INT >= 33) " Your phone may also ask to allow a notification that shows the current move while the screen is off; the workout runs either way." else ""),
                     style = MaterialTheme.typography.bodySmall,
@@ -669,7 +671,7 @@ private fun SummaryStage(
     }
 }
 
-/** Live coaching over the camera (squat and boxing checks). Always labelled experimental; never certifies technique. */
+/** Live coaching over the camera (rep and boxing checks). Always labelled experimental; never certifies technique. */
 @Composable
 private fun CoachingCard(c: LiveCoaching, modifier: Modifier = Modifier) {
     val color = when (c.tone) {

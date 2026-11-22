@@ -14,3 +14,13 @@ march_f_front|push_up|0
 lunge_m_front|reverse_lunge|2
 jab_m_q45|boxing_jab|4
 knee_pushup_f_q45|knee_push_up|3
+# head-on push-ups hide the legs: tracking stays paused and nothing is counted (the card asks for a side view)
+pushup_f_front|push_up|0
+lunge_m_q45|reverse_lunge|2
+sumo_f_front|sumo_squat|3
+split_m_side|split_squat|3
+incline_f_q45|incline_push_up|3
+stance_m_front|boxing_stance|0
+stance_m_front|bodyweight_squat|0
+stance_m_front|reverse_lunge|0
+stance_m_front|push_up|0

@@ -119,7 +119,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "pushup_down",
     "purpose": "Practise a controlled upper-body pushing movement using your own body weight.",
     "space": "Floor space for your full body length. A sturdy wall or table works for the easier variation.",
@@ -151,7 +151,7 @@
         "adjustment": "Breathe steadily throughout the movement."
       }
     ],
-    "limitations": "Do not enable automated quality scoring until side-view tracking is validated.",
+    "limitations": "The camera counts repetitions and can suggest keeping your hips in line. Place the phone on the floor side-on or at an angle with your whole body in view; filmed head-on your legs are hidden and it pauses. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -161,7 +161,7 @@
     "level": "beginner",
     "durationSeconds": 60,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "reverse_lunge",
     "purpose": "Practise a controlled single-leg movement: one foot steps back, both knees bend, and you return to standing.",
     "space": "About 2 m front to back of clear, stable, non-slip floor. A wall or chair within reach for balance if you need it.",
@@ -200,7 +200,7 @@
         "adjustment": "Keep your chest up and your weight between both feet."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; no repetitions are counted.",
+    "limitations": "The camera counts each lunge (either leg) and, side-on, can suggest keeping your chest tall. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -376,7 +376,7 @@
     "level": "beginner",
     "durationSeconds": 60,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "sumo_squat_down",
     "purpose": "Practise a wide-stance squat with the toes turned out and the chest tall.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -403,7 +403,7 @@
         "adjustment": "Bring the feet a little closer or reduce the depth."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions and may suggest simple adjustments. Keep your whole body in view, facing the phone or side-on. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -413,7 +413,7 @@
     "level": "beginner",
     "durationSeconds": 60,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "split_squat",
     "purpose": "Practise lowering and rising in a split stance without stepping, building single-leg control.",
     "space": "About 2 m front to back of clear floor, with a wall or chair within reach for balance.",
@@ -442,7 +442,7 @@
         "adjustment": "Keep a little width between the feet for balance."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts each repetition and, side-on, can suggest keeping your chest tall. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -489,7 +489,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "knee_pushup_down",
     "purpose": "Practise the push-up pattern from the knees, keeping one straight line from knees to head.",
     "space": "A mat-sized area of clear floor.",
@@ -518,7 +518,7 @@
         "adjustment": "Angle the elbows back about 45 degrees from the body."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts repetitions and can suggest keeping your hips in line. Place the phone on the floor side-on or at an angle with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1060,7 +1060,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "incline_pushup_down",
     "purpose": "Practise the push-up with your hands on a sturdy raised surface, which makes it easier.",
     "space": "A sturdy bench, table or kitchen counter that will not slide, with clear floor behind it.",
@@ -1089,7 +1089,7 @@
         "adjustment": "Use something that cannot slide or tip, such as a counter."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts repetitions and can suggest keeping your hips in line. Keep your whole body and the bench in view, side-on or at an angle. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

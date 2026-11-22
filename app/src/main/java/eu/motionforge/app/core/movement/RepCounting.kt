@@ -273,63 +273,118 @@ enum class LungeIssue(override val message: String, override val spoken: String)
 
 /**
  * Lunge counter (reverse lunge, split squat). The signal is how high the hips are: the vertical distance from the
- * hips down to the lower ankle, over the torso length (so distance to the camera does not matter), divided by the
- * person's own standing value (the highest seen in the last [baselineMs] outside a rep). A lunge is a cycle from
- * standing tall (above [topRatio]) down to [bottomRatio] of standing height and back; each lunge counts once,
- * whichever leg works. Unlike the knee angle, the hip drop reads the same from the front, the side and the
- * diagonal (a knee bending toward the camera looks straight in a 2D image). Rendered test videos: standing 1.0,
- * lunges reach 0.51–0.70, marching on the spot never goes under 0.93.
- * Measured only while the torso is fairly upright, so bending over is never counted as a lunge.
- * Form rule, side-on only: the torso leans more than [maxLean] from vertical in most bottom frames.
+ * hips down to the lower ankle, over the torso length (so distance to the camera does not matter), relative to the
+ * highest value seen since the counter started (standing tall). Unlike the knee angle this reads the same from the
+ * front, the side and the diagonal: a knee bending toward the camera looks straight in a 2D image.
+ *
+ * A rep is a dip and a recovery measured from the cycle's own high point, not from standing: the hips drop at least
+ * [drop] (fraction of standing hip height) below the last high point, then rise at least [rise] above the lowest
+ * point. That works both for reverse lunges (back to standing each time) and split squats (the high point between
+ * reps is the split stance, ~0.8 of standing). Rendered test videos: lunges dip 0.30–0.50, split squats ~0.19,
+ * marching on the spot at most 0.07. A cycle faster than [minRepMs] is ignored. Only while the torso is fairly
+ * upright, so bending over is never counted. Form rule, side-on only: the torso leans more than [maxLean] from
+ * vertical in most frames near the lowest point.
  */
 class LungeRepCounter(
-    topRatio: Double = 0.92,
-    bottomRatio: Double = 0.80,
-    shallowRatio: Double = 0.88,
-    private val baselineMs: Long = 5_000,
+    private val drop: Double = 0.12,
+    private val rise: Double = 0.12,
+    private val minRepMs: Long = 700,
     private val maxUprightTilt: Double = 50.0,
     private val maxLean: Double = 30.0,
-) : CycleRepCounter(topRatio, bottomRatio, shallowRatio, descentMargin = 0.03, bottomBand = 0.03) {
+    private val minVisibility: Float = 0.6f,
+    private val smoothingWindow: Int = 3,
+    private val minRuleFrames: Int = 3,
+    private val ruleFraction: Double = 0.6,
+) : RepCounter {
+    private var count = 0
+    private var phase = RepPhase.UNKNOWN
+    private var standing: Double? = null
+    private var peak = 0.0
+    private var valley = 0.0
+    private var cycleStartMs = 0L
     private var sideBottom = 0
     private var lean = 0
-    private val standing = ArrayDeque<Pair<Long, Double>>()
+    private val window = ArrayDeque<Double>()
 
-    override fun startCycle() { sideBottom = 0; lean = 0 }
+    override val repetitions: Int get() = count
 
     override fun reset() {
-        super.reset()
-        standing.clear()
+        count = 0
+        standing = null
+        lose()
     }
 
-    override fun angle(f: PoseFrame): Double? {
-        val tilt = f.torsoFromVertical() ?: return null
-        if (tilt > maxUprightTilt) return null
-        if (!f.visible(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return null
-        val s = f.mid(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER)
-        val h = f.mid(BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)
-        val torso = hypot(s.first - h.first, s.second - h.second)
-        if (torso < 5.0) return null
-        val ankle = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE).filter { f.visible(it) }
-            .maxOfOrNull { f[it].y * f.imageHeight.toDouble() } ?: return null
-        val ratio = (ankle - h.second) / torso
-        val t = f.timestampMs
-        // the standing height is learnt only outside a rep, so a long hold at the bottom never lowers it
-        if (currentPhase == RepPhase.UNKNOWN || currentPhase == RepPhase.TOP) {
-            standing.addLast(t to ratio)
-            while (standing.isNotEmpty() && t - standing.first().first > baselineMs) standing.removeFirst()
+    private fun lose() {
+        phase = RepPhase.UNKNOWN
+        window.clear()
+    }
+
+    private fun PoseFrame.seen(vararg l: BodyLandmark) = l.all { this[it].visibility >= minVisibility }
+
+    /** Hip height over torso length, or null when it can't be read or the person is bent over. */
+    private fun hipHeight(f: PoseFrame): Double? {
+        if (!f.seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return null
+        val w = f.imageWidth.toDouble(); val h = f.imageHeight.toDouble()
+        val sx = (f[BodyLandmark.LEFT_SHOULDER].x + f[BodyLandmark.RIGHT_SHOULDER].x) / 2.0 * w
+        val sy = (f[BodyLandmark.LEFT_SHOULDER].y + f[BodyLandmark.RIGHT_SHOULDER].y) / 2.0 * h
+        val hx = (f[BodyLandmark.LEFT_HIP].x + f[BodyLandmark.RIGHT_HIP].x) / 2.0 * w
+        val hy = (f[BodyLandmark.LEFT_HIP].y + f[BodyLandmark.RIGHT_HIP].y) / 2.0 * h
+        val torso = hypot(sx - hx, sy - hy)
+        if (torso < 5.0 || hy <= sy) return null
+        if (Math.toDegrees(atan2(abs(sx - hx), hy - sy)) > maxUprightTilt) return null
+        val ankle = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE).filter { f.seen(it) }.maxOfOrNull { f[it].y * h } ?: return null
+        return (ankle - hy) / torso
+    }
+
+    override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
+        val raw = if (tracking) hipHeight(frame) else null
+        if (raw == null || raw <= 0.0) {
+            lose()
+            return RepUpdate(count, phase, null)
         }
-        val base = standing.maxOfOrNull { it.second } ?: return null
-        return if (base <= 0.0) null else ratio / base
+        window.addLast(raw)
+        while (window.size > smoothingWindow) window.removeFirst()
+        val r = window.average()
+        val base = maxOf(standing ?: r, r).also { standing = it }
+        val x = r / base
+        val t = frame.timestampMs
+        var event: RepEvent? = null
+        when (phase) {
+            RepPhase.UNKNOWN -> { phase = RepPhase.TOP; peak = x }
+            RepPhase.TOP -> {
+                peak = maxOf(peak, x)
+                if (x < peak - drop) {
+                    phase = RepPhase.BOTTOM; valley = x; cycleStartMs = t; sideBottom = 0; lean = 0
+                }
+            }
+            RepPhase.DESCENDING, RepPhase.BOTTOM -> {
+                valley = minOf(valley, x)
+                if (x > valley + rise) {
+                    if (t - cycleStartMs >= minRepMs) {
+                        count++
+                        val cues = if (sideBottom >= minRuleFrames && lean >= ruleFraction * sideBottom) setOf<FormCue>(LungeIssue.LEANING) else emptySet()
+                        event = RepEvent.RepCompleted(count, cues)
+                    }
+                    phase = RepPhase.TOP; peak = x
+                } else if (x <= valley + 0.03) {
+                    observeBottom(frame)
+                }
+            }
+        }
+        return RepUpdate(count, phase, x, event)
     }
 
-    override fun observeBottom(f: PoseFrame) {
-        val fr = f.frontalRatio() ?: return
-        if (fr > 0.45) return
-        val tilt = f.torsoFromVertical() ?: return
+    private fun observeBottom(f: PoseFrame) {
+        if (!f.seen(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return
+        val w = f.imageWidth.toDouble(); val h = f.imageHeight.toDouble()
+        fun d(a: BodyLandmark, b: BodyLandmark) = hypot((f[a].x - f[b].x) * w, (f[a].y - f[b].y) * h)
+        val torso = (d(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_HIP) + d(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_HIP)) / 2
+        if (torso < 5.0 || d(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER) / torso > 0.45) return   // side-on only
+        val sx = (f[BodyLandmark.LEFT_SHOULDER].x + f[BodyLandmark.RIGHT_SHOULDER].x) / 2.0 * w
+        val sy = (f[BodyLandmark.LEFT_SHOULDER].y + f[BodyLandmark.RIGHT_SHOULDER].y) / 2.0 * h
+        val hx = (f[BodyLandmark.LEFT_HIP].x + f[BodyLandmark.RIGHT_HIP].x) / 2.0 * w
+        val hy = (f[BodyLandmark.LEFT_HIP].y + f[BodyLandmark.RIGHT_HIP].y) / 2.0 * h
         sideBottom++
-        if (tilt > maxLean) lean++
+        if (Math.toDegrees(atan2(abs(sx - hx), hy - sy)) > maxLean) lean++
     }
-
-    override fun cuesOfCycle(): Set<FormCue> =
-        if (sideBottom >= minRuleFrames && lean >= ruleFraction * sideBottom) setOf(LungeIssue.LEANING) else emptySet()
 }
