@@ -57,3 +57,10 @@ press_f_q45|dumbbell_shoulder_press|3
 lateral_m_q45|dumbbell_lateral_raise|3
 row_f_q45|dumbbell_bent_over_row|3
 bridge_m_q45|glute_bridge|3
+# harder conditions: low camera, far away, dim room, cluttered room, faster tempo, southpaw (mirrored) stance
+squat_f_front_lowcam|bodyweight_squat|3
+squat_m_q45_far|bodyweight_squat|3
+squat_f_front_dark|bodyweight_squat|3
+squat_m_side_busy|bodyweight_squat|3
+squat_f_q45_fast|bodyweight_squat|3
+jab_f_front_southpaw|boxing_jab|4

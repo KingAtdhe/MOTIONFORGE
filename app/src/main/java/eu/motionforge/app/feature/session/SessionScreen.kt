@@ -225,7 +225,7 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
                 Text(
                     "Prop the phone at hip height, about 2 m away, turned so it sees you from a front corner. " +
                         "Your whole body, head to feet, should fit in the picture." +
-                        (if (floorMoves) " For push-ups, set it lower and to your side so it sees your body from shoulder to feet." else ""),
+                        (if (floorMoves) " For push-ups, turn the phone sideways, set it low and to your side so it sees you from head to feet." else ""),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(

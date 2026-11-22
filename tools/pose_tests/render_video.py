@@ -5,7 +5,7 @@ seq: comma list of clip names, '*N' repeats a group: e.g. "idle_neutral@1.0,(squ
 import sys, os, math, re, bpy
 from mathutils import Vector
 glb, out, view, seq, fps = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5])
-W, H = (int(sys.argv[6]), int(sys.argv[7])) if len(sys.argv) > 7 else (360, 640)
+W, H = (int(sys.argv[6]), int(sys.argv[7])) if len(sys.argv) > 7 else (int(os.environ.get("RV_W", "360")), int(os.environ.get("RV_H", "640")))
 os.makedirs(out, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.gltf(filepath=glb)
 sc = bpy.context.scene
@@ -24,19 +24,6 @@ LIGHT = float(os.environ.get("RV_LIGHT", "1.0"))          # <1 = dim room
 w.node_tree.nodes["Background"].inputs[1].default_value = LIGHT
 sun = bpy.data.lights.new("s", "SUN"); sun.energy = 2.5 * LIGHT; so = bpy.data.objects.new("s", sun); sc.collection.objects.link(so); so.rotation_euler = (0.8, 0.3, 0.9)
 ar = bpy.data.lights.new("a", "AREA"); ar.energy = 300 * LIGHT; ar.size = 2; ao = bpy.data.objects.new("a", ar); sc.collection.objects.link(ao); ao.location = (0, -3, 3); ao.rotation_euler = (math.radians(45), 0, 0)
-if os.environ.get("RV_BUSY"):                              # cluttered room: shelves, boxes, a plant, posters
-    import random
-    rnd = random.Random(7)
-    for i in range(26):
-        x = rnd.uniform(-3.2, 3.2); y = rnd.uniform(1.2, 3.3)
-        if abs(x) < 0.9 and y < 2.0: continue
-        sz = rnd.uniform(0.2, 0.9)
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, sz / 2 + rnd.uniform(0, 1.2)))
-        o = bpy.context.object; o.scale = (sz * rnd.uniform(0.5, 1.6), sz * rnd.uniform(0.4, 1.0), sz * rnd.uniform(0.5, 1.8))
-        o.data.materials.append(mat("clutter%d" % i, (rnd.random(), rnd.random(), rnd.random())))
-    for i in range(5):
-        bpy.ops.mesh.primitive_plane_add(size=0.8, location=(rnd.uniform(-3, 3), 3.45, rnd.uniform(1.2, 2.4)), rotation=(math.radians(90), 0, 0))
-        bpy.context.object.data.materials.append(mat("poster%d" % i, (rnd.random(), rnd.random() * 0.5, rnd.random())))
 cam = bpy.data.objects.new("c", bpy.data.cameras.new("c")); sc.collection.objects.link(cam); sc.camera = cam
 cam.data.sensor_fit = "VERTICAL"; cam.data.angle = math.radians(float(os.environ.get("RV_FOV", "62")))   # phone camera, vertical FOV
 yaw = {"front": 0.0, "side": 90.0, "q45": 45.0, "q-45": -45.0, "back": 180.0}.get(view, None)
@@ -46,6 +33,18 @@ a = math.radians(yaw)
 cam.location = Vector((dist * math.sin(a), -dist * math.cos(a), ch))
 tgt = Vector((0, 0, float(os.environ.get("RV_TGTH", "0.85"))))
 cam.rotation_euler = (tgt - cam.location).to_track_quat("-Z", "Y").to_euler()
+if os.environ.get("RV_BUSY"):                              # cluttered room all round: boxes, shelves, posters
+    import random
+    rnd = random.Random(7)
+    for i in range(40):
+        ang = rnd.uniform(0, 2 * math.pi)
+        if abs(((ang - (a - math.pi / 2)) + math.pi) % (2 * math.pi) - math.pi) < math.radians(55): continue   # not between camera and coach
+        r = rnd.uniform(1.3, 3.2)
+        x, y = r * math.cos(ang), r * math.sin(ang)
+        sz = rnd.uniform(0.25, 0.9)
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, sz / 2 + rnd.uniform(0, 1.3)))
+        o = bpy.context.object; o.rotation_euler = (0, 0, rnd.uniform(0, 3)); o.scale = (sz * rnd.uniform(0.5, 1.6), sz * rnd.uniform(0.4, 1.0), sz * rnd.uniform(0.5, 1.8))
+        o.data.materials.append(mat("clutter%d" % i, (rnd.random(), rnd.random(), rnd.random())))
 # expand the sequence
 def expand(s):
     while "(" in s:
