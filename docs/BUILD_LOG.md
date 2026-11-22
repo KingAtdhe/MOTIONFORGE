@@ -896,3 +896,23 @@ fire; the counts must still be right. Correct demos must still produce no cue. A
 hangs straight) — the punching arm is now the straighter arm at shoulder height, kept until it returns; (5) jab faults
 could never show, a jab is shorter than the cue's 1 s persistence window — a fault seen during a jab is named when
 it ends; (6) lunge lean was judged on the whole descent — now on the frames near the final lowest point.
+
+## 2026-11-23 — More lessons counted; counters stress-tested
+**New counted lessons** (each verified on renders of both coaches at ≥ 2 views, plus negatives):
+dumbbell curl, shoulder press, lateral raise, step jack (wrist height above the shoulders, in torso lengths — the
+elbow angle can't be read when the forearm comes toward the camera); bent-over row (wrists above the hips while
+hinged); band pull-apart (hand spread in shoulder widths, front view); Romanian and kettlebell deadlift (torso
+pitch = larger of image tilt and acos(torso length / standing torso length), so a lean toward the camera reads too);
+glute bridge (hip angle, side / 3/4); boxing cross (the jab rules on whichever arm punches; "keep the lead hand up").
+Shared `ExcursionRepCounter`: rep = leave rest by ≥ travel, then come back ≥ 0.8 × travel from the furthest point
+(measuring the return back to rest missed shoulder presses, which start at the shoulders).
+**Not counted, on purpose:** bodyweight hip hinge (spec: instructional only until validated); calf raise — the
+heel lift is ~3 % of standing height from the front and ±0.03 noise side-on, not separable with the lite model.
+**Stress tests** (all count exactly): camera at 35 cm, 5 m away, dim room with phone-like grain and low contrast
+(squat, push-up, lunge), cluttered room all round (squat, jab, curl), 1.7× faster squats, 0.6× slow push-ups,
+southpaw stance (mirrored video), push-ups from a phone lying sideways on the floor.
+**Found and fixed:** a single frame the pose model missed (and the tracking gate re-settling) dropped the whole rep
+— counters now ride out gaps up to 0.5 s, longer gaps still drop the rep; push-ups filmed from floor level read
+the straight arm as ~145°, top threshold 150° → 135°; an upright phone on the floor cuts the head off (the app
+asks to adjust, counts nothing) — the push-up setup tip now says to turn the phone sideways.
+Fixture checks: 70, all passing in CI.

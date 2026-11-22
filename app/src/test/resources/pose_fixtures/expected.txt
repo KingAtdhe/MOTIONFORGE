@@ -64,3 +64,15 @@ squat_f_front_dark|bodyweight_squat|3
 squat_m_side_busy|bodyweight_squat|3
 squat_f_q45_fast|bodyweight_squat|3
 jab_f_front_southpaw|boxing_jab|4
+lunge_f_front_dark|reverse_lunge|2
+jab_m_q45_busy|boxing_jab|4
+squat_f_front_dark2|bodyweight_squat|3
+squat_m_side_busy2|bodyweight_squat|3
+pushup_f_side_dark|push_up|3
+pushup_f_q45_slow|push_up|3
+curl_m_q45_busy|dumbbell_biceps_curl|3
+pushup_m_side_floorland|push_up|3
+# phone upright on the floor cuts the head off: the gate asks to adjust the camera, nothing is counted
+pushup_m_side_floorcam|push_up|0
+squat_f_front|push_up|0
+curl_f_front|push_up|0

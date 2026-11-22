@@ -92,7 +92,7 @@ class Squat(Cycle):
         if s.sb>=3 and s.lb>=0.6*s.sb: c.append("CHEST_DROP")
         return c
 class PushUp(Cycle):
-    def __init__(s,knees=False,top=150,bottom=105,shallow=130,tilt=45,fore=0.75,bend=15): super().__init__(top,bottom,shallow); s.knees,s.tilt,s.fore,s.bend=knees,tilt,fore,bend
+    def __init__(s,knees=False,top=135,bottom=105,shallow=120,tilt=45,fore=0.75,bend=15): super().__init__(top,bottom,shallow); s.knees,s.tilt,s.fore,s.bend=knees,tilt,fore,bend
     def start(s): s.sb=s.sag=s.pike=0
     def inpos(s,L,w,h):
         tl=torso_tilt(L,w,h)

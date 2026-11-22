@@ -249,9 +249,10 @@ enum class PushUpIssue(override val message: String, override val spoken: String
  */
 class PushUpRepCounter(
     private val bodyLineToKnees: Boolean = false,
-    topAngle: Double = 150.0,
+    // a phone on the floor sees the straight arm at the top foreshortened (~140–150° on the rendered test videos)
+    topAngle: Double = 135.0,
     bottomAngle: Double = 105.0,
-    shallowAngle: Double = 130.0,
+    shallowAngle: Double = 120.0,
     private val minTorsoTilt: Double = 45.0,
     private val maxForeshortened: Double = 0.75,
     private val maxLineBend: Double = 15.0,
