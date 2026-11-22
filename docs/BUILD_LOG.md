@@ -878,7 +878,7 @@ passes); no floor penetration, floating, popping or broken poses found.
 chest dropping, hips sagging / piking, leaning in the lunge, rear hand dropping during the jab, hands low in the stance;
 plus timing faults via clip speed (`clip^3` rushed squat, `clip^0.15` jab held out). Each fault video is a fixture
 with the cue it must produce (`expected.txt` 4th field); a cue must fire on ≥ 2/3 of the reps and nothing else may
-fire; the counts must still be right. Correct demos must still produce no cue. All 37 checks pass.
+fire; the counts must still be right. Correct demos must still produce no cue. All 33 video checks pass.
 | fault | video | result |
 |---|---|---|
 | knees in | squat f front | 3/3, KNEES_IN every rep |
