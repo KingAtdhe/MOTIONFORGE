@@ -1,0 +1,5 @@
+# name|exercise id|expected count — videos rendered from the app's coaches (tools/pose_tests), landmarks from pose_landmarker_lite
+squat_f_front|bodyweight_squat|3
+squat_m_side|bodyweight_squat|3
+squat_f_q45|bodyweight_squat|3
+pushup_f_side|push_up|3

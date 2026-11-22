@@ -48,9 +48,12 @@ class SessionEngineTest {
     }
 
     @Test
-    fun onlySquatCountsReps() {
-        val plan = SessionPlanner.quick(catalog, TrainingCategory.FITNESS)!!
-        plan.steps.filterIsInstance<SessionStep.Work>().forEach { assertEquals(it.exerciseId, it.exerciseId == SessionPlanner.SQUAT_ID, it.countsReps) }
+    fun countedMovesCountReps() {
+        catalog.forEach { e ->
+            val w = SessionPlanner.single(e).steps.single() as SessionStep.Work
+            assertEquals(e.id, eu.motionforge.app.core.movement.CountedMove.forExercise(e.id) != null, w.countsReps)
+        }
+        assertEquals(true, (SessionPlanner.single(squat).steps.single() as SessionStep.Work).countsReps)
     }
 
     @Test

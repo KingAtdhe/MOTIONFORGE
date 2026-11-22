@@ -146,3 +146,11 @@ dependencies {
     testImplementation(libs.robolectric)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+// full failure messages in CI logs (the rendered-video rep test reports its whole results table on failure)
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}

@@ -5,9 +5,10 @@ import androidx.lifecycle.viewModelScope
 import eu.motionforge.app.core.coaching.Utterance
 import eu.motionforge.app.core.coaching.VoiceCoach
 import eu.motionforge.app.core.movement.BoxingFormMonitor
-import eu.motionforge.app.core.movement.SquatEvent
+import eu.motionforge.app.core.movement.RepEvent
 import eu.motionforge.app.core.movement.FormFeedback
-import eu.motionforge.app.core.movement.SquatRepCounter
+import eu.motionforge.app.core.movement.CountedMove
+import eu.motionforge.app.core.movement.RepCounter
 import eu.motionforge.app.core.pose.PoseOutput
 import eu.motionforge.app.core.pose.TrackingState
 import eu.motionforge.app.core.pose.TrackingStateEvaluator
@@ -54,8 +55,10 @@ class SessionViewModel(
     private val _save = MutableStateFlow(SaveState.IDLE)
     val save: StateFlow<SaveState> = _save.asStateFlow()
 
-    private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY)
-    private val repCounter = SquatRepCounter()
+    private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
+    /** The rep counter for the current step (squat, push-up or lunge rules), or null when the step isn't counted. */
+    private var repCounter: RepCounter? = null
+    private var countedMove: CountedMove? = null
 
     private val _form = MutableStateFlow<FormFeedback?>(null)
     /** Boxing form cues for the current step (null when the step has no form check). */
@@ -70,7 +73,7 @@ class SessionViewModel(
     private val _speech = MutableSharedFlow<Utterance>(extraBufferCapacity = 8)
     /** Lines for the text-to-speech engine; the screen speaks them when voice cues are on. */
     val speech: SharedFlow<Utterance> = _speech.asSharedFlow()
-    private var lastSquatEvent: SquatEvent? = null
+    private var lastRepEvent: RepEvent? = null
     private var steadySinceMs = -1L
     private var stancePraised = false
     private var startedAtMillis = restored?.startedAtMillis ?: 0L
@@ -115,12 +118,18 @@ class SessionViewModel(
         _state.value = after
         if (event is SessionEvent.Start && after.phase == SessionPhase.RUNNING) startedAtMillis = System.currentTimeMillis()
         // A repetition may never span a step change or a pause.
-        if (after.stepIndex != before.stepIndex || after.phase != SessionPhase.RUNNING) repCounter.reset()
+        val workId = (after.currentStep as? SessionStep.Work)?.takeIf { it.countsReps }?.exerciseId
+        if (after.stepIndex != before.stepIndex || (workId != null && repCounter == null)) {
+            countedMove = workId?.let { CountedMove.forExercise(it) }
+            repCounter = workId?.let { CountedMove.counterFor(it) }
+            lastRepEvent = null
+        }
+        if (after.stepIndex != before.stepIndex || after.phase != SessionPhase.RUNNING) repCounter?.reset()
         val drill = (after.currentStep as? SessionStep.Work)?.formDrill
         if (after.stepIndex != before.stepIndex || (drill != null && formMonitor == null)) {
             formMonitor = drill?.let { BoxingFormMonitor(it) }
             _form.value = drill?.let { FormFeedback.NotAssessing(0) }
-            lastSquatEvent = null
+            lastRepEvent = null
             steadySinceMs = -1L
             stancePraised = false
         }
@@ -176,14 +185,15 @@ class SessionViewModel(
         }
         val s = _state.value
         val step = s.currentStep
-        if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps && output is PoseOutput.Detected) {
-            val before = repCounter.repetitions
-            val update = repCounter.update(output.frame, tracking = trackingState.allowsFeedback)
+        val counter = repCounter
+        if (counter != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps && output is PoseOutput.Detected) {
+            val before = counter.repetitions
+            val update = counter.update(output.frame, tracking = trackingState.allowsFeedback)
             update.event?.let { ev ->
-                lastSquatEvent = ev
-                say(SessionNarrator.squatLine(ev))
+                lastRepEvent = ev
+                say(SessionNarrator.repLine(ev))
             }
-            if (repCounter.repetitions > before) onEvent(SessionEvent.RepCounted)
+            if (counter.repetitions > before) onEvent(SessionEvent.RepCounted)
         }
         val monitor = formMonitor
         if (monitor != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.formDrill != null) {
@@ -219,7 +229,7 @@ class SessionViewModel(
         _coaching.value = when {
             step == null || !s.cameraUsed -> null
             drill != null -> _form.value?.let { SessionNarrator.boxingCard(it, drill, formMonitor?.goodJabs ?: 0) }
-            step.countsReps -> SessionNarrator.squatCard(lastSquatEvent, _tracking.value.allowsFeedback)
+            step.countsReps -> SessionNarrator.repCard(countedMove ?: CountedMove.SQUAT, lastRepEvent, _tracking.value.allowsFeedback)
             else -> null
         }
     }
@@ -230,7 +240,7 @@ class SessionViewModel(
 
     fun onCameraHidden() {
         evaluator.reset()
-        repCounter.reset()
+        repCounter?.reset()
         formMonitor?.reset()
         if (_form.value != null) _form.value = FormFeedback.NotAssessing(formMonitor?.jabs ?: 0)
         _tracking.value = TrackingState.PAUSED

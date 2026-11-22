@@ -193,8 +193,10 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             Text(exercise.analysisMode.displayName, style = MaterialTheme.typography.titleMedium)
             Text(exercise.limitations, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                if (exercise.id == SessionPlanner.SQUAT_ID) {
-                    "In practice with the camera on, repetitions are counted automatically. This is experimental and only counts the movement cycle — it does not judge technique."
+                if (eu.motionforge.app.core.movement.CountedMove.forExercise(exercise.id) != null) {
+                    "In practice with the camera on, repetitions are counted automatically, and a few simple form rules may suggest an adjustment. This is experimental — it does not judge safety."
+                } else if (exercise.id == SessionPlanner.STANCE_ID || exercise.id == SessionPlanner.JAB_ID) {
+                    "In practice with the camera on, it watches your guard and feet and suggests simple adjustments. This is experimental."
                 } else {
                     "In practice, the camera works as a mirror with a tracking skeleton. It does not assess this movement yet."
                 },

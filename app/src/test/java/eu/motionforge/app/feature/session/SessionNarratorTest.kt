@@ -6,7 +6,7 @@ import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.core.movement.FormFeedback
 import eu.motionforge.app.core.movement.FormIssue
 import eu.motionforge.app.core.movement.JabResult
-import eu.motionforge.app.core.movement.SquatEvent
+import eu.motionforge.app.core.movement.RepEvent
 import eu.motionforge.app.core.movement.SquatIssue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -77,19 +77,19 @@ class SessionNarratorTest {
     @Test
     fun squatLines() {
         assertEquals(CoachLine("Three. Slow down on the way down.", CuePriority.CORRECTION),
-            SessionNarrator.squatLine(SquatEvent.RepCompleted(3, setOf(SquatIssue.RUSHED, SquatIssue.CHEST_DROP))))
-        val clean = SessionNarrator.squatLine(SquatEvent.RepCompleted(2, emptySet()))
+            SessionNarrator.repLine(RepEvent.RepCompleted(3, setOf(SquatIssue.RUSHED, SquatIssue.CHEST_DROP))))
+        val clean = SessionNarrator.repLine(RepEvent.RepCompleted(2, emptySet()))
         assertTrue(clean.text.startsWith("Two. "))
         assertEquals(CuePriority.COUNT, clean.priority)
-        assertEquals(SessionNarrator.SHALLOW, SessionNarrator.squatLine(SquatEvent.ShallowRep).text)
+        assertEquals(SessionNarrator.SHALLOW, SessionNarrator.repLine(RepEvent.ShallowRep).text)
     }
 
     @Test
     fun squatCardTones() {
         assertEquals(CoachTone.PAUSED, SessionNarrator.squatCard(null, tracking = false).tone)
         assertEquals(CoachTone.NEUTRAL, SessionNarrator.squatCard(null, tracking = true).tone)
-        assertEquals(CoachTone.GOOD, SessionNarrator.squatCard(SquatEvent.RepCompleted(1, emptySet()), true).tone)
-        val adj = SessionNarrator.squatCard(SquatEvent.RepCompleted(1, setOf(SquatIssue.KNEES_IN)), true)
+        assertEquals(CoachTone.GOOD, SessionNarrator.squatCard(RepEvent.RepCompleted(1, emptySet()), true).tone)
+        val adj = SessionNarrator.squatCard(RepEvent.RepCompleted(1, setOf(SquatIssue.KNEES_IN)), true)
         assertEquals(CoachTone.ADJUST, adj.tone)
         assertEquals(SquatIssue.KNEES_IN.message, adj.message)
     }

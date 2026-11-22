@@ -97,8 +97,8 @@ class SquatRepCounterTest {
     fun hiddenKneesGiveNoAngle() {
         val c = SquatRepCounter()
         val u = c.update(frame(95.0, 0, kneeVisibility = 0.2f), tracking = true)
-        assertNull(u.kneeAngle)
-        assertEquals(SquatPhase.UNKNOWN, u.phase)
+        assertNull(u.angle)
+        assertEquals(RepPhase.UNKNOWN, u.phase)
     }
 
     @Test
@@ -110,7 +110,7 @@ class SquatRepCounterTest {
     }
 
     /** Collects the form events while feeding angles (frames built by [make]). */
-    private fun SquatRepCounter.events(angles: List<Double>, msPerFrame: Long = 66, make: (Double, Long) -> PoseFrame = { a, t -> frame(a, t) }): List<SquatEvent> {
+    private fun SquatRepCounter.events(angles: List<Double>, msPerFrame: Long = 66, make: (Double, Long) -> PoseFrame = { a, t -> frame(a, t) }): List<RepEvent> {
         var t = 0L
         return angles.mapNotNull { a -> update(make(a, t), true).event.also { t += msPerFrame } }
     }
@@ -120,19 +120,19 @@ class SquatRepCounterTest {
     @Test
     fun controlledRepHasNoIssues() {
         val ev = SquatRepCounter().events(slowCycle(95.0))
-        assertEquals(listOf(SquatEvent.RepCompleted(1, emptySet())), ev)
+        assertEquals(listOf(RepEvent.RepCompleted(1, emptySet())), ev)
     }
 
     @Test
     fun droppingIntoTheBottomIsRushed() {
         val ev = SquatRepCounter().events(cycle(95.0, framesEachWay = 5))
-        assertEquals(listOf(SquatEvent.RepCompleted(1, setOf(SquatIssue.RUSHED))), ev)
+        assertEquals(listOf(RepEvent.RepCompleted(1, setOf(SquatIssue.RUSHED))), ev)
     }
 
     @Test
     fun clearShallowAttemptIsReported() {
         val ev = SquatRepCounter().events(slowCycle(125.0))
-        assertEquals(listOf(SquatEvent.ShallowRep), ev)
+        assertEquals(listOf(RepEvent.ShallowRep), ev)
     }
 
     @Test
@@ -159,7 +159,7 @@ class SquatRepCounterTest {
     @Test
     fun kneesCavingAtTheBottomSeenFromTheFront() {
         val ev = SquatRepCounter().events(slowCycle(95.0)) { a, t -> kneesInFrame(a, t) }
-        val rep = ev.single() as SquatEvent.RepCompleted
+        val rep = ev.single() as RepEvent.RepCompleted
         assertEquals(setOf(SquatIssue.KNEES_IN), rep.issues)
     }
 
@@ -176,7 +176,7 @@ class SquatRepCounterTest {
             fixed[BodyLandmark.RIGHT_SHOULDER.index] = PoseFixtures.landmark(sx - 0.01f, sy)
             f.copy(landmarks = fixed)
         }
-        val rep = ev.single() as SquatEvent.RepCompleted
+        val rep = ev.single() as RepEvent.RepCompleted
         assertTrue(rep.toString(), SquatIssue.CHEST_DROP in rep.issues)
         assertTrue(SquatIssue.KNEES_IN !in rep.issues)
     }

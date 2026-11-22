@@ -5,7 +5,8 @@ import eu.motionforge.app.core.coaching.VoiceCoach
 import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.core.movement.FormFeedback
 import eu.motionforge.app.core.movement.JabResult
-import eu.motionforge.app.core.movement.SquatEvent
+import eu.motionforge.app.core.movement.CountedMove
+import eu.motionforge.app.core.movement.RepEvent
 
 /** A line the coach would like to say; [VoiceCoach] decides whether it is actually spoken. */
 data class CoachLine(val text: String, val priority: CuePriority)
@@ -72,25 +73,27 @@ object SessionNarrator {
         is SessionStep.Rest -> CoachLine("Rest. Next up: ${step.nextName}.", CuePriority.ANNOUNCE)
     }
 
-    fun squatLine(event: SquatEvent): CoachLine = when (event) {
-        is SquatEvent.RepCompleted -> {
+    fun repLine(event: RepEvent): CoachLine = when (event) {
+        is RepEvent.RepCompleted -> {
             val n = VoiceCoach.count(event.rep)
-            val issue = event.issues.minByOrNull { it.ordinal }
+            val issue = event.issues.firstOrNull()
             if (issue != null) CoachLine("$n ${issue.spoken}", CuePriority.CORRECTION)
             else CoachLine("$n ${VoiceCoach.praise(event.rep)}", CuePriority.COUNT)
         }
-        SquatEvent.ShallowRep -> CoachLine(SHALLOW, CuePriority.CORRECTION)
+        RepEvent.ShallowRep -> CoachLine(SHALLOW, CuePriority.CORRECTION)
     }
 
-    fun squatCard(event: SquatEvent?, tracking: Boolean): LiveCoaching = when {
-        !tracking -> LiveCoaching("Squat check paused", "Keep your whole body in view, side-on or facing the phone.", CoachTone.PAUSED)
-        event == null -> LiveCoaching("Squat check (experimental)", "Lower with control. Each rep is checked when you stand up.", CoachTone.NEUTRAL)
-        event is SquatEvent.ShallowRep -> LiveCoaching("Not counted", "That dip didn't reach counting depth. Go a little lower if it's comfortable.", CoachTone.ADJUST)
-        event is SquatEvent.RepCompleted && event.issues.isEmpty() ->
+    fun squatCard(event: RepEvent?, tracking: Boolean): LiveCoaching = repCard(CountedMove.SQUAT, event, tracking)
+
+    fun repCard(move: CountedMove, event: RepEvent?, tracking: Boolean): LiveCoaching = when {
+        !tracking -> LiveCoaching("${move.checkName} paused", move.framing, CoachTone.PAUSED)
+        event == null -> LiveCoaching("${move.checkName} (experimental)", move.idle, CoachTone.NEUTRAL)
+        event is RepEvent.ShallowRep -> LiveCoaching("Not counted", move.shallow, CoachTone.ADJUST)
+        event is RepEvent.RepCompleted && event.issues.isEmpty() ->
             LiveCoaching("Rep ${event.rep}", "No adjustments spotted on that rep. Keep it up.", CoachTone.GOOD)
         else -> {
-            val rep = event as SquatEvent.RepCompleted
-            LiveCoaching("Rep ${rep.rep}", rep.issues.sortedBy { it.ordinal }.joinToString("\n") { it.message }, CoachTone.ADJUST)
+            val rep = event as RepEvent.RepCompleted
+            LiveCoaching("Rep ${rep.rep}", rep.issues.joinToString("\n") { it.message }, CoachTone.ADJUST)
         }
     }
 

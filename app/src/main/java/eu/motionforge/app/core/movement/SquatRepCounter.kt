@@ -8,29 +8,18 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
 
-enum class SquatPhase { UNKNOWN, STANDING, DESCENDING, BOTTOM }
 
 /**
  * Possible form adjustments the squat check can name for one repetition. Each is a simple 2D rule; the
  * wording is a suggestion, never a judgement of safety or injury risk.
  * [message] is shown on screen, [spoken] is the short version the voice coach says.
  */
-enum class SquatIssue(val message: String, val spoken: String) {
+enum class SquatIssue(override val message: String, override val spoken: String) : FormCue {
     RUSHED("Possible form adjustment: slow down and control the way down.", "Slow down on the way down."),
     KNEES_IN("Possible form adjustment: let your knees travel in line with your toes.", "Knees in line with your toes."),
     CHEST_DROP("Possible form adjustment: keep your chest a little more upright.", "Chest up a little."),
 }
 
-/** Something worth telling the person about, produced once at the end of a movement cycle. */
-sealed interface SquatEvent {
-    /** A counted repetition; [issues] empty means no rule found anything to adjust. */
-    data class RepCompleted(val rep: Int, val issues: Set<SquatIssue>) : SquatEvent
-
-    /** A clear dip that did not reach counting depth and was not counted. */
-    data object ShallowRep : SquatEvent
-}
-
-data class RepUpdate(val count: Int, val phase: SquatPhase, val kneeAngle: Double?, val event: SquatEvent? = null)
 
 /**
  * Rule-based squat repetition counter with per-repetition form checks (deterministic, explainable, unit-tested).
@@ -70,9 +59,9 @@ class SquatRepCounter(
     private val frontalRatio: Double = 0.40,
     private val minRuleFrames: Int = 3,
     private val ruleFraction: Double = 0.6,
-) {
+) : RepCounter {
     private var count = 0
-    private var phase = SquatPhase.UNKNOWN
+    private var phase = RepPhase.UNKNOWN
     private var cycleStartMs = 0L
     private var bottomAtMs = 0L
     private var minAngle = 180.0
@@ -82,15 +71,15 @@ class SquatRepCounter(
     private var leanBottom = 0
     private val window = ArrayDeque<Double>()
 
-    val repetitions: Int get() = count
+    override val repetitions: Int get() = count
 
-    fun reset() {
+    override fun reset() {
         count = 0
         loseTracking()
     }
 
     private fun loseTracking() {
-        phase = SquatPhase.UNKNOWN
+        phase = RepPhase.UNKNOWN
         window.clear()
     }
 
@@ -101,7 +90,7 @@ class SquatRepCounter(
         frontalBottom = 0; kneesInBottom = 0; sideBottom = 0; leanBottom = 0
     }
 
-    fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
+    override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
         val raw = if (tracking) kneeAngle(frame) else null
         if (raw == null) {
             loseTracking()
@@ -111,38 +100,38 @@ class SquatRepCounter(
         while (window.size > smoothingWindow) window.removeFirst()
         val angle = window.average()
         val t = frame.timestampMs
-        var event: SquatEvent? = null
+        var event: RepEvent? = null
 
-        if (phase == SquatPhase.DESCENDING || phase == SquatPhase.BOTTOM) minAngle = minOf(minAngle, angle)
+        if (phase == RepPhase.DESCENDING || phase == RepPhase.BOTTOM) minAngle = minOf(minAngle, angle)
         when (phase) {
-            SquatPhase.UNKNOWN -> if (angle >= standingAngle) phase = SquatPhase.STANDING
-            SquatPhase.STANDING -> if (angle < standingAngle - DESCENT_MARGIN) {
-                phase = SquatPhase.DESCENDING
+            RepPhase.UNKNOWN -> if (angle >= standingAngle) phase = RepPhase.TOP
+            RepPhase.TOP -> if (angle < standingAngle - DESCENT_MARGIN) {
+                phase = RepPhase.DESCENDING
                 startCycle(t)
                 minAngle = angle
             }
-            SquatPhase.DESCENDING -> when {
-                angle <= bottomAngle -> { phase = SquatPhase.BOTTOM; bottomAtMs = t }
+            RepPhase.DESCENDING -> when {
+                angle <= bottomAngle -> { phase = RepPhase.BOTTOM; bottomAtMs = t }
                 angle >= standingAngle -> {
                     // shallow dip: not counted; said only when it was clearly an attempt
-                    if (minAngle <= shallowAngle) event = SquatEvent.ShallowRep
-                    phase = SquatPhase.STANDING
+                    if (minAngle <= shallowAngle) event = RepEvent.ShallowRep
+                    phase = RepPhase.TOP
                 }
             }
-            SquatPhase.BOTTOM -> if (angle >= standingAngle) {
+            RepPhase.BOTTOM -> if (angle >= standingAngle) {
                 if (t - cycleStartMs >= minRepMs) {
                     count++
-                    event = SquatEvent.RepCompleted(count, issuesOfCycle())
+                    event = RepEvent.RepCompleted(count, issuesOfCycle())
                 }
-                phase = SquatPhase.STANDING
+                phase = RepPhase.TOP
             }
         }
         // the form rules look at the deepest part only (the phase stays BOTTOM until standing again)
-        if (phase == SquatPhase.BOTTOM && angle <= bottomAngle + BOTTOM_BAND) observeBottom(frame)
+        if (phase == RepPhase.BOTTOM && angle <= bottomAngle + BOTTOM_BAND) observeBottom(frame)
         return RepUpdate(count, phase, angle, event)
     }
 
-    private fun issuesOfCycle(): Set<SquatIssue> = buildSet {
+    private fun issuesOfCycle(): Set<FormCue> = buildSet {
         if (bottomAtMs > 0 && bottomAtMs - cycleStartMs < minDescentMs) add(SquatIssue.RUSHED)
         if (frontalBottom >= minRuleFrames && kneesInBottom >= ruleFraction * frontalBottom) add(SquatIssue.KNEES_IN)
         if (sideBottom >= minRuleFrames && leanBottom >= ruleFraction * sideBottom) add(SquatIssue.CHEST_DROP)

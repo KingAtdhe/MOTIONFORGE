@@ -2,6 +2,7 @@ package eu.motionforge.app.feature.session
 
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.movement.BoxingDrill
+import eu.motionforge.app.core.movement.CountedMove
 import eu.motionforge.app.core.model.TrainingCategory
 
 sealed interface SessionStep {
@@ -11,7 +12,7 @@ sealed interface SessionStep {
         val exerciseId: String,
         val name: String,
         override val durationSeconds: Int,
-        /** True only for movements with a validated-in-principle repetition rule (currently squat). */
+        /** True for movements the camera can count (squats, push-ups, lunges: see [CountedMove]). */
         val countsReps: Boolean,
         /** Rule-based boxing form cues for this step (camera only), or null. */
         val formDrill: BoxingDrill? = null,
@@ -40,7 +41,7 @@ object SessionPlanner {
     const val JAB_ID = "boxing_jab"
 
     private fun work(e: Exercise) = SessionStep.Work(
-        e.id, e.name, e.durationSeconds, countsReps = e.id == SQUAT_ID,
+        e.id, e.name, e.durationSeconds, countsReps = CountedMove.forExercise(e.id) != null,
         formDrill = when (e.id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; else -> null },
     )
 

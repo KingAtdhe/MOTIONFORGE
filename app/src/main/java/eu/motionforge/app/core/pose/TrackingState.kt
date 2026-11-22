@@ -40,6 +40,12 @@ class TrackingStateEvaluator(
     private val minVisibility: Float = 0.6f,
     private val edgeMargin: Float = 0.02f,
     private val stableFramesRequired: Int = 5,
+    /**
+     * Side-on support: when true, a left/right pair of required landmarks counts as seen when the side nearer the
+     * camera is clearly visible (the far knee or elbow is hidden behind the body when filmed from the side). The
+     * near side is the one whose required landmarks are, at worst, most visible; it must pass every test on its own.
+     */
+    private val eitherSide: Boolean = false,
 ) {
     init {
         require(requiredLandmarks.isNotEmpty()) { "At least one required landmark" }
@@ -62,7 +68,7 @@ class TrackingStateEvaluator(
     }
 
     private fun evaluateFrame(frame: PoseFrame): TrackingState {
-        val required = requiredLandmarks.map { frame[it] }
+        val required = (if (eitherSide) nearSide(frame) else requiredLandmarks).map { frame[it] }
 
         val outOfFrame = required.any { lm ->
             lm.x < edgeMargin || lm.x > 1f - edgeMargin || lm.y < edgeMargin || lm.y > 1f - edgeMargin
@@ -84,6 +90,20 @@ class TrackingStateEvaluator(
 
         goodStreak++
         return if (goodStreak >= stableFramesRequired) TrackingState.TRACKING else TrackingState.CALIBRATING
+    }
+
+    /** The required landmarks with every left/right pair narrowed to one side: the side seen best overall. */
+    private fun nearSide(frame: PoseFrame): Set<BodyLandmark> {
+        val left = requiredLandmarks.filter { it.name.startsWith("LEFT_") }
+        val right = requiredLandmarks.filter { it.name.startsWith("RIGHT_") }
+        val centre = requiredLandmarks - left.toSet() - right.toSet()
+        if (left.isEmpty() || right.isEmpty()) return requiredLandmarks
+        val worstLeft = left.minOf { frame[it].visibility }
+        val worstRight = right.minOf { frame[it].visibility }
+        val near = if (worstLeft >= worstRight) left else right
+        // the torso (both shoulders, both hips) stays required on both sides: it is never hidden side-on
+        val torso = requiredLandmarks.filter { it.name.endsWith("_SHOULDER") || it.name.endsWith("_HIP") }
+        return (centre + near + torso).toSet()
     }
 
     companion object {

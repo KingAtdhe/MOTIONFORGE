@@ -277,7 +277,7 @@ private fun FramingCheck() {
         if (refused) Text("Camera access was denied, so the picture can't be checked.", style = MaterialTheme.typography.bodySmall, color = MfColors.Halt)
         return
     }
-    val evaluator = remember { eu.motionforge.app.core.pose.TrackingStateEvaluator(eu.motionforge.app.core.pose.TrackingStateEvaluator.FULL_BODY) }
+    val evaluator = remember { eu.motionforge.app.core.pose.TrackingStateEvaluator(eu.motionforge.app.core.pose.TrackingStateEvaluator.FULL_BODY, eitherSide = true) }
     var status by remember { mutableStateOf(TrackingState.CAMERA_INITIALIZING) }
     val ok = status == TrackingState.TRACKING
     Box(
