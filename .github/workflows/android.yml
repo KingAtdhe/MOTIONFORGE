@@ -27,6 +27,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Robolectric downloads its Android jar from Maven Central at test time; that download has failed now and then
+      # and taken whole test classes down. Cache it and fetch it up front with retries.
+      - name: Cache Robolectric Android jar
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: robolectric-android-all-15-robolectric-13954326-i7
+      - name: Pre-fetch Robolectric Android jar
+        run: |
+          d=~/.m2/repository/org/robolectric/android-all-instrumented/15-robolectric-13954326-i7
+          mkdir -p "$d"
+          for ext in pom jar; do
+            f="$d/android-all-instrumented-15-robolectric-13954326-i7.$ext"
+            [ -s "$f" ] || curl -fsSL --retry 6 --retry-all-errors --retry-delay 5 -o "$f" \
+              "https://repo1.maven.org/maven2/org/robolectric/android-all-instrumented/15-robolectric-13954326-i7/android-all-instrumented-15-robolectric-13954326-i7.$ext"
+          done
+          ls -la "$d"
+
       - name: Unit tests
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest
 

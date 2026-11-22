@@ -3,3 +3,4 @@ squat_f_front|bodyweight_squat|3
 squat_m_side|bodyweight_squat|3
 squat_f_q45|bodyweight_squat|3
 pushup_f_side|push_up|3
+squat_m_front|bodyweight_squat|3
