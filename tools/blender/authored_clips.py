@@ -591,7 +591,7 @@ def squat(r, st):
 
 
 # =============================================================================================== hip hinge
-def _hinge_pose(r, st, u, t):
+def _hinge_pose(r, st, u, t, grip=None):
     w = 0.105 * r.k * st["stance"]
     feet = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0) for s, sg in SIDES}
     b = breath(t, 4.0, 0.0)
@@ -619,22 +619,34 @@ def _hinge_pose(r, st, u, t):
             reach = 0.992 * r.la
             x_in = lerp(0.04, -0.035, u) * r.k
             dirv = V(sg * x_in / reach, lerp(-0.07, 0.0, u) + math.sin(beta), -math.cos(beta)).normalized()
+            if grip == "front":
+                # dumbbell RDL: overhand grip, the weights in front of the thighs (not beside them), sliding down close
+                x_t = sg * HINGE_GRIP_X * r.k - S.x
+                fwd = lerp(HINGE_GRIP_FWD, HINGE_GRIP_FWD_B, u)
+                dirv = V(x_t / reach, -fwd + math.sin(beta), -1.0)
+                dirv.z = -math.sqrt(max(1.0 - dirv.x ** 2 - dirv.y ** 2, 0.05))
+                dirv.normalize()
+                res[s] = {"w": S + dirv * reach, "pole": V(sg * 0.5, 0.8, 0.3), "fingers": dirv, "palm": V(-sg * 0.1, 1.0, 0.25 * u)}
+                continue
             res[s] = {"w": S + dirv * reach, "pole": V(sg * 0.6, 0.5 - 0.4 * u, 0.6 * u), "palm": V(-sg * (1 - u) * 0.6, 1.0, 0.3 * u)}
         return res
     sp["arms"] = arms
     return sp
 
 
-def hinge(r, st):
+HINGE_GRIP_X, HINGE_GRIP_FWD, HINGE_GRIP_FWD_B = 0.160, 0.22, 0.10
+
+
+def hinge(r, st, grip=None):
     hold0, lower, hold1 = 0.35, 2.0 * st["tempo"], 0.40
     n = frames(hold0 + lower + hold1)
-    down = [_hinge_pose(r, st, smoother((i / FPS - hold0) / lower), i / FPS) for i in range(n)]
+    down = [_hinge_pose(r, st, smoother((i / FPS - hold0) / lower), i / FPS, grip) for i in range(n)]
     T0 = (n - 1) / FPS
     rise, top = 1.55 * st["tempo"], 0.5
     m = frames(rise + top)
-    up = [_hinge_pose(r, st, 1.0 - smoother((i / FPS) / rise), T0 + i / FPS) for i in range(m)]
-    up[-1] = _hinge_pose(r, st, 0.0, 0.0)
-    down[0] = _hinge_pose(r, st, 0.0, 0.0)
+    up = [_hinge_pose(r, st, 1.0 - smoother((i / FPS) / rise), T0 + i / FPS, grip) for i in range(m)]
+    up[-1] = _hinge_pose(r, st, 0.0, 0.0, grip)
+    down[0] = _hinge_pose(r, st, 0.0, 0.0, grip)
     return down, up
 
 
@@ -1773,6 +1785,9 @@ def _stand(r, st, t, w=0.10, toe=7.0, pitch=1.0, T=4.0, dz=0.0):
     return sp
 
 
+CURL_TOP, CURL_ELBOW_FWD, CURL_OUT = 118.0, 0.06, 0.10
+
+
 def db_curl(r, st):
     """Elbows stay by the sides; the dumbbells curl up with palms turning up, then lower slowly."""
     k = r.k
@@ -1786,11 +1801,13 @@ def db_curl(r, st):
 
         def arms(pts, e=e):
             res = {}
-            th = math.radians(8.0 + 132.0 * e)
+            th = math.radians(8.0 + CURL_TOP * e)
             for s, sg in SIDES:
                 S = pts["S_" + s]
-                E = S + V(sg * 0.035 * k, 0.01 * k, -r.a1[s] * 0.999)
-                fd = V(sg * 0.05, -math.sin(th), -math.cos(th)).normalized()
+                # the elbows stay by the sides but drift a little forward at the top, so the dumbbells finish in front of
+                # the shoulders rather than inside the chest
+                E = S + V(sg * (0.055 - 0.02 * e) * k, (0.01 - CURL_ELBOW_FWD * smooth(e)) * k, -r.a1[s] * 0.999)
+                fd = V(sg * (0.12 + (CURL_OUT - 0.07) * e), -math.sin(th), -math.cos(th)).normalized()
                 res[s] = {"w": E + fd * r.a2[s] * 0.999, "pole": V(sg * 0.15, 1.0, 0.0), "fingers": fd,
                           "palm": V(-sg * 0.25, -math.cos(th), math.sin(th))}
             return res
@@ -1848,8 +1865,8 @@ def db_lateral_raise(r, st):
 
 
 def db_rdl(r, st):
-    """Romanian deadlift with dumbbells: the hip hinge, weights sliding close down the thighs."""
-    return hinge(r, st)
+    """Romanian deadlift with dumbbells: the hip hinge, overhand grip, weights sliding close down the front of the thighs."""
+    return hinge(r, st, grip="front")
 
 
 def db_bent_over_row(r, st):
@@ -1876,10 +1893,14 @@ def db_bent_over_row(r, st):
     return out
 
 
+KB_DEPTH, KB_LEAN, KB_FWD_TOP = 1.0, 57.0, 0.15
+
+
 def _kb_pose(r, st, u, t):
     """Kettlebell deadlift: wide stance, hips back and down, flat back; both hands on the handle between the feet."""
-    sp = _squat_pose(r, st, u * 0.70, 0.0, t, width=1.55, toe=25.0, lean_max=40.0, shin=22.0)
+    sp = _squat_pose(r, st, u * KB_DEPTH, 0.0, t, width=1.55, toe=25.0, lean_max=st.get("kb_lean", KB_LEAN), shin=22.0)
     k = r.k
+    fwd = lerp(KB_FWD_TOP, 0.01, smooth(u)) * k                  # standing: the bell hangs in front of the hips, not between the thighs
 
     def arms(pts):
         res = {}
@@ -1887,8 +1908,8 @@ def _kb_pose(r, st, u, t):
         for s, sg in SIDES:
             S = pts["S_" + s]
             x = sg * 0.045 * k
-            dz2 = (0.985 * r.la) ** 2 - (S.x - x) ** 2 - (S.y - mid.y + 0.01 * k) ** 2
-            res[s] = {"w": V(x, mid.y - 0.01 * k, S.z - math.sqrt(max(dz2, 1e-6))), "pole": V(sg * 0.6, 0.6, 0.2),
+            dz2 = (0.985 * r.la) ** 2 - (S.x - x) ** 2 - (S.y - mid.y + fwd) ** 2
+            res[s] = {"w": V(x, mid.y - fwd, S.z - math.sqrt(max(dz2, 1e-6))), "pole": V(sg * 0.6, 0.6, 0.2),
                       "fingers": V(-sg * 0.2, 0.1, -1), "palm": V(0, 1.0, 0)}
         return res
     sp["arms"] = arms
@@ -1956,7 +1977,7 @@ PROPS_BY_CLIP = {
 STYLE = {
     # the two coaches perform the same technique; only build-related details differ
     "coach_f": {"stance": 1.0, "sway": 1.0, "arm_out": 0.085, "tempo": 1.0, "swing": 1.0, "wrist_h": 0.050},
-    "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050},
+    "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050, "kb_lean": 64.0},
 }
 
 

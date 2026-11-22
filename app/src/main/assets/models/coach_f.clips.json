@@ -85,7 +85,7 @@
     },
     {
       "name": "db_curl",
-      "durationSeconds": 2.667,
+      "durationSeconds": 2.633,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -170,12 +170,12 @@
     },
     {
       "name": "kb_deadlift_down",
-      "durationSeconds": 1.667,
+      "durationSeconds": 1.7,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "kb_deadlift_up",
-      "durationSeconds": 1.2,
+      "durationSeconds": 1.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

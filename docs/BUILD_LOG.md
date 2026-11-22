@@ -819,3 +819,17 @@ skin-vs-floor per body region, and QC renders (side + front, 6 frames per clip).
 - **Step jack / pivot**: the stepping foot dragged along the floor; now lifts 6.5 / ~5 cm.
 - `foot_toward` refined past its 2° grid (feet no longer turn in visible steps).
 - Re-rendered all motion studies from the new clips.
+
+## 2026-11-22 (late) — Weight-holding clips
+Checked every equipment clip on both coaches (curl, shoulder press, lateral raise, bent-over row, RDL, kettlebell
+deadlift, band pull-apart) with close-up renders (front, side, 3/4) at the worst frames, prop-vs-floor heights, and
+joins/accelerations. Fixed:
+- **Dumbbell RDL**: the dumbbells were held crosswise at the sides of the legs, inner heads buried in the thighs. Now an
+  overhand grip with the weights in front of the thighs, hands at hip width so the two inner heads don't collide
+  (`hinge(grip="front")`; the bodyweight hip hinge is unchanged).
+- **Curl**: at the top the inner heads sank into the chest (140° elbow flexion, elbows pinned). Now ~126° with the
+  elbows drifting slightly forward and the forearms a little wider; at the bottom the inner heads no longer touch the thighs.
+- **Kettlebell deadlift**: standing, the bell sat inside the thighs (now hangs in front of the hips); at the bottom it
+  hung 25 cm (f) / 34 cm (m) above the floor (now ~0 / 2.5 cm, per-coach hinge depth `kb_lean`).
+- Shoulder press, lateral raise, row and band pull-apart: no clipping found. Joins ≤ 3 mm, no acceleration spikes.
+- Re-rendered the curl, RDL and kettlebell motion studies.
