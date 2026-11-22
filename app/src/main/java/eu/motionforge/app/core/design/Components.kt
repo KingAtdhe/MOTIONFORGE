@@ -3,6 +3,7 @@ package eu.motionforge.app.core.design
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -84,16 +85,13 @@ fun Eyebrow(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVari
 /** Heading for a block of the page, optionally with an action on the right ("See all"). */
 @Composable
 fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color = MaterialTheme.colorScheme.onBackground, onTrailing: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().padding(top = 14.dp), verticalAlignment = Alignment.Bottom) {
-        Text(title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f).semantics { heading() })
+    Row(Modifier.fillMaxWidth().padding(top = 14.dp)) {
+        Text(title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f).alignByBaseline().semantics { heading() })
         if (trailing != null) {
-            if (onTrailing != null) {
-                androidx.compose.material3.TextButton(onClick = onTrailing, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)) {
-                    Text(trailing, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
-                }
-            } else {
-                Text(trailing, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            val clickable = if (onTrailing != null) {
+                Modifier.clickable(role = Role.Button, onClick = onTrailing).padding(start = 12.dp, top = 12.dp, bottom = 12.dp)
+            } else Modifier
+            Text(trailing, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge, modifier = Modifier.alignByBaseline().then(clickable))
         }
     }
 }

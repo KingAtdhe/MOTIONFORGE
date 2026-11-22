@@ -1,5 +1,10 @@
 package eu.motionforge.app.feature.settings
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.clickable
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Arrangement
@@ -62,14 +67,12 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
 
     ScreenColumn(title = "Profile") {
-        Panel {
-            Eyebrow("Training")
+        ProfileSection("Training") {
             Text("Focus: ${preferences.focus?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Goal: ${preferences.goal?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Account: guest (no account needed)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Panel {
-            Eyebrow("Your coach")
+        ProfileSection("Your coach") {
             Text("Who demonstrates the moves in lessons and sessions.", style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Coach.entries.forEach { c ->
@@ -78,14 +81,16 @@ fun ProfileScreen(
                         modifier = Modifier
                             .weight(1f)
                             .selectable(selected = selected, onClick = { scope.launch { prefsRepo.setCoach(c) } }, role = Role.RadioButton),
-                        shape = RoundedCornerShape(18.dp),
-                        color = if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                        shape = RoundedCornerShape(4.dp),
+                        color = androidx.compose.ui.graphics.Color.Transparent,
+                        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CoachArt(c.heroArt, Modifier.fillMaxWidth().height(170.dp).padding(top = 8.dp))
+                            androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(180.dp).background(eu.motionforge.app.core.design.stageBrush(MfColors.Chalk))) {
+                                CoachArt(c.heroArt, Modifier.fillMaxSize().padding(top = 8.dp))
+                            }
                             Text(
-                                (if (selected) "✓ " else "") + c.displayName,
+                                c.displayName + if (selected) ", selected" else "",
                                 style = MaterialTheme.typography.labelLarge,
                                 modifier = Modifier.padding(10.dp),
                             )
@@ -94,8 +99,7 @@ fun ProfileScreen(
                 }
             }
         }
-        Panel {
-            Eyebrow("Voice coach")
+        ProfileSection("Voice coach") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f)) {
                     Text("Spoken cues during sessions", style = MaterialTheme.typography.titleSmall)
@@ -113,8 +117,7 @@ fun ProfileScreen(
                 )
             }
         }
-        Panel {
-            Eyebrow("Camera & privacy")
+        ProfileSection("Camera & privacy") {
             Text(
                 "Camera images are processed on this phone to estimate body landmarks. Frames are kept in " +
                     "memory only — never saved, recorded or uploaded. The camera is only used while a camera " +
@@ -132,8 +135,7 @@ fun ProfileScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Panel {
-            Eyebrow("Safety", color = MfColors.Caution)
+        ProfileSection("Safety") {
             Text(
                 "MOTIONFORGE is an educational practice companion for adults. It is not a medical device, does not " +
                     "diagnose or prevent injury, and does not replace a qualified trainer or instructor. Fighting " +
@@ -141,8 +143,7 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Panel(onClick = onOpenTechnicalChecks) {
-            Eyebrow("Developer")
+        ProfileSection("Developer", onClick = onOpenTechnicalChecks) {
             Text("Technical checks", style = MaterialTheme.typography.titleMedium)
             Text("Camera + pose tracking test and 3D animation test.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -171,5 +172,21 @@ fun ProfileScreen(
             },
             dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } },
         )
+    }
+}
+
+/** A settings group: a hairline above, a plain title, then its content. No card shell. */
+@Composable
+private fun ProfileSection(title: String, onClick: (() -> Unit)? = null, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        Spacer(Modifier.height(10.dp))
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        content()
     }
 }

@@ -60,7 +60,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
         val summary = remember(history) { ProgressStats.summarize(history, LocalDate.now(zone), zone) }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("${summary.sessionsThisWeek}", "Sessions this week", Modifier.weight(1f), accent = MfColors.Cobalt)
+            StatTile("${summary.sessionsThisWeek}", "Sessions this week", Modifier.weight(1f))
             StatTile("${summary.minutesThisWeek}", "Minutes this week", Modifier.weight(1f))
         }
 
@@ -96,7 +96,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                                 .fillMaxWidth()
                                 .height((8 + 72 * w.sessions / max).dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (w.sessions > 0) MfColors.Cobalt else MfColors.Rule),
+                                .background(if (w.sessions > 0) MfColors.Ink else MfColors.Rule),
                         )
                         Text(w.weekStart.format(weekFormat), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -109,21 +109,20 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
         val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm") }
         history.forEach { r ->
             Surface(
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(10.dp),
                 color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                     Box(
                         Modifier
                             .width(84.dp)
                             .fillMaxHeight()
-                            .background(Brush.verticalGradient(listOf(Color.Transparent, r.type.accent.copy(alpha = 0.3f)))),
+                            .background(eu.motionforge.app.core.design.stageBrush(r.type.accent)),
                     ) {
                         r.exercises.firstOrNull()?.let { CoachArt(coach.lessonArt(it.exerciseId), Modifier.fillMaxSize().padding(top = 6.dp)) }
                     }
                     Column(Modifier.padding(14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), color = r.type.accent)
+                        Eyebrow(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat))
                         Text(r.title, style = MaterialTheme.typography.titleLarge)
                         val reps = r.exercises.mapNotNull { it.repetitions }
                         val parts = buildList {
@@ -162,8 +161,8 @@ private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
                         Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(if (done) MfColors.Cobalt else MfColors.Ground)
-                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Cobalt, CircleShape) else Modifier),
+                            .background(if (done) MfColors.Ink else MfColors.Ground)
+                            .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Ink, CircleShape) else Modifier),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (done) Text("✓", color = eu.motionforge.app.core.design.MfColors.OnGold, style = MaterialTheme.typography.titleMedium)
