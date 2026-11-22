@@ -16,7 +16,7 @@ class RepCountingTest {
         listOf("bodyweight_squat", "sumo_squat", "push_up", "knee_push_up", "incline_push_up", "reverse_lunge", "split_squat").forEach {
             assertTrue(it, CountedMove.counterFor(it) != null)
         }
-        assertNull(CountedMove.counterFor("glute_bridge"))
+        assertNull(CountedMove.counterFor("forearm_plank"))
         assertTrue(CountedMove.counterFor("bodyweight_squat") is SquatRepCounter)
         assertTrue(CountedMove.counterFor("knee_push_up") is PushUpRepCounter)
         assertTrue(CountedMove.counterFor("split_squat") is LungeRepCounter)

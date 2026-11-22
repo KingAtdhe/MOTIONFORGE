@@ -210,7 +210,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "glute_bridge",
     "purpose": "Practise lifting the hips from the floor with control while lying on your back.",
     "space": "A mat-sized area of clear floor where you can lie down.",
@@ -244,7 +244,7 @@
         "adjustment": "Keep your knees pointing the same way as your toes."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Lying-down poses are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts repetitions from how far your hips open. Put the phone side-on at floor level with your body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -298,7 +298,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "step_jack",
     "purpose": "A low-impact version of the jumping jack: step to the side while the arms sweep overhead, to warm up and raise the heart rate.",
     "space": "About 2 × 2 m of clear floor with room to reach overhead.",
@@ -327,7 +327,7 @@
         "adjustment": "Reach long through the arms and keep the neck relaxed."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version.",
+    "limitations": "The camera counts each step jack from your arms going overhead. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -787,7 +787,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_curl",
     "purpose": "Practise curling light dumbbells with the elbows staying by your sides.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -816,7 +816,7 @@
         "adjustment": "Pin the elbows to your sides."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -826,7 +826,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_shoulder_press",
     "purpose": "Practise pressing light dumbbells from shoulder height to overhead.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor. Room to reach overhead.",
@@ -855,7 +855,7 @@
         "adjustment": "Finish with the weights over your shoulders, not in front."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -865,7 +865,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_lateral_raise",
     "purpose": "Practise raising light dumbbells out to the sides to shoulder height.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -894,7 +894,7 @@
         "adjustment": "Slow down and pause at the bottom."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -904,7 +904,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_bent_over_row",
     "purpose": "Practise pulling light dumbbells toward your ribs while holding a flat-back hip hinge.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -933,7 +933,7 @@
         "adjustment": "Slow the pull and pause at the top."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions while you stay hinged; it does not judge technique. Keep your whole body in view, side-on or at an angle. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -943,7 +943,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_rdl_down",
     "purpose": "Practise the hip hinge holding light dumbbells close to your legs.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -972,7 +972,7 @@
         "adjustment": "Keep the shins nearly vertical and move from the hips."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts each repetition from how far your upper body tips forward; it does not judge your back position. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -982,7 +982,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "kb_deadlift_down",
     "purpose": "Practise lifting a kettlebell from between your feet with a flat back and a strong hip drive.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -1011,7 +1011,7 @@
         "adjustment": "Finish standing straight, squeezing the glutes."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts each repetition from how far your upper body tips forward; it does not judge your back position. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1021,7 +1021,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "band_pull_apart",
     "purpose": "Practise pulling a light resistance band apart in front of you to work the upper back.",
     "space": "Room to reach both arms out to the sides.",
@@ -1050,7 +1050,7 @@
         "adjustment": "Keep the ribs down."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts repetitions from how far your hands move apart. Face the phone with your upper body and arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

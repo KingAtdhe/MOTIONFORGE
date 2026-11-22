@@ -75,9 +75,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack" -> ARM_LIFT
             "dumbbell_bent_over_row" -> ROW
             "band_pull_apart" -> BAND
-            "hip_hinge", "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
+            // the bodyweight hip hinge stays instructional only (spec); the loaded hinges are counted, never judged
+            "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
-            "calf_raise" -> CALF_RAISE
             else -> null
         }
 
@@ -90,7 +90,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             SQUAT -> SquatRepCounter()
             PUSH_UP -> PushUpRepCounter(bodyLineToKnees = id == "knee_push_up")
             LUNGE -> LungeRepCounter()
-            ARM_LIFT -> ArmLiftRepCounter(travel = ARM_TRAVEL.getValue(id))
+            ARM_LIFT -> ArmLiftRepCounter(travel = ARM_TRAVEL.getValue(id), minRepMs = if (id == "step_jack") 300 else 700)
             ROW -> RowRepCounter()
             BAND -> BandPullRepCounter()
             HINGE -> HingeRepCounter()

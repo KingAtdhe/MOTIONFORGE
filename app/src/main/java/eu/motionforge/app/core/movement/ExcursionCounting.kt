@@ -118,7 +118,8 @@ abstract class ExcursionRepCounter(
  * in torso lengths, averaged over the visible arms. Reads the same from any side, unlike the elbow angle (a curl seen
  * from the front bends toward the camera). Only while standing fairly upright.
  */
-class ArmLiftRepCounter(travel: Double, private val maxTilt: Double = 40.0) : ExcursionRepCounter(+1, travel) {
+class ArmLiftRepCounter(travel: Double, private val maxTilt: Double = 40.0, minRepMs: Long = 700) :
+    ExcursionRepCounter(+1, travel, minRepMs = minRepMs) {
     override fun signal(f: PoseFrame): Double? {
         val (s, h, len) = f.torso() ?: return null
         if (tilt(s, h) > maxTilt) return null
