@@ -80,7 +80,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun unvalidatedMovementsDoNotAllowLiveCues() {
         val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
-        assertFalse(byId.getValue("glute_bridge").analysisMode.allowsLiveCues)
+        assertFalse(byId.getValue("forearm_plank").analysisMode.allowsLiveCues)
         assertFalse(byId.getValue("footwork_lateral").analysisMode.allowsLiveCues)
     }
 

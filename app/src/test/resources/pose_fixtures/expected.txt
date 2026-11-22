@@ -52,3 +52,4 @@ stepjack_m_front|step_jack|4
 march_f_front|step_jack|0
 rdl_f_front|dumbbell_romanian_deadlift|3
 kb_m_q45|kettlebell_deadlift|3
+curl_m_side|dumbbell_biceps_curl|3
