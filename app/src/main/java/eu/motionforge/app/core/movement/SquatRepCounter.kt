@@ -26,6 +26,10 @@ enum class SquatIssue(override val message: String, override val spoken: String)
  *
  * Counting rule: a repetition is one full cycle  standing → bottom → standing  of the knee angle
  * (hip–knee–ankle, 2D, averaged over the legs that are clearly visible, smoothed over a short window).
+ * Filmed from the front, a knee that bends toward the camera looks straight in a 2D image (knees caving in, or
+ * pointing straight at the phone): on rendered test videos the 2D angle stayed ~170° at full depth. So the angle
+ * used is the smaller of the 2D knee angle and an equivalent angle from how far the hips have dropped (hip→lower
+ * ankle height over torso length, against the standing value): 180 − 220·(1 − ratio).
  *
  * Form rules, evaluated over the frames of each cycle and reported once when it ends:
  * - [SquatIssue.RUSHED]: the way down, from leaving the top to the deepest point, took less than [minDescentMs]
@@ -55,7 +59,7 @@ class SquatRepCounter(
     private val minRepMs: Long = 700,
     private val smoothingWindow: Int = 3,
     private val minDescentMs: Long = 500,
-    private val kneesInRatio: Double = 0.75,
+    private val kneesInRatio: Double = 0.90,
     private val maxLeanDegrees: Double = 60.0,
     private val shallowAngle: Double = 135.0,
     private val frontalRatio: Double = 0.40,
@@ -73,11 +77,13 @@ class SquatRepCounter(
     private var sideBottom = 0
     private var leanBottom = 0
     private val window = ArrayDeque<Double>()
+    private var standingHip: Double? = null
 
     override val repetitions: Int get() = count
 
     override fun reset() {
         count = 0
+        standingHip = null
         loseTracking()
     }
 
@@ -173,7 +179,36 @@ class SquatRepCounter(
         }
     }
 
+    /** Hip height (hips → lower visible ankle, over torso length) as an equivalent knee angle, or null. */
+    private fun hipDropAngle(f: PoseFrame): Double? {
+        val torsoLms = listOf(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)
+        if (torsoLms.any { f[it].visibility < minVisibility }) return null
+        val w = f.imageWidth.toDouble(); val h = f.imageHeight.toDouble()
+        val sx = (f[BodyLandmark.LEFT_SHOULDER].x + f[BodyLandmark.RIGHT_SHOULDER].x) / 2.0 * w
+        val sy = (f[BodyLandmark.LEFT_SHOULDER].y + f[BodyLandmark.RIGHT_SHOULDER].y) / 2.0 * h
+        val hx = (f[BodyLandmark.LEFT_HIP].x + f[BodyLandmark.RIGHT_HIP].x) / 2.0 * w
+        val hy = (f[BodyLandmark.LEFT_HIP].y + f[BodyLandmark.RIGHT_HIP].y) / 2.0 * h
+        val torso = hypot(sx - hx, sy - hy)
+        if (torso < 5.0) return null
+        val ankle = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE).filter { f[it].visibility >= minVisibility }
+            .maxOfOrNull { f[it].y * h } ?: return null
+        val r = (ankle - hy) / torso
+        if (r <= 0.0) return null
+        val base = maxOf(standingHip ?: r, r).also { standingHip = it }
+        return 180.0 - 220.0 * (1.0 - r / base)
+    }
+
     private fun kneeAngle(frame: PoseFrame): Double? {
+        val knee = kneeAngle2d(frame)
+        val drop = hipDropAngle(frame)
+        return when {
+            knee == null -> null                     // the legs must be seen: the hip drop alone is not a squat check
+            drop == null -> knee
+            else -> minOf(knee, drop)
+        }
+    }
+
+    private fun kneeAngle2d(frame: PoseFrame): Double? {
         val angles = SIDES.mapNotNull { (hip, knee, ankle) ->
             val h = frame[hip]; val k = frame[knee]; val a = frame[ankle]
             if (h.visibility < minVisibility || k.visibility < minVisibility || a.visibility < minVisibility) {

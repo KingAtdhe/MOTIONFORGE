@@ -39,15 +39,27 @@ def expand(s):
 items = []
 for it in expand(seq):
     name, _, dur = it.partition("@")
+    name, _, speed = name.partition("^")
+    name_hold = name.endswith("!"); name = name.rstrip("!")      # name^3 = play 3x faster, name^0.3 = slow motion
+    sp = float(speed) if speed else 1.0
     act = bpy.data.actions[name]; a0, b0 = act.frame_range
-    if dur:   # hold/loop a clip for dur seconds
+    if dur and name_hold:   # name!@dur: hold the clip's last pose for dur seconds
+        for i in range(int(float(dur) * fps)): items.append((act, b0))
+    elif dur:   # loop a clip for dur seconds
         n = int(float(dur) * fps)
         for i in range(n): items.append((act, a0 + ((i * 30.0 / fps) % max(b0 - a0, 1))))
     else:
-        n = int(round((b0 - a0) / 30.0 * fps)) + 1
-        for i in range(n): items.append((act, min(b0, a0 + i * 30.0 / fps)))
+        n = int(round((b0 - a0) / 30.0 * fps / sp)) + 1
+        for i in range(n): items.append((act, min(b0, a0 + i * 30.0 * sp / fps)))
 print("RV frames", len(items), flush=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+fault = os.environ.get("RV_FAULT")
+if fault:
+    import faults
+    fault_fn = faults.FAULTS[fault]
+fctx = {}
 cur = None
+pick = set(int(x) for x in os.environ.get("RV_PICK", "").split(",") if x)
 for i, (act, f) in enumerate(items):
     if act is not cur:
         arm.animation_data.action = act
@@ -55,6 +67,18 @@ for i, (act, f) in enumerate(items):
         except Exception: pass
         cur = act
     sc.frame_set(int(f), subframe=f - int(f))
+    if fault:
+        fault_fn(arm, fctx)
+    if pick and i not in pick:
+        continue
+    if fault:
+        # rendering re-evaluates the action and would overwrite the edited pose: freeze it for this render
+        keep = {pb.name: (pb.location.copy(), pb.rotation_quaternion.copy(), pb.scale.copy()) for pb in arm.pose.bones}
+        arm.animation_data.action = None
+        for pb in arm.pose.bones:
+            pb.location, pb.rotation_quaternion, pb.scale = keep[pb.name]
+        bpy.context.view_layer.update()
+        cur = None
     sc.render.filepath = os.path.join(out, "f%04d.jpg" % i); bpy.ops.render.render(write_still=True)
-open(os.path.join(out, "meta.txt"), "w").write("fps=%d\nframes=%d\nseq=%s\nview=%s\n" % (fps, len(items), seq, view))
+open(os.path.join(out, "meta.txt"), "w").write("fps=%d\nframes=%d\nseq=%s\nview=%s\nfault=%s\n" % (fps, len(items), seq, view, fault))
 print("RV done", out, flush=True)

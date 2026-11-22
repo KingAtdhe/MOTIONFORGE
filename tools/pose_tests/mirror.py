@@ -60,10 +60,20 @@ class Cycle:
         if s.phase=="B" and a<=s.bot+s.band: s.observe(L,w,h)
         return a
 class Squat(Cycle):
-    def __init__(s): super().__init__(160,115,135)
+    def __init__(s, ki=0.90): super().__init__(160,115,135); s.base=None; s.kir=ki
     def start(s): s.fb=s.ki=s.sb=s.lb=0
     def angle(s,L,w,h):
-        v=[x for x in (ang(L,LH,LK,LA,w,h),ang(L,RH,RK,RA,w,h)) if x is not None]; return sum(v)/len(v) if v else None
+        v=[x for x in (ang(L,LH,LK,LA,w,h),ang(L,RH,RK,RA,w,h)) if x is not None]
+        if not v: return None
+        k=sum(v)/len(v)
+        if not vis(L,LS,RS,LH,RH): return k
+        sm=mid(L,LS,RS,w,h); hp=mid(L,LH,RH,w,h); t=math.hypot(sm[0]-hp[0],sm[1]-hp[1])
+        an=[L[i][1]*h for i in (LA,RA) if L[i][3]>=0.6]
+        if t<5 or not an: return k
+        r=(max(an)-hp[1])/t
+        if r<=0: return k
+        s.base=r if s.base is None else max(s.base,r)
+        return min(k, 180-220*(1-r/s.base))
     def observe(s,L,w,h):
         if not vis(L,LS,RS,LH,RH): return
         t=(px(L,LS,LH,w,h)+px(L,RS,RH,w,h))/2
@@ -72,7 +82,7 @@ class Squat(Cycle):
             if not vis(L,LK,RK,LA,RA): return
             an=abs((L[LA][0]-L[RA][0])*w)
             if an<10: return
-            s.fb+=1; s.ki+= abs((L[LK][0]-L[RK][0])*w)/an<0.75
+            s.fb+=1; s.ki+= abs((L[LK][0]-L[RK][0])*w)/an<s.kir
         else:
             sx,sy=mid(L,LS,RS,w,h); hx,hy=mid(L,LH,RH,w,h)
             s.sb+=1; s.lb+= math.degrees(math.atan2(abs(sx-hx),hy-sy))>60
@@ -82,7 +92,7 @@ class Squat(Cycle):
         if s.sb>=3 and s.lb>=0.6*s.sb: c.append("CHEST_DROP")
         return c
 class PushUp(Cycle):
-    def __init__(s,knees=False,top=150,bottom=105,shallow=130,tilt=45,fore=0.75,bend=25): super().__init__(top,bottom,shallow); s.knees,s.tilt,s.fore,s.bend=knees,tilt,fore,bend
+    def __init__(s,knees=False,top=150,bottom=105,shallow=130,tilt=45,fore=0.75,bend=15): super().__init__(top,bottom,shallow); s.knees,s.tilt,s.fore,s.bend=knees,tilt,fore,bend
     def start(s): s.sb=s.sag=s.pike=0
     def inpos(s,L,w,h):
         tl=torso_tilt(L,w,h)

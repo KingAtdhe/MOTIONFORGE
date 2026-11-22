@@ -17,7 +17,10 @@ import java.util.zip.GZIPInputStream
  * through exactly what the session does: the full-body tracking gate, then the rep counter or boxing monitor.
  * Negative fixtures (marching, holding the stance) must count nothing.
  *
- * pose_fixtures/expected.txt: name|exercise id|expected count  (for boxing_jab the count is jabs)
+ * pose_fixtures/expected.txt: name|exercise id|expected count[|expected cues]  (for boxing_jab the count is jabs).
+ * Without cues the video is a correct demo and must get no correction. With cues (videos rendered with a deliberate
+ * fault, tools/pose_tests/faults.py), each listed cue must appear — a rep cue on at least two thirds of the reps — and
+ * nothing outside the list.
  */
 class RenderedVideoRepTest {
 
@@ -33,9 +36,20 @@ class RenderedVideoRepTest {
         }
     }
 
-    private data class Result(val name: String, val exercise: String, val expected: Int, val got: Int, val detail: String)
+    private data class Result(
+        val name: String, val exercise: String, val expected: Int, val got: Int, val detail: String,
+        val wantCues: Set<String>, val repCues: Map<String, Int>, val formCues: Set<String>,
+    ) {
+        val countOk get() = got == expected
+        val cuesOk: Boolean get() {
+            val seen = repCues.keys + formCues
+            if (wantCues.isEmpty()) return seen.isEmpty()
+            if (!seen.all { it in wantCues }) return false
+            return wantCues.all { c -> c in formCues || (repCues[c] ?: 0) * 3 >= got * 2 && (repCues[c] ?: 0) > 0 }
+        }
+    }
 
-    private fun run(name: String, exercise: String, expected: Int): Result {
+    private fun run(name: String, exercise: String, expected: Int, wantCues: Set<String>): Result {
         val fs = frames(name)
         val gate = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
         val counter = CountedMove.counterFor(exercise)
@@ -44,6 +58,7 @@ class RenderedVideoRepTest {
         var tracked = 0
         val events = mutableListOf<String>()
         val cues = mutableSetOf<String>()
+        val repCues = mutableMapOf<String, Int>()
         fs.forEachIndexed { i, f ->
             val out = if (f == null) PoseOutput.NoPerson(i * 66L, 10) else PoseOutput.Detected(f, 10)
             val ok = gate.update(out).allowsFeedback
@@ -51,7 +66,10 @@ class RenderedVideoRepTest {
             if (f != null) {
                 counter?.update(f, ok)?.event?.let { ev ->
                     events += when (ev) {
-                        is RepEvent.RepCompleted -> "rep${ev.rep}" + if (ev.issues.isEmpty()) "" else ev.issues.joinToString(",", "[", "]") { (it as Enum<*>).name }
+                        is RepEvent.RepCompleted -> {
+                            ev.issues.forEach { c -> val k = (c as Enum<*>).name; repCues[k] = (repCues[k] ?: 0) + 1 }
+                            "rep${ev.rep}" + if (ev.issues.isEmpty()) "" else ev.issues.joinToString(",", "[", "]") { (it as Enum<*>).name }
+                        }
                         RepEvent.ShallowRep -> "shallow"
                     }
                 }
@@ -59,19 +77,23 @@ class RenderedVideoRepTest {
             }
         }
         val got = counter?.repetitions ?: monitor?.jabs ?: -1
-        return Result(name, exercise, expected, got, "tracked $tracked/${fs.size} ${events.joinToString(" ")} ${cues.joinToString(",", "cues[", "]")}")
+        return Result(name, exercise, expected, got, "tracked $tracked/${fs.size} ${events.joinToString(" ")} ${cues.joinToString(",", "cues[", "]")}", wantCues, repCues, cues)
     }
 
     @Test
     fun countsMatchRenderedVideos() {
         val spec = javaClass.classLoader!!.getResourceAsStream("pose_fixtures/expected.txt")!!.bufferedReader().readLines()
             .filter { it.isNotBlank() && !it.startsWith("#") }
-        val results = spec.map { l -> val (n, e, c) = l.split('|'); run(n, e, c.trim().toInt()) }
-        val table = results.joinToString("\n") { r -> "${if (r.got == r.expected) "ok  " else "FAIL"} ${r.name} (${r.exercise}) expected ${r.expected} got ${r.got} | ${r.detail}" }
+        val results = spec.map { l ->
+            val p = l.split('|')
+            run(p[0], p[1], p[2].trim().toInt(), p.getOrNull(3)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }?.toSet() ?: emptySet())
+        }
+        val table = results.joinToString("\n") { r ->
+            "${if (r.countOk && r.cuesOk) "ok  " else "FAIL"} ${r.name} (${r.exercise}) expected ${r.expected}${r.wantCues.joinToString(",", " ", "")} got ${r.got} | ${r.detail}"
+        }
         println(table)
-        assertTrue("Rendered-video counts:\n$table", results.all { it.got == it.expected })
+        assertTrue("Rendered-video counts:\n$table", results.all { it.countOk })
+        assertTrue("Rendered-video form cues:\n$table", results.all { it.cuesOk })
         // the coaches lower with control: no rep of theirs may be called rushed
-        // the coaches demonstrate good form: no rep of theirs may get a correction, and the boxing coach no cue
-        assertTrue("A correct coach demo got a form correction:\n$table", results.none { "[" in it.detail.substringBefore("cues[") || !it.detail.endsWith("cues[]") })
     }
 }

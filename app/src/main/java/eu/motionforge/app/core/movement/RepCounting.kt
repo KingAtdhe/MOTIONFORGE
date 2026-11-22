@@ -211,7 +211,7 @@ class PushUpRepCounter(
     shallowAngle: Double = 130.0,
     private val minTorsoTilt: Double = 45.0,
     private val maxForeshortened: Double = 0.75,
-    private val maxLineBend: Double = 25.0,
+    private val maxLineBend: Double = 15.0,
 ) : CycleRepCounter(topAngle, bottomAngle, shallowAngle) {
     private var sideBottom = 0
     private var sag = 0

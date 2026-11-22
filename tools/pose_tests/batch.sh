@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: batch.sh name coach view seq   (renders + extracts landmarks to /home/claude/rv/fx/name.lm)
 cd /home/claude/MOTIONFORGE
-n=$1; c=$2; v=$3; s=$4
+n=$1; c=$2; v=$3; s=$4; export RV_FAULT=$5
 mkdir -p /home/claude/rv/fx
 [ -f /home/claude/rv/fx/$n.lm ] && exit 0
 rm -rf /tmp/rv_$n
