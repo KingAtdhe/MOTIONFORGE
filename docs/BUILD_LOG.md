@@ -763,3 +763,14 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - Font: Archivo variable (OFL, assets/licenses/Archivo-OFL.txt) replaces Manrope. Theme.kt/Components.kt rewritten with the same public API.
 - Home poster hero, lesson page (display title, divided numbered steps, plain mistakes list), Train captions show equipment, Progress neutral white, Profile as divided sections.
 - Icon v4: Archivo "M" (wdth 125, wght 900) + chalk-blue square on black; splash square drops in (0.6 s) with Archivo wordmark. Generators: tools/branding_glyphs.py, branding_icon.py, branding_android.py. v1–v3 kept as *_v3 etc.
+
+## 2026-11-22 (later) — Design v4 "gym floor" (full rebuild of layouts)
+- Feedback: v3 still read as generic; asked for a total rebuild. v4 changes structure, not just colours:
+  - Light concrete page (#E3E3DE), black type; coach stands in flat colour fields: cobalt #2B3BFF (fitness), blaze #FF5A1F (fighting). Workout screen stays black (night scheme).
+  - Archivo at two extremes: wide 125 for titles, narrow 62 (NumeralFont / MfType) for minutes, reps, times.
+  - Home = printed workout card: date masthead, full-width colour field with huge minutes and the coach, numbered programme with times, black "Start session" bar, seven-block week, two category fields, "For you" rows.
+  - Train = programme list (LessonRow: colour-field thumb, name, level/equipment, time) grouped under heavy-rule section headers; tabs are underlined words.
+  - Lesson = edge-to-edge 3D coach in its field, back arrow on the field, facts row, black start bar.
+  - Progress/Profile = heavy-rule sections, square day blocks, ledger history.
+  - Square-cut (2 dp) buttons everywhere; nav bar on the page colour with no pill indicator.
+- Icon/splash: white Archivo "M" + blaze square on cobalt; splash background cobalt.

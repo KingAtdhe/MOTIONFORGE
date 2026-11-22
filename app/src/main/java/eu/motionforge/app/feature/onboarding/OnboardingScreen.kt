@@ -69,7 +69,11 @@ internal fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent:
         Spacer(Modifier.padding(top = 6.dp))
         LinearProgressIndicator(
             progress = { state.progressIndex / OnboardingState.VISIBLE_STEPS.toFloat() },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(3.dp),
+            color = MaterialTheme.colorScheme.onBackground,
+            trackColor = MaterialTheme.colorScheme.outline,
+            gapSize = 0.dp,
+            drawStopIndicator = {},
         )
 
         Column(
@@ -100,7 +104,9 @@ internal fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent:
                 Button(
                     onClick = { onEvent(OnboardingEvent.Continue) },
                     enabled = state.canContinue && !saving,
-                    modifier = Modifier.heightIn(min = 48.dp),
+                    modifier = Modifier.heightIn(min = 56.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 28.dp),
                 ) {
                     Text(
                         when {
@@ -118,14 +124,13 @@ internal fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent:
 
 @Composable
 private fun ColumnScope.Heading(title: String, body: String) {
-    Text(title, style = MaterialTheme.typography.headlineMedium)
+    Text(title, style = MaterialTheme.typography.headlineLarge)
     Text(body, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
 private fun ColumnScope.WelcomeStep() {
-    Eyebrow("MOTIONFORGE", color = MaterialTheme.colorScheme.primary)
-    CoachPair(Modifier.fillMaxWidth().height(280.dp))
+    CoachPair(Modifier.fillMaxWidth().height(320.dp))
     Heading(
         "See the movement. Practise it. Understand your progress.",
         "Short guided sessions for beginner fitness and non-contact boxing fundamentals. A 3D coach demonstrates " +
@@ -141,11 +146,14 @@ private fun ColumnScope.AgeStep(onEvent: (OnboardingEvent) -> Unit) {
     Heading("Are you 18 or older?", "This first version of MOTIONFORGE is designed for adults. Your answer is not stored.")
     Button(
         onClick = { onEvent(OnboardingEvent.AgeAnswered(isAdult = true)) },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
     ) { Text("I am 18 or older") }
     OutlinedButton(
         onClick = { onEvent(OnboardingEvent.AgeAnswered(isAdult = false)) },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.onBackground),
     ) { Text("I am under 18") }
 }
 
@@ -246,19 +254,14 @@ private fun ColumnScope.CoachStep(selected: GenderAnswer?, onEvent: (OnboardingE
 /** Both coaches side by side; the highlighted one is shown at full strength. Decorative (choices are labelled). */
 @Composable
 private fun CoachPair(modifier: Modifier, highlight: Coach? = null) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf(Coach.FEMALE, Coach.MALE).forEach { c ->
+    Row(modifier) {
+        listOf(Coach.FEMALE to eu.motionforge.app.core.design.MfColors.Cobalt, Coach.MALE to eu.motionforge.app.core.design.MfColors.Blaze).forEach { (c, field) ->
             val dim = highlight != null && highlight != c
             Box(
                 Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .background(
-                        androidx.compose.ui.graphics.Brush.verticalGradient(
-                            listOf(androidx.compose.ui.graphics.Color.Transparent, MaterialTheme.colorScheme.primary.copy(alpha = if (dim) 0.04f else 0.18f)),
-                        ),
-                        androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-                    ),
+                    .background(if (dim) MaterialTheme.colorScheme.surfaceVariant else field),
             ) {
                 CoachArt(c.heroArt, Modifier.fillMaxSize().alpha(if (dim) 0.35f else 1f))
             }

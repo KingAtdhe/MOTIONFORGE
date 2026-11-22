@@ -113,7 +113,7 @@ fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color 
                 Text(
                     trailing,
                     color = trailingColor,
-                    style = MaterialTheme.typography.labelLarge.copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline),
+                    style = if (onTrailing != null) MaterialTheme.typography.labelLarge.copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline) else MaterialTheme.typography.labelLarge,
                     modifier = Modifier.alignByBaseline().then(clickable),
                 )
             }

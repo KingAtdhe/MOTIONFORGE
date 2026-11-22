@@ -199,7 +199,7 @@ private fun TodayField(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
             },
     ) {
         StageFloor(field, Modifier.align(Alignment.BottomEnd).width(240.dp).padding(bottom = 4.dp))
-        CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.9f).width(230.dp).padding(end = 4.dp, bottom = 6.dp))
+        CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight(0.97f).width(270.dp).padding(bottom = 6.dp))
         Column(Modifier.align(Alignment.TopStart).padding(start = 20.dp, top = 18.dp)) {
             Text("Today", style = MaterialTheme.typography.titleMedium, color = on)
             Row(verticalAlignment = Alignment.Bottom) {
@@ -268,6 +268,7 @@ private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
     Column(Modifier.fillMaxWidth()) {
         SectionHeader(
             "This week",
+            trailingColor = MaterialTheme.colorScheme.onSurfaceVariant,
             trailing = when (sessionsThisWeek) {
                 null -> null
                 0 -> "No sessions yet"

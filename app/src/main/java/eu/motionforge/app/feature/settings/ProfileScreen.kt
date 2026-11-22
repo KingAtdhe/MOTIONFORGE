@@ -1,5 +1,6 @@
 package eu.motionforge.app.feature.settings
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.ui.semantics.heading
@@ -83,10 +84,10 @@ fun ProfileScreen(
                             .selectable(selected = selected, onClick = { scope.launch { prefsRepo.setCoach(c) } }, role = Role.RadioButton),
                         shape = RoundedCornerShape(4.dp),
                         color = androidx.compose.ui.graphics.Color.Transparent,
-                        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+                        border = if (selected) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else null,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(180.dp).background(eu.motionforge.app.core.design.stageBrush(MfColors.Chalk))) {
+                            androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(180.dp).background(if (c == eu.motionforge.app.core.model.Coach.MALE) MfColors.Blaze else MfColors.Cobalt)) {
                                 CoachArt(c.heroArt, Modifier.fillMaxSize().padding(top = 8.dp))
                             }
                             Text(
@@ -149,7 +150,9 @@ fun ProfileScreen(
         }
         OutlinedButton(
             onClick = { confirmReset = true },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            shape = RoundedCornerShape(2.dp),
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, MfColors.Halt),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MfColors.Halt),
         ) { Text("Reset app data") }
         Text(
