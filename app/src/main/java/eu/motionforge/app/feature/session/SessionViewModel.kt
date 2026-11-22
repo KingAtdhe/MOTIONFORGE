@@ -204,7 +204,7 @@ class SessionViewModel(
             }
             _form.value = now
             SessionNarrator.formLine(previous, now)?.let(::say)
-            monitor.drainJabs().forEach { r -> SessionNarrator.jabLine(r)?.let(::say) }
+            monitor.drainJabs().forEach { r -> SessionNarrator.jabLine(r, step.formDrill)?.let(::say) }
             // a steady, cue-free stance for a few seconds earns one spoken confirmation per step
             val t = clock()
             if (now is FormFeedback.Steady) {

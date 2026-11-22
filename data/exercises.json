@@ -1181,7 +1181,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "movement_phase_cues_only",
     "demoAnimation": "boxing_cross",
     "purpose": "Practise the rear-hand extension slowly with a controlled turn of the body.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -1211,7 +1211,7 @@
         "adjustment": "Turn only as far as feels comfortable for your hips and back."
       }
     ],
-    "limitations": "No automatic power, impact, or advanced technique scoring.",
+    "limitations": "The camera counts crosses and checks that the lead hand stays up and the punch comes back to guard. It does not judge power, speed or accuracy. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

@@ -29,6 +29,7 @@ object SessionNarrator {
 
     const val STANCE_PRAISE = "Good stance. Hands up, feet balanced."
     const val GOOD_JAB = "Good jab."
+    const val GOOD_CROSS = "Good cross."
     const val SHALLOW = "Not counted. Go a little lower if it's comfortable."
 
     /**
@@ -98,7 +99,8 @@ object SessionNarrator {
     }
 
     /** Spoken line for a finished jab: only clean ones are praised (faults already have their own cue). */
-    fun jabLine(result: JabResult): CoachLine? = if (result.clean) CoachLine(GOOD_JAB, CuePriority.PRAISE) else null
+    fun jabLine(result: JabResult, drill: BoxingDrill = BoxingDrill.JAB): CoachLine? =
+        if (result.clean) CoachLine(if (drill == BoxingDrill.CROSS) GOOD_CROSS else GOOD_JAB, CuePriority.PRAISE) else null
 
     /** Spoken line when the boxing form state changes to a new cue. */
     fun formLine(previous: FormFeedback?, now: FormFeedback): CoachLine? {
@@ -108,7 +110,8 @@ object SessionNarrator {
     }
 
     fun boxingCard(form: FormFeedback, drill: BoxingDrill, cleanJabs: Int): LiveCoaching {
-        val title = if (drill == BoxingDrill.JAB) "Form check (experimental) · ${form.jabs} jabs, $cleanJabs clean" else "Form check (experimental)"
+        val title = if (drill == BoxingDrill.JAB) "Form check (experimental) · ${form.jabs} jabs, $cleanJabs clean"
+            else if (drill == BoxingDrill.CROSS) "Form check (experimental) · ${form.jabs} crosses, $cleanJabs clean" else "Form check (experimental)"
         return when (form) {
             is FormFeedback.NotAssessing -> LiveCoaching(title, "Form check paused — keep your whole body, hands and feet in view.", CoachTone.PAUSED)
             is FormFeedback.Steady -> LiveCoaching(title, "No adjustments spotted. Keep it up.", CoachTone.GOOD)

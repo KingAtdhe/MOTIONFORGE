@@ -34,3 +34,15 @@ squat_rushed_f_front|bodyweight_squat|3|RUSHED
 jab_slow_m_q45|boxing_jab|2|SLOW_RETURN
 pushup_sag2_f_side|push_up|3|HIPS_SAG
 pushup_pike2_m_side|push_up|3|HIPS_PIKE
+cross_f_q-45|boxing_cross|3
+# more lessons
+curl_f_front|dumbbell_biceps_curl|3
+press_m_front|dumbbell_shoulder_press|3
+lateral_f_front|dumbbell_lateral_raise|3
+hinge_m_side|hip_hinge|3
+hinge_m_side|dumbbell_bent_over_row|0
+bridge_f_side|glute_bridge|3
+row_m_side|dumbbell_bent_over_row|3
+march_f_front|dumbbell_biceps_curl|0
+stance_m_front|dumbbell_lateral_raise|0
+march_f_front|hip_hinge|0

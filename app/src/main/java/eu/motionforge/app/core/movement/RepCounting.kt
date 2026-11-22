@@ -46,6 +46,24 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     LUNGE("Lunge check", "Keep your whole body in view, side-on or facing the phone.",
         "Step back and lower with control. Each lunge is counted when you stand tall.",
         "That lunge didn't reach counting depth. Bend the knees a little more if it's comfortable."),
+    ARM_LIFT("Rep check", "Keep your upper body and arms in view, facing the phone or side-on.",
+        "Each rep is counted when the weights come back down.",
+        "That one didn't go the full way. Use the full range if it's comfortable."),
+    ROW("Row check", "Keep your whole body in view, side-on or at an angle.",
+        "Pull with control. Each rep is counted when the arms are long again.",
+        "That one didn't go the full way."),
+    BAND("Band check", "Face the phone with your upper body and arms in view.",
+        "Each rep is counted when your hands come back together.",
+        "That one didn't go the full way."),
+    HINGE("Hinge check", "Keep your whole body in view, side-on, at an angle or facing the phone.",
+        "Hinge with control. Each rep is counted when you stand tall.",
+        "That one didn't go the full way."),
+    BRIDGE("Bridge check", "Put the phone side-on at floor level, body in view.",
+        "Each rep is counted when your hips come back down.",
+        "That one didn't go the full way."),
+    CALF_RAISE("Calf raise check", "Keep your whole body, feet included, in view.",
+        "Each rep is counted when your heels come back down.",
+        "That one didn't go the full way."),
     ;
 
     companion object {
@@ -54,13 +72,30 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "bodyweight_squat", "sumo_squat" -> SQUAT
             "push_up", "knee_push_up", "incline_push_up" -> PUSH_UP
             "reverse_lunge", "split_squat" -> LUNGE
+            "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack" -> ARM_LIFT
+            "dumbbell_bent_over_row" -> ROW
+            "band_pull_apart" -> BAND
+            "hip_hinge", "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
+            "glute_bridge" -> BRIDGE
+            "calf_raise" -> CALF_RAISE
             else -> null
         }
+
+        /** How far the wrists must rise (torso lengths) for each arm-lift lesson. */
+        private val ARM_TRAVEL = mapOf(
+            "dumbbell_biceps_curl" to 0.45, "dumbbell_shoulder_press" to 0.45, "dumbbell_lateral_raise" to 0.40, "step_jack" to 0.90,
+        )
 
         fun counterFor(id: String): RepCounter? = when (forExercise(id)) {
             SQUAT -> SquatRepCounter()
             PUSH_UP -> PushUpRepCounter(bodyLineToKnees = id == "knee_push_up")
             LUNGE -> LungeRepCounter()
+            ARM_LIFT -> ArmLiftRepCounter(travel = ARM_TRAVEL.getValue(id))
+            ROW -> RowRepCounter()
+            BAND -> BandPullRepCounter()
+            HINGE -> HingeRepCounter()
+            BRIDGE -> BridgeRepCounter()
+            CALF_RAISE -> CalfRaiseRepCounter()
             null -> null
         }
     }

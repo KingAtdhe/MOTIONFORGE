@@ -20,8 +20,23 @@ bpy.ops.mesh.primitive_plane_add(size=12); bpy.context.object.data.materials.app
 # room walls behind (so the background is not a studio void)
 for loc, rot in (((0, 3.5, 2), (math.radians(90), 0, 0)), ((3.5, 0, 2), (math.radians(90), 0, math.radians(90))), ((-3.5, 0, 2), (math.radians(90), 0, math.radians(90))), ((0, -4.5, 2), (math.radians(90), 0, 0))):
     bpy.ops.mesh.primitive_plane_add(size=8, location=loc, rotation=rot); bpy.context.object.data.materials.append(mat("wall", (0.78, 0.76, 0.72)))
-sun = bpy.data.lights.new("s", "SUN"); sun.energy = 2.5; so = bpy.data.objects.new("s", sun); sc.collection.objects.link(so); so.rotation_euler = (0.8, 0.3, 0.9)
-ar = bpy.data.lights.new("a", "AREA"); ar.energy = 300; ar.size = 2; ao = bpy.data.objects.new("a", ar); sc.collection.objects.link(ao); ao.location = (0, -3, 3); ao.rotation_euler = (math.radians(45), 0, 0)
+LIGHT = float(os.environ.get("RV_LIGHT", "1.0"))          # <1 = dim room
+w.node_tree.nodes["Background"].inputs[1].default_value = LIGHT
+sun = bpy.data.lights.new("s", "SUN"); sun.energy = 2.5 * LIGHT; so = bpy.data.objects.new("s", sun); sc.collection.objects.link(so); so.rotation_euler = (0.8, 0.3, 0.9)
+ar = bpy.data.lights.new("a", "AREA"); ar.energy = 300 * LIGHT; ar.size = 2; ao = bpy.data.objects.new("a", ar); sc.collection.objects.link(ao); ao.location = (0, -3, 3); ao.rotation_euler = (math.radians(45), 0, 0)
+if os.environ.get("RV_BUSY"):                              # cluttered room: shelves, boxes, a plant, posters
+    import random
+    rnd = random.Random(7)
+    for i in range(26):
+        x = rnd.uniform(-3.2, 3.2); y = rnd.uniform(1.2, 3.3)
+        if abs(x) < 0.9 and y < 2.0: continue
+        sz = rnd.uniform(0.2, 0.9)
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, sz / 2 + rnd.uniform(0, 1.2)))
+        o = bpy.context.object; o.scale = (sz * rnd.uniform(0.5, 1.6), sz * rnd.uniform(0.4, 1.0), sz * rnd.uniform(0.5, 1.8))
+        o.data.materials.append(mat("clutter%d" % i, (rnd.random(), rnd.random(), rnd.random())))
+    for i in range(5):
+        bpy.ops.mesh.primitive_plane_add(size=0.8, location=(rnd.uniform(-3, 3), 3.45, rnd.uniform(1.2, 2.4)), rotation=(math.radians(90), 0, 0))
+        bpy.context.object.data.materials.append(mat("poster%d" % i, (rnd.random(), rnd.random() * 0.5, rnd.random())))
 cam = bpy.data.objects.new("c", bpy.data.cameras.new("c")); sc.collection.objects.link(cam); sc.camera = cam
 cam.data.sensor_fit = "VERTICAL"; cam.data.angle = math.radians(float(os.environ.get("RV_FOV", "62")))   # phone camera, vertical FOV
 yaw = {"front": 0.0, "side": 90.0, "q45": 45.0, "q-45": -45.0, "back": 180.0}.get(view, None)

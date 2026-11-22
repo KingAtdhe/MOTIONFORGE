@@ -5,8 +5,9 @@ import eu.motionforge.app.core.pose.Landmark
 import eu.motionforge.app.core.pose.PoseFrame
 import kotlin.math.hypot
 
-/** Which beginner boxing drill is being watched. */
-enum class BoxingDrill { STANCE, JAB }
+/** Which beginner boxing drill is being watched. CROSS uses the jab rules on the rear hand: the punching arm is
+ *  whichever arm extends at shoulder height, and the other hand must stay up. */
+enum class BoxingDrill { STANCE, JAB, CROSS }
 
 /** [message] is shown on screen, [spoken] is the short version the voice coach says. */
 enum class FormIssue(val message: String, val spoken: String) {
@@ -14,6 +15,7 @@ enum class FormIssue(val message: String, val spoken: String) {
     FEET_NARROW("Possible form adjustment: step your feet a little wider for balance.", "Feet a little wider."),
     FEET_WIDE("Your feet may be very wide — find a comfortable, balanced width.", "Feet a little narrower."),
     REAR_HAND_DROPS("Possible form adjustment: keep the rear hand near your face while the lead hand extends.", "Keep the rear hand up."),
+    LEAD_HAND_DROPS("Possible form adjustment: keep the lead hand near your face while the rear hand extends.", "Keep the lead hand up."),
     SLOW_RETURN("Possible form adjustment: bring the hand back to guard after each jab.", "Bring it back to guard."),
 }
 
@@ -79,6 +81,8 @@ class BoxingFormMonitor(
     private var rearDroppedThisJab = false
     private var extendedLeft = true
     private var pendingCue: FormIssue? = null
+    /** The hand that must stay up while the other punches: the rear hand for a jab, the lead hand for a cross. */
+    private val guardCue = if (drill == BoxingDrill.CROSS) FormIssue.LEAD_HAND_DROPS else FormIssue.REAR_HAND_DROPS
     private var slowThisJab = false
     private var cleanJabs = 0
     private val finished = ArrayDeque<JabResult>()
@@ -197,7 +201,7 @@ class BoxingFormMonitor(
                 if (!leftArm || !rightArm) return null                 // the guard needs both hands in view
                 if (wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
             }
-            BoxingDrill.JAB -> {
+            BoxingDrill.JAB, BoxingDrill.CROSS -> {
                 if (!leftArm && !rightArm) return null
                 fun high(wr: Landmark) = wr.y * h < shoulderY + jabHeight * unit
                 val rl = if (leftArm) reachRatio("L") else -1.0
@@ -232,7 +236,7 @@ class BoxingFormMonitor(
                         finished.addLast(JabResult(jabCount, clean))
                         // a jab lasts well under the cue window, so a fault seen during it is named straight away
                         pendingCue = when {
-                            rearDroppedThisJab -> FormIssue.REAR_HAND_DROPS
+                            rearDroppedThisJab -> guardCue
                             slowThisJab -> FormIssue.SLOW_RETURN
                             else -> null
                         }
@@ -240,7 +244,7 @@ class BoxingFormMonitor(
                         issues += FormIssue.SLOW_RETURN; slowThisJab = true
                     }
                 }
-                if (extended && rearDroppedThisJab) issues += FormIssue.REAR_HAND_DROPS
+                if (extended && rearDroppedThisJab) issues += guardCue
                 if (!extended && leftArm && rightArm && wristLow(lw) && wristLow(rw)) issues += FormIssue.HANDS_LOW
             }
         }

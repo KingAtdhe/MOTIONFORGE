@@ -39,10 +39,11 @@ object SessionPlanner {
 
     const val STANCE_ID = "boxing_stance"
     const val JAB_ID = "boxing_jab"
+    const val CROSS_ID = "boxing_cross"
 
     private fun work(e: Exercise) = SessionStep.Work(
         e.id, e.name, e.durationSeconds, countsReps = CountedMove.forExercise(e.id) != null,
-        formDrill = when (e.id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; else -> null },
+        formDrill = when (e.id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; CROSS_ID -> BoxingDrill.CROSS; else -> null },
     )
 
     fun single(exercise: Exercise) = SessionPlan(exercise.name, exercise.category, listOf(work(exercise)))

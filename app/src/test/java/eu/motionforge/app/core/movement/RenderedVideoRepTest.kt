@@ -53,7 +53,7 @@ class RenderedVideoRepTest {
         val fs = frames(name)
         val gate = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
         val counter = CountedMove.counterFor(exercise)
-        val drill = when (exercise) { "boxing_jab" -> BoxingDrill.JAB; "boxing_stance" -> BoxingDrill.STANCE; else -> null }
+        val drill = when (exercise) { "boxing_jab" -> BoxingDrill.JAB; "boxing_cross" -> BoxingDrill.CROSS; "boxing_stance" -> BoxingDrill.STANCE; else -> null }
         val monitor = drill?.let { BoxingFormMonitor(it) }
         var tracked = 0
         val events = mutableListOf<String>()
