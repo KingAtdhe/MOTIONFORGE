@@ -50,3 +50,6 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
 
 ## Update 2026-11-22
 Design v3 "training campaign" is live (see BUILD_LOG). Screenshot review: push, then read PNGs from the `ci-screenshots` branch. Next: wait for the user's verdict on v3 and the new lettermark icon.
+
+## Update 2026-11-22 (afternoon)
+Design v5 "motion lab" is built (see BUILD_LOG). Next: the owner tests the APK on a phone; check the workout screen, the notification and headphone buttons on a real device. Re-render studies with `render_studies.py` + `compose_studies.py` after any clip change.

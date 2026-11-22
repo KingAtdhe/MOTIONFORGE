@@ -774,3 +774,14 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
   - Progress/Profile = heavy-rule sections, square day blocks, ledger history.
   - Square-cut (2 dp) buttons everywhere; nav bar on the page colour with no pill indicator.
 - Icon/splash: white Archivo "M" + blaze square on cobalt; splash background cobalt.
+
+## 2026-11-22 (afternoon) — Design v5 "motion lab" (approved plan: Claude Docs "MOTIONFORGE design plan")
+- Plan written first (research on thumb reach, distance legibility, camera placement, Live Updates), approved by the owner, then built.
+- Signature: every lesson is a **motion study** (Marey-style chronophotograph). `tools/blender/render_studies.py` renders 7 frames per lesson from a fixed camera (far end of the clip into the key position, picks from render_thumbs SHOTS); `tools/compose_studies.py` screen-blends them on a black plate (key frame sharp) and makes a 4-frame strip. Assets: `assets/studies/coach_{f,m}/<id>.webp` + `<id>_strip.webp`, 1.6 MB total.
+- Theme: silver page #E8E8E4, black plates, ink text, timing-board yellow #FFD60A for the one action and live numbers, cue orange on the plate only. Font: Barlow / Semi Condensed / Condensed (OFL, road-sign legibility), tabular numbers.
+- Structure: three tabs (Today, Moves, You = progress + settings). Today = study plate + filmstrip + week ticks, yellow action bar fixed at the bottom. Moves = contact sheet rows (strip + time), filters in a bottom sheet. Lesson = 3D coach / motion study switch on the black stage, sticky start bar.
+- Workout: distance layout (name 32 sp, live number 120 sp ≈ 20 mm), timer on the measuring scale, tap anywhere to pause, controls only when paused, shutter on step change, rep pulse + haptic tick (reduce-motion respected), coach study inset over the camera, skeleton trace white with yellow joints.
+- Outside the app: ongoing workout notification (requests Live Update promotion on Android 16), POST_NOTIFICATIONS asked when a session starts; headphone play/pause/next via a platform MediaSession (works where the phone routes media buttons to the app).
+- Session plate: last ~4 s of tracked poses (in memory only) drawn as a geometric chronophotograph; share renders a PNG to cache and shares via FileProvider (`${applicationId}.plates`).
+- Icon/splash v5: a squat as four stick-figure exposures, last in yellow, on black (`tools/branding_icon_v5.py` + joints json); Barlow wordmark (`tools/branding_wordmark_v5.py`).
+- Not verified in screenshots: the running workout screen, notification and headphone buttons (need a device).
