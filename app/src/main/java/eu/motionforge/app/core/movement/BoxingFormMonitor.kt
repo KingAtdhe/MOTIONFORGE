@@ -77,6 +77,8 @@ class BoxingFormMonitor(
     private var extendedAt = 0L
     private var lastJabAt = -1_000_000L
     private var rearDroppedThisJab = false
+    private var extendedLeft = true
+    private var pendingCue: FormIssue? = null
     private var slowThisJab = false
     private var cleanJabs = 0
     private val finished = ArrayDeque<JabResult>()
@@ -90,7 +92,7 @@ class BoxingFormMonitor(
     fun drainJabs(): List<JabResult> = finished.toList().also { finished.clear() }
 
     fun reset() {
-        window.clear(); visibleFrames = 0; hiddenFrames = 0; shown = null; extended = false; rearDroppedThisJab = false; slowThisJab = false; finished.clear()
+        window.clear(); visibleFrames = 0; hiddenFrames = 0; shown = null; extended = false; pendingCue = null; rearDroppedThisJab = false; slowThisJab = false; finished.clear()
     }
 
     fun update(frame: PoseFrame, tracking: Boolean): FormFeedback {
@@ -109,6 +111,11 @@ class BoxingFormMonitor(
             visibleFrames++
             window.addLast(Sample(t, issues))
             trim(t)
+        }
+        pendingCue?.let { cue ->
+            pendingCue = null
+            shown = cue; shownSince = t
+            return FormFeedback.Cue(cue, jabCount)
         }
         if (window.size < 5) return FormFeedback.Steady(jabCount)
 
@@ -192,17 +199,29 @@ class BoxingFormMonitor(
             }
             BoxingDrill.JAB -> {
                 if (!leftArm && !rightArm) return null
+                fun high(wr: Landmark) = wr.y * h < shoulderY + jabHeight * unit
                 val rl = if (leftArm) reachRatio("L") else -1.0
                 val rr = if (rightArm) reachRatio("R") else -1.0
-                val leadIsLeft = rl >= rr
+                // The punching arm is the straighter arm *at shoulder height*: a dropped rear hand hangs straight too,
+                // and must not be taken for the jab. While a jab is out, keep watching the arm that threw it.
+                val leadIsLeft = if (extended) extendedLeft else {
+                    val lHigh = leftArm && high(lw); val rHigh = rightArm && high(rw)
+                    when {
+                        lHigh && rHigh -> rl >= rr
+                        lHigh -> true
+                        rHigh -> false
+                        else -> rl >= rr
+                    }
+                }
                 val lead = if (leadIsLeft) rl else rr
+                if (lead < 0) return issues                               // the punching arm is hidden this frame
                 val rearSeen = if (leadIsLeft) rightArm else leftArm
                 val rear = if (leadIsLeft) rw else lw
                 val t = f.timestampMs
                 val leadWrist = if (leadIsLeft) lw else rw
-                val atShoulderHeight = leadWrist.y * h < shoulderY + jabHeight * unit
-                if (!extended && lead > extendedRatio && atShoulderHeight && t - lastJabAt > minJabMs) {
-                    extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false; slowThisJab = false
+                if (!extended && lead > extendedRatio && high(leadWrist) && t - lastJabAt > minJabMs) {
+                    extended = true; extendedLeft = leadIsLeft; extendedAt = t; jabCount++; lastJabAt = t
+                    rearDroppedThisJab = false; slowThisJab = false
                 }
                 if (extended) {
                     if (rearSeen && wristLow(rear)) rearDroppedThisJab = true
@@ -211,6 +230,12 @@ class BoxingFormMonitor(
                         val clean = !rearDroppedThisJab && !slowThisJab
                         if (clean) cleanJabs++
                         finished.addLast(JabResult(jabCount, clean))
+                        // a jab lasts well under the cue window, so a fault seen during it is named straight away
+                        pendingCue = when {
+                            rearDroppedThisJab -> FormIssue.REAR_HAND_DROPS
+                            slowThisJab -> FormIssue.SLOW_RETURN
+                            else -> null
+                        }
                     } else if (t - extendedAt > returnMs) {
                         issues += FormIssue.SLOW_RETURN; slowThisJab = true
                     }

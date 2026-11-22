@@ -27,3 +27,5 @@ stance_m_front|push_up|0
 # deliberate faults (tools/pose_tests/faults.py): the listed cue must fire, counts must still be right
 squat_kneesin_f_front|bodyweight_squat|3|KNEES_IN
 jab_reardrop_f_front|boxing_jab|4|REAR_HAND_DROPS
+squat_chest_m_side|bodyweight_squat|3|CHEST_DROP
+stance_handslow_m_front|boxing_stance|0|HANDS_LOW
