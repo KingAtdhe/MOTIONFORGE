@@ -13,7 +13,10 @@ class Exc:
     def __init__(s,d,travel,ret=0.8,minrep=700,win=3): s.d,s.tr,s.ret,s.minrep,s.win=d,travel,ret,minrep,win; s.count=0; s.ph="U"; s.w=[]; s.events=[]
     def update(s,t,w,h,L,ok):
         raw=s.sig(L,w,h) if ok and L else None
-        if raw is None: s.ph="U"; s.w=[]; return None
+        if raw is None:
+            if getattr(s,'lg',-1)>=0 and t-s.lg<=500: return None
+            s.ph="U"; s.w=[]; s.lg=-1; return None
+        s.lg=t
         s.w.append(raw); s.w=s.w[-s.win:]; v=sum(s.w)/len(s.w); x=s.d*v
         if s.ph=="U": s.ph="T"; s.rest=x
         elif s.ph=="T":

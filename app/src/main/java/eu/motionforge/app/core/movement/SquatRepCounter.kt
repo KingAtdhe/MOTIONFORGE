@@ -47,8 +47,8 @@ enum class SquatIssue(override val message: String, override val spoken: String)
  * they are not biomechanical truths.
  *
  * Safety properties:
- * - Frames passed with tracking = false reset the cycle, so a rep can never be completed
- *   across a tracking gap, and no form event is produced from it.
+ * - Frames passed with tracking = false for more than half a second reset the cycle, so a rep can never be
+ *   completed across a tracking gap; a shorter blip (one missed frame and the tracking gate re-settling) is skipped.
  * - A cycle faster than [minRepMs] is ignored (noise / double count guard).
  * - A form rule needs at least [minRuleFrames] qualifying bottom frames; one bad frame never produces a cue.
  */
@@ -78,6 +78,7 @@ class SquatRepCounter(
     private var leanBottom = 0
     private val window = ArrayDeque<Double>()
     private var standingHip: Double? = null
+    private var lastGoodMs = -1L
 
     override val repetitions: Int get() = count
 
@@ -88,6 +89,7 @@ class SquatRepCounter(
     }
 
     private fun loseTracking() {
+        lastGoodMs = -1L
         phase = RepPhase.UNKNOWN
         window.clear()
     }
@@ -103,9 +105,13 @@ class SquatRepCounter(
     override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
         val raw = if (tracking) kneeAngle(frame) else null
         if (raw == null) {
+            // a blip of a few frames (the model missing one frame, then the tracking gate re-settling) keeps the
+            // rep in progress; a longer gap drops it, so a rep can never span a real loss of tracking
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
             loseTracking()
             return RepUpdate(count, phase, null)
         }
+        lastGoodMs = frame.timestampMs
         window.addLast(raw)
         while (window.size > smoothingWindow) window.removeFirst()
         val angle = window.average()

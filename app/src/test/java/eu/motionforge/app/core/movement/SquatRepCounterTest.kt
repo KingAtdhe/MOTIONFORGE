@@ -88,9 +88,19 @@ class SquatRepCounterTest {
         val c = SquatRepCounter()
         val down = (0..12).map { 175.0 - 80.0 * it / 12 }
         var t = c.feed(List(4) { 175.0 } + down)
-        t = c.feed(listOf(95.0, 95.0), t, tracking = false)
+        t = c.feed(List(10) { 95.0 }, t, tracking = false)          // ~0.66 s without tracking
         c.feed(down.reversed() + List(4) { 175.0 }, t)
         assertEquals(0, c.repetitions)
+    }
+
+    @Test
+    fun aOneFrameBlipKeepsTheRep() {
+        val c = SquatRepCounter()
+        val down = (0..12).map { 175.0 - 80.0 * it / 12 }
+        var t = c.feed(List(4) { 175.0 } + down)
+        t = c.feed(List(5) { 95.0 }, t, tracking = false)           // one missed frame + the gate re-settling
+        c.feed(down.reversed() + List(4) { 175.0 }, t)
+        assertEquals(1, c.repetitions)
     }
 
     @Test

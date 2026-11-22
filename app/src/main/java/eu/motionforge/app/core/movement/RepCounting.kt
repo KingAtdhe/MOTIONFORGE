@@ -8,6 +8,9 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
 
+/** Tracking gaps up to this long keep a rep in progress (one missed frame plus the tracking gate re-settling). */
+const val MAX_BLIP_MS = 500L
+
 /** A form adjustment a rep counter can name. [message] is shown on screen, [spoken] is said by the voice coach. */
 interface FormCue {
     val message: String
@@ -149,7 +152,10 @@ abstract class CycleRepCounter(
         lose()
     }
 
+    private var lastGoodMs = -1L
+
     private fun lose() {
+        lastGoodMs = -1L
         phase = RepPhase.UNKNOWN
         window.clear()
     }
@@ -157,9 +163,11 @@ abstract class CycleRepCounter(
     override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
         val raw = if (tracking) angle(frame) else null
         if (raw == null) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
             lose()
             return RepUpdate(count, phase, null)
         }
+        lastGoodMs = frame.timestampMs
         window.addLast(raw)
         while (window.size > smoothingWindow) window.removeFirst()
         val a = window.average()
@@ -350,7 +358,10 @@ class LungeRepCounter(
         lose()
     }
 
+    private var lastGoodMs = -1L
+
     private fun lose() {
+        lastGoodMs = -1L
         phase = RepPhase.UNKNOWN
         window.clear()
     }
@@ -375,9 +386,11 @@ class LungeRepCounter(
     override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
         val raw = if (tracking) hipHeight(frame) else null
         if (raw == null || raw <= 0.0) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
             lose()
             return RepUpdate(count, phase, null)
         }
+        lastGoodMs = frame.timestampMs
         window.addLast(raw)
         while (window.size > smoothingWindow) window.removeFirst()
         val r = window.average()

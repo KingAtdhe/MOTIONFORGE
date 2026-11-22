@@ -53,3 +53,7 @@ march_f_front|step_jack|0
 rdl_f_front|dumbbell_romanian_deadlift|3
 kb_m_q45|kettlebell_deadlift|3
 curl_m_side|dumbbell_biceps_curl|3
+press_f_q45|dumbbell_shoulder_press|3
+lateral_m_q45|dumbbell_lateral_raise|3
+row_f_q45|dumbbell_bent_over_row|3
+bridge_m_q45|glute_bridge|3

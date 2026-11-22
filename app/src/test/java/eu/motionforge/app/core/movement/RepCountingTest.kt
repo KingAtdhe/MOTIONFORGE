@@ -50,6 +50,7 @@ class RepCountingTest {
         val f = PoseFixtures.standingFrame(0)
         c.update(f, true)
         assertNull(c.update(f.copy(timestampMs = 66), tracking = false).angle)
-        assertEquals(RepPhase.UNKNOWN, c.update(f.copy(timestampMs = 66), tracking = false).phase)
+        // a short blip keeps the state; a gap over MAX_BLIP_MS drops it
+        assertEquals(RepPhase.UNKNOWN, c.update(f.copy(timestampMs = 66 + MAX_BLIP_MS + 100), tracking = false).phase)
     }
 }

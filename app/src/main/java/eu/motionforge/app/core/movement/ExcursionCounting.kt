@@ -42,7 +42,10 @@ abstract class ExcursionRepCounter(
         lose()
     }
 
+    private var lastGoodMs = -1L
+
     private fun lose() {
+        lastGoodMs = -1L
         phase = RepPhase.UNKNOWN
         window.clear()
     }
@@ -50,9 +53,11 @@ abstract class ExcursionRepCounter(
     override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
         val raw = if (tracking) signal(frame) else null
         if (raw == null) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
             lose()
             return RepUpdate(count, phase, null)
         }
+        lastGoodMs = frame.timestampMs
         window.addLast(raw)
         while (window.size > smoothingWindow) window.removeFirst()
         val v = window.average()
