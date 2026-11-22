@@ -872,3 +872,27 @@ lighting/clothing variety, timing on device — the renders are a strong check o
 saved/discarded or day-old ones don't. CI caches and pre-fetches Robolectric's Android jar (download flake).
 **Male coach clip QC:** all 51 male clips now reviewed in side + front renders (36 tonight, the rest in the earlier
 passes); no floor penetration, floating, popping or broken poses found.
+
+## 2026-11-22 (late night) — Every form cue checked on deliberate-fault renders
+`tools/pose_tests/faults.py` bends the coach's pose at render time into a real mistake (`RV_FAULT=…`): knees caving in,
+chest dropping, hips sagging / piking, leaning in the lunge, rear hand dropping during the jab, hands low in the stance;
+plus timing faults via clip speed (`clip^3` rushed squat, `clip^0.15` jab held out). Each fault video is a fixture
+with the cue it must produce (`expected.txt` 4th field); a cue must fire on ≥ 2/3 of the reps and nothing else may
+fire; the counts must still be right. Correct demos must still produce no cue. All 37 checks pass.
+| fault | video | result |
+|---|---|---|
+| knees in | squat f front | 3/3, KNEES_IN every rep |
+| chest drop | squat m side | 3/3, CHEST_DROP every rep |
+| rushed | squat f front (3× speed down) | 3/3, RUSHED |
+| hips sag / pike | push-up f side / m side | 3/3, HIPS_SAG / HIPS_PIKE every rep |
+| lean | reverse lunge f side | 2/2, LEANING |
+| rear hand drops | jab f front | 4/4, REAR_HAND_DROPS |
+| jab held out | jab m 3/4 (slow motion) | 2/2, SLOW_RETURN |
+| hands low | stance m front | HANDS_LOW |
+**Found and fixed:** (1) squats with the knees caving in were not counted at all from the front (2D knee angle stays
+~170° when the knee bends toward the camera) — the squat now also reads the hip drop; (2) knees-in needed knees under
+0.75× the ankle spread, a clear valgus measured 0.76 — now 0.90; (3) hip sag needed a 25° bend of the body line, a
+13 cm sag measured 21° (clean push-ups 1–4°) — now 15°; (4) a dropped rear hand was taken for the punching arm (it
+hangs straight) — the punching arm is now the straighter arm at shoulder height, kept until it returns; (5) jab faults
+could never show, a jab is shorter than the cue's 1 s persistence window — a fault seen during a jab is named when
+it ends; (6) lunge lean was judged on the whole descent — now on the frames near the final lowest point.

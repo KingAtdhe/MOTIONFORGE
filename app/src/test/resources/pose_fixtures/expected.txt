@@ -32,3 +32,5 @@ stance_handslow_m_front|boxing_stance|0|HANDS_LOW
 lunge_lean_f_side|reverse_lunge|2|LEANING
 squat_rushed_f_front|bodyweight_squat|3|RUSHED
 jab_slow_m_q45|boxing_jab|2|SLOW_RETURN
+pushup_sag2_f_side|push_up|3|HIPS_SAG
+pushup_pike2_m_side|push_up|3|HIPS_PIKE
