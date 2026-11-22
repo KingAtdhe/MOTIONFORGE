@@ -1,16 +1,15 @@
 package eu.motionforge.app.screenshots
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import eu.motionforge.app.core.design.MotionForgeTheme
 import eu.motionforge.app.core.model.TrainingCategory
 import eu.motionforge.app.core.model.TrainingGoal
@@ -28,25 +27,33 @@ import eu.motionforge.app.feature.progress.ExerciseRecord
 import eu.motionforge.app.feature.progress.ProgressScreen
 import eu.motionforge.app.feature.progress.SessionRecord
 import eu.motionforge.app.core.model.Coach
+import org.junit.Assume.assumeTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowLooper
 import java.io.File
 import java.time.DayOfWeek
 
 /**
- * Renders the main screens with sample data to PNGs in build/reports/screenshots/ (uploaded by CI with the test
- * reports), so the design can be reviewed without a device. Not a pixel-comparison test: it fails only if a screen
- * cannot be composed.
+ * Renders the main screens with sample data to PNGs in build/reports/screenshots/, so the design can be reviewed
+ * without a device (CI pushes them to the `ci-screenshots` branch). Not a pixel-comparison test. Runs only when
+ * MF_SCREENSHOTS=1, in its own CI step, so it can never block the unit tests or the APK.
+ *
+ * The frame clock is driven by hand and the window is drawn straight into a bitmap, so a screen that is still loading
+ * pictures cannot stall the capture.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w411dp-h1900dp-xhdpi")
 class ScreenshotTest {
-    @get:Rule val compose = createComposeRule()
+    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Before fun onlyWhenAsked() = assumeTrue(System.getenv("MF_SCREENSHOTS") == "1")
 
     private val catalog = CatalogUiState.Ready(
         ExerciseCatalogParser.parse(File("src/main/assets/${ExerciseCatalogParser.ASSET_PATH}").readText()),
@@ -57,13 +64,21 @@ class ScreenshotTest {
     )
 
     private fun shot(name: String, content: @Composable () -> Unit) {
+        compose.mainClock.autoAdvance = false
         compose.setContent {
             MotionForgeTheme {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { content() }
             }
         }
-        compose.waitForIdle()
-        val bmp = compose.onRoot().captureToImage().asAndroidBitmap()
+        compose.mainClock.autoAdvance = false
+        repeat(6) {
+            compose.mainClock.advanceTimeBy(200)
+            ShadowLooper.idleMainLooper()
+            Thread.sleep(150)                                     // coach stills load on Dispatchers.IO
+        }
+        val root = compose.activity.window.decorView
+        val bmp = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888)
+        root.draw(Canvas(bmp))
         val out = File("build/reports/screenshots").apply { mkdirs() }
         File(out, "$name.png").outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }

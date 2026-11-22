@@ -30,6 +30,24 @@ jobs:
       - name: Unit tests
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest
 
+      - name: Screenshots of the main screens (design review; never blocks the build)
+        continue-on-error: true
+        env:
+          MF_SCREENSHOTS: "1"
+        run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest --tests "eu.motionforge.app.screenshots.*"
+
+      - name: Publish screenshots to the ci-screenshots branch (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          [ -d app/build/reports/screenshots ] || exit 0
+          mkdir -p /tmp/shots && cp app/build/reports/screenshots/*.png /tmp/shots/
+          cd /tmp/shots
+          git init -q && git checkout -q -b ci-screenshots
+          git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          git add -A && git commit -q -m "Screenshots of ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-screenshots
+
       - name: Build debug APK
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true assembleDebug
 
