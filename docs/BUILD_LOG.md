@@ -915,4 +915,4 @@ southpaw stance (mirrored video), push-ups from a phone lying sideways on the fl
 — counters now ride out gaps up to 0.5 s, longer gaps still drop the rep; push-ups filmed from floor level read
 the straight arm as ~145°, top threshold 150° → 135°; an upright phone on the floor cuts the head off (the app
 asks to adjust, counts nothing) — the push-up setup tip now says to turn the phone sideways.
-Fixture checks: 70, all passing in CI.
+Fixture checks: 72, all passing in CI.
