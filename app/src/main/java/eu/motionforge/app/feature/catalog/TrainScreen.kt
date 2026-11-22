@@ -47,20 +47,23 @@ fun TrainScreen(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             accent = filter.category?.accent ?: MfColors.Ink,
         )
-        SegmentedPill(
-            options = DurationFilter.entries.map { it.label },
-            selectedIndex = DurationFilter.entries.indexOf(filter.duration),
-            onSelect = { onDuration(DurationFilter.entries[it]) },
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            accent = MfColors.Ink,
-        )
-        SegmentedPill(
-            options = EquipmentFilter.entries.map { it.label },
-            selectedIndex = EquipmentFilter.entries.indexOf(filter.equipment),
-            onSelect = { onEquipment(EquipmentFilter.entries[it]) },
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            accent = MfColors.Ink,
-        )
+        // length and equipment share one quiet, scrollable row under the category switch
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SegmentedPill(
+                options = DurationFilter.entries.map { it.label },
+                selectedIndex = DurationFilter.entries.indexOf(filter.duration),
+                onSelect = { onDuration(DurationFilter.entries[it]) },
+                accent = MfColors.Ink,
+                compact = true,
+            )
+            SegmentedPill(
+                options = EquipmentFilter.entries.map { it.label },
+                selectedIndex = EquipmentFilter.entries.indexOf(filter.equipment),
+                onSelect = { onEquipment(EquipmentFilter.entries[it]) },
+                accent = MfColors.Ink,
+                compact = true,
+            )
+        }
 
         when (catalog) {
             CatalogUiState.Loading -> Row(verticalAlignment = Alignment.CenterVertically) {

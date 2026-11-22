@@ -230,9 +230,9 @@ fun GlbModelView(
     val scene = sceneResult.getOrNull()
     if (scene == null) {
         LaunchedEffect(sceneResult) {
-            playback.loadState = GlbLoadState.Failed(
-                "3D renderer unavailable on this device (${sceneResult.exceptionOrNull()?.message}).",
-            )
+            // the technical reason goes to the log; people get a plain sentence
+            android.util.Log.w("MotionForge3D", "3D renderer unavailable", sceneResult.exceptionOrNull())
+            playback.loadState = GlbLoadState.Failed("The 3D coach can't be shown on this device.")
         }
         return
     }

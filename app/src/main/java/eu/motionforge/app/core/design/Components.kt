@@ -186,6 +186,7 @@ fun SegmentedPill(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     accent: Color = MaterialTheme.colorScheme.onSurface,
+    compact: Boolean = false,
 ) {
     Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
         Row(Modifier.padding(4.dp)) {
@@ -193,15 +194,15 @@ fun SegmentedPill(
                 val selected = i == selectedIndex
                 Surface(
                     modifier = Modifier
-                        .heightIn(min = 44.dp)
+                        .heightIn(min = if (compact) 40.dp else 44.dp)
                         .selectable(selected = selected, onClick = { onSelect(i) }, role = Role.RadioButton),
                     shape = RoundedCornerShape(50),
                     color = if (selected) accent else Color.Transparent,
                 ) {
-                    Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.padding(horizontal = if (compact) 12.dp else 16.dp, vertical = if (compact) 7.dp else 10.dp), contentAlignment = Alignment.Center) {
                         Text(
                             label,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                             color = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -399,7 +400,7 @@ fun StageFloor(accent: Color, modifier: Modifier = Modifier) {
             .fillMaxWidth(0.62f)
             .height(26.dp)
             .clip(androidx.compose.foundation.shape.GenericShape { size, _ -> addOval(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height)) })
-            .background(Brush.radialGradient(listOf(accent.copy(alpha = 0.22f), Color.Transparent))),
+            .background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))),
     )
 }
 

@@ -26,6 +26,7 @@ import eu.motionforge.app.feature.onboarding.OnboardingStep
 import eu.motionforge.app.feature.progress.ExerciseRecord
 import eu.motionforge.app.feature.progress.ProgressScreen
 import eu.motionforge.app.feature.progress.SessionRecord
+import eu.motionforge.app.feature.settings.ProfileScreen
 import eu.motionforge.app.core.model.Coach
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -117,4 +118,6 @@ class ScreenshotTest {
     @Test fun onboardingFocus() = shot("07_onboarding_focus") {
         OnboardingContent(OnboardingState(step = OnboardingStep.FOCUS, focus = TrainingCategory.FITNESS), false) {}
     }
+
+    @Test fun profile() = shot("08_profile") { ProfileScreen(prefs, onOpenTechnicalChecks = {}, onResetData = {}) }
 }

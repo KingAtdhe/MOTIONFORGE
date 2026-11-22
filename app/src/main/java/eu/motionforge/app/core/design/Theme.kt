@@ -138,5 +138,9 @@ private val shapes = Shapes(
 /** [night] = the workout scheme (running session, camera): the same identity on an even darker ground. */
 @Composable
 fun MotionForgeTheme(night: Boolean = false, content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (night) nightScheme else scheme, typography = typography, shapes = shapes, content = content)
+    val colors = if (night) nightScheme else scheme
+    MaterialTheme(colorScheme = colors, typography = typography, shapes = shapes) {
+        // text outside a Surface (onboarding, page headings) must default to the light ink, not the platform's black
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides colors.onBackground, content = content)
+    }
 }
