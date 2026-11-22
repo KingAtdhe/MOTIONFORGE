@@ -4,3 +4,6 @@ squat_m_side|bodyweight_squat|3
 squat_f_q45|bodyweight_squat|3
 pushup_f_side|push_up|3
 squat_m_front|bodyweight_squat|3
+pushup_m_q45|push_up|3
+lunge_f_side|reverse_lunge|2
+jab_f_front|boxing_jab|4

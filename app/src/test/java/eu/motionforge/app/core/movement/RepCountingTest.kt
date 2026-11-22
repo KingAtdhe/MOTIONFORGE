@@ -1,0 +1,55 @@
+package eu.motionforge.app.core.movement
+
+import eu.motionforge.app.core.pose.BodyLandmark
+import eu.motionforge.app.core.pose.PoseFixtures
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import kotlin.math.cos
+import kotlin.math.sin
+
+class RepCountingTest {
+
+    @Test
+    fun everyCountedLessonHasACounter() {
+        listOf("bodyweight_squat", "sumo_squat", "push_up", "knee_push_up", "incline_push_up", "reverse_lunge", "split_squat").forEach {
+            assertTrue(it, CountedMove.counterFor(it) != null)
+        }
+        assertNull(CountedMove.counterFor("glute_bridge"))
+        assertTrue(CountedMove.counterFor("bodyweight_squat") is SquatRepCounter)
+        assertTrue(CountedMove.counterFor("knee_push_up") is PushUpRepCounter)
+        assertTrue(CountedMove.counterFor("split_squat") is LungeRepCounter)
+    }
+
+    /** Standing person bending and straightening both elbows (a curl): must never count as push-ups. */
+    @Test
+    fun armsBendingWhileStandingAreNotPushUps() {
+        val c = PushUpRepCounter()
+        var t = 0L
+        repeat(4) {
+            for (deg in (180 downTo 60 step 10) + (60..180 step 10)) {
+                val a = Math.toRadians(180.0 - deg)
+                // upper arm hangs down from the shoulder, the forearm swings forward/up by the elbow angle
+                fun arm(sx: Float, sy: Float) = Triple(sx to sy, sx to (sy + 0.13f), (sx + (0.12 * sin(a)).toFloat()) to (sy + 0.13f + (0.12 * cos(a)).toFloat()))
+                val (ls, le, lw) = arm(0.58f, 0.25f)
+                val (rs, re, rw) = arm(0.42f, 0.25f)
+                val f = PoseFixtures.standingFrame(t, mapOf(
+                    BodyLandmark.LEFT_ELBOW to PoseFixtures.landmark(le.first, le.second), BodyLandmark.LEFT_WRIST to PoseFixtures.landmark(lw.first, lw.second),
+                    BodyLandmark.RIGHT_ELBOW to PoseFixtures.landmark(re.first, re.second), BodyLandmark.RIGHT_WRIST to PoseFixtures.landmark(rw.first, rw.second),
+                ))
+                c.update(f, true); t += 66
+            }
+        }
+        assertEquals(0, c.repetitions)
+    }
+
+    @Test
+    fun trackingLossNeverCompletesARep() {
+        val c = LungeRepCounter()
+        val f = PoseFixtures.standingFrame(0)
+        c.update(f, true)
+        assertNull(c.update(f.copy(timestampMs = 66), tracking = false).angle)
+        assertEquals(RepPhase.UNKNOWN, c.update(f.copy(timestampMs = 66), tracking = false).phase)
+    }
+}
