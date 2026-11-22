@@ -1,5 +1,6 @@
 package eu.motionforge.app.feature.lesson
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
