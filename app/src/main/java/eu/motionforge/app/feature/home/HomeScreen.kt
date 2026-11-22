@@ -1,5 +1,8 @@
 package eu.motionforge.app.feature.home
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.navigationBarsPadding
 import eu.motionforge.app.core.design.WeekTicks
 import eu.motionforge.app.core.design.MeasureScale
