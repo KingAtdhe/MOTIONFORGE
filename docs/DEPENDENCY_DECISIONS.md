@@ -58,3 +58,11 @@ The spec requires "a maintained Android GLB/glTF renderer based on Filament".
 ## androidx.core:core-splashscreen 1.2.0 (2026-11-21)
 Launch screen with the MOTIONFORGE mark. 1.2.0 is the current stable release on the AndroidX Core release page.
 Gives the Android 12+ splash API with an emulated version on Android 8-11 (minSdk 26).
+
+## Screenshot tests: Robolectric 4.16 + Compose ui-test (2026-11-22)
+`ScreenshotTest` renders the main screens on the JVM (Robolectric native graphics) so the design can be reviewed without
+a device; CI runs it in its own step (MF_SCREENSHOTS=1) and pushes the PNGs to the `ci-screenshots` branch. Robolectric
+4.16 is the current release and supports SDK 36; tests run on SDK 35 with JDK 17. Roborazzi was not used: its current
+release is built with Kotlin 2.3, newer than this project's Kotlin 2.2. `ui-test-junit4` / `ui-test-manifest` come from
+the Compose BOM.
+## Font: Manrope (variable, OFL) replaces Big Shoulders Display + Schibsted Grotesk (2026-11-22)

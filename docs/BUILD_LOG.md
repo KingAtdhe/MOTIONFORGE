@@ -731,3 +731,29 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - Build prints per-clip IK over-reach when it exceeds 5 mm (that is how the cat-cow problem was found).
 **Verified:** motion measurements before / after for all 51 clips, contact sheets across the set, over-reach <= 3 mm.
 **Not verified:** on a phone.
+
+## 2026-11-22 — Premium redesign: dark theme, Manrope, gold accent; monogram icon and splash
+**Owner: "more professional, premium".**
+- **Theme v2** (`core/design/Theme.kt`): dark-first. Warm near-black ground (#0B0B0D), graphite surfaces (#151518) with
+  hairline edges, warm off-white type (#F3F1EC), one signature colour — champagne gold (#D7B474) — for the primary
+  action and fitness; deep copper (#D0714A) for fighting fundamentals. v1 colour names kept, so every screen picked up
+  the palette. The workout scheme is the same identity on an even darker ground.
+- **Type:** Manrope (variable font, OFL; licence in `assets/licenses/`) for everything; weight carries hierarchy, slight
+  negative tracking on headings; section labels are small, letter-spaced uppercase (screen readers get the original
+  casing). Old fonts and their licences removed.
+- **Components:** hairline-edged panels, stat tiles and lesson cards; gold primary button with dark text; quieter chips
+  and segmented controls (compact variant); spotlit "stage" behind the coach stills; dark floor shadow; Today hero is a
+  graphite card lit by the category colour with an accent CTA; week strip and progress dots in gold; dark system bars.
+- **Bugs found by the screenshots and fixed:** text outside a Surface (onboarding, lesson title, steps) rendered in the
+  platform's black on the dark ground — the theme now provides the light ink as the default content colour; the 3D
+  fallback showed a raw exception with library paths — it now says "The 3D coach can't be shown on this device." and
+  logs the cause.
+- **Icon v3:** a geometric gold monogram "M" (slight forward lean, flat-cut ends) inside a fine gold bezel on a graphite
+  vignette; themed monochrome layer. Checked on circle / squircle / square masks and at 48 / 32 px. v1 and v2 kept in
+  `assets/branding/`.
+- **Launch screen:** #0B0B0D; Android 12+ draws the bezel and fades the monogram in (0.8 s) with the MOTIONFORGE wordmark
+  (Manrope SemiBold, wide tracking, converted to outlines by `tools/branding_wordmark.py`) below; Android 8-11 show the
+  static mark.
+- **Screenshot tests** (`app/src/test/.../screenshots/ScreenshotTest.kt`, see DEPENDENCY_DECISIONS): Home, Train, Lesson,
+  Progress (empty / with history), Onboarding, Profile. CI publishes them to the `ci-screenshots` branch.
+**Not verified on a device:** the splash animation and the variable-font rendering on older Android versions.

@@ -400,7 +400,7 @@ fun StageFloor(accent: Color, modifier: Modifier = Modifier) {
             .fillMaxWidth(0.62f)
             .height(26.dp)
             .clip(androidx.compose.foundation.shape.GenericShape { size, _ -> addOval(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height)) })
-            .background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))),
+            .background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.32f), Color.Transparent))),
     )
 }
 

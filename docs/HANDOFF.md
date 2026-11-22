@@ -18,7 +18,8 @@ Read this first when continuing in a new chat. Then `CLAUDE.md`, `docs/BUILD_LOG
   Room history (`core/database`), Progress screen.
 - Live coaching (21 Nov): squat rep counter + per-rep form checks, boxing stance/jab cues with clean-jab count, spoken
   voice coach (Android TTS, `core/coaching`, `feature/session/SessionNarrator`), toggle in Profile and in the session.
-- Design: Barlow / Barlow Condensed fonts, volt (#C8F542) = fitness, ember (#FF7A45) = fighting.
+- Design (v2, 22 Nov): dark premium theme, Manrope, gold (fitness / primary) and copper (fighting) accents; monogram
+  icon + animated splash. Screenshots of the main screens: `ci-screenshots` branch (refreshed by every CI run on main).
 - 82 JVM unit tests.
 
 ## Trainer / coach model
