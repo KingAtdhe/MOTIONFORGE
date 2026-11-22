@@ -7,6 +7,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -69,6 +70,7 @@ val TrainingCategory.accentOnNight: Color
     get() = accent
 
 /** Manrope (variable font, OFL): one geometric family for everything, weight carries the hierarchy. */
+@OptIn(ExperimentalTextApi::class)
 private fun manrope(weight: Int) = Font(
     R.font.manrope,
     weight = FontWeight(weight),
