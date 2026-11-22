@@ -641,6 +641,8 @@ if RIGGED:
     rc.key_fingers(mx_arm, sc, lambda n: next((v for k_, v in GRIP.items() if n.startswith(k_)), 0.22))
     no_floor = getattr(ac, "NO_FLOOR_CONTACT", set()) if not LEGACY_MOCAP else set()
     rc.floor_contact(mx_arm, mx_mesh, sc, [n for n in names if n not in no_floor])
+    if not LEGACY_MOCAP:
+        rc.settle_contacts(mx_arm, mx_mesh, sc, names)
     # training equipment (dumbbells, kettlebell, band, bench), shown only in the clips that use it
     if not LEGACY_MOCAP:
         import coach_props  # noqa: E402

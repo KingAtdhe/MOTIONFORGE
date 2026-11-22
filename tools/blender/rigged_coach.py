@@ -569,3 +569,219 @@ def key_fingers(arm, scene, grip_for):
             for f in range(a, b + 1):
                 pb.keyframe_insert("rotation_quaternion", frame=f)
     arm.animation_data.action = None
+
+
+# ---------------------------------------------------------------------------------------------- floor contacts
+# The clips are authored on MOTIONFORGE's rig and carried over by rotation, so where the real coach's skin meets the
+# floor can differ from the plan (thicker hands, knees, back of the head). This pass works on the real skinned mesh:
+#   kneel  — knees rest on the floor (hips move vertically), then planted hands are pinned to the floor
+#   hands  — planted hands are pinned: palm on the floor, wrist held in place (no sliding, no hovering, no sinking)
+#   back   — lying on the back: the head is tucked just enough that it never sinks into the floor
+#   prone  — lying face down: belly / thighs rest on the floor, head clear
+CONTACTS = {
+    "cat_cow": ("kneel",), "bird_dog": ("kneel",), "knee_pushup_down": ("kneel",), "knee_pushup_up": ("kneel",),
+    "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
+    "glute_bridge": ("bridge",), "dead_bug": ("back",), "superman": ("prone",),
+}
+
+
+def _regions(mesh):
+    import numpy as np
+    gi = {g.index: g.name for g in mesh.vertex_groups}
+    keys = {"footL": ("LeftFoot", "LeftToe"), "footR": ("RightFoot", "RightToe"), "shin": ("LeftLeg", "RightLeg"), "thigh": ("UpLeg",),
+            "handL": ("LeftHand",), "handR": ("RightHand",), "farm": ("ForeArm",), "head": ("Head", "Neck"), "torso": ("Spine", "Hips", "Shoulder")}
+    out = {}
+    for v in mesh.data.vertices:
+        if not v.groups:
+            continue
+        n = gi[max(v.groups, key=lambda g: g.weight).group]
+        for k, ks in keys.items():
+            if any(x in n for x in ks) and not (k == "torso" and "Leg" in n):
+                out.setdefault(k, []).append(v.index)
+                break
+    return {k: np.array(v) for k, v in out.items()}
+
+
+def _skin_z(mesh):
+    import numpy as np
+    bpy.context.view_layer.update()
+    ev = mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    co = np.empty(len(ev.data.vertices) * 3)
+    ev.data.vertices.foreach_get("co", co)
+    co = co.reshape(-1, 3)
+    M = np.array(mesh.matrix_world)
+    return (M[:3, :3] @ co.T).T + M[:3, 3]
+
+
+def _key(pb, loc=False):
+    pb.keyframe_insert("rotation_quaternion")
+    if loc:
+        pb.keyframe_insert("location")
+
+
+def _set_world(arm, pb, Mw):
+    pb.matrix = arm.matrix_world.inverted() @ Mw
+    bpy.context.view_layer.update()
+
+
+def _world(arm, pb):
+    return arm.matrix_world @ pb.matrix
+
+
+def _rotate_about(arm, pb, axis, angle):
+    Mw = _world(arm, pb)
+    t = Mw.translation.copy()
+    R = Matrix.Rotation(angle, 4, axis.normalized())
+    _set_world(arm, pb, Matrix.Translation(t) @ R @ Matrix.Translation(-t) @ Mw)
+
+
+def _two_bone(arm, side, target, limb="arm"):
+    """Moves the wrist (or ankle) of `side` to `target` (world): shoulder (hip) fixed, elbow (knee) kept in its bend
+    plane, hand (foot) keeps its world orientation."""
+    S_ = "Left" if side == "L" else "Right"
+    names = ("Arm", "ForeArm", "Hand") if limb == "arm" else ("UpLeg", "Leg", "Foot")
+    ua, fa, hd = (arm.pose.bones[P + S_ + n] for n in names)
+    hand_rot = _world(arm, hd).to_3x3().copy()
+    Sh, El, Wr = _world(arm, ua).translation, _world(arm, fa).translation, _world(arm, hd).translation
+    l1, l2 = (El - Sh).length, (Wr - El).length
+    to_t = target - Sh
+    d = min(max(to_t.length, abs(l1 - l2) + 1e-4), (l1 + l2) * 0.9995)
+    dirT = to_t.normalized()
+    n = (El - Sh).cross(Wr - Sh)
+    if n.length < 1e-6:
+        n = Vector((1, 0, 0))
+    n.normalize()
+    cosA = max(-1.0, min(1.0, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))
+    A = math.acos(cosA)
+    # of the two elbow solutions in the bend plane, keep the one nearest the current elbow (never flips)
+    cands = [Sh + (Matrix.Rotation(sg * A, 3, n) @ dirT) * l1 for sg in (1.0, -1.0)]
+    E_new = min(cands, key=lambda c: (c - El).length)
+    W_new = Sh + dirT * d
+    r1 = (El - Sh).rotation_difference(E_new - Sh).to_matrix().to_4x4()
+    _set_world(arm, ua, Matrix.Translation(Sh) @ r1 @ Matrix.Translation(-Sh) @ _world(arm, ua))
+    E2, W2 = _world(arm, fa).translation, _world(arm, hd).translation
+    r2 = (W2 - E2).rotation_difference(W_new - E2).to_matrix().to_4x4()
+    _set_world(arm, fa, Matrix.Translation(E2) @ r2 @ Matrix.Translation(-E2) @ _world(arm, fa))
+    Wt = _world(arm, hd).translation
+    _set_world(arm, hd, Matrix.Translation(Wt) @ hand_rot.to_4x4())
+    for pb in (ua, fa, hd):
+        _key(pb)
+
+
+def settle_contacts(arm, mesh, scene, names):
+    """See CONTACTS. Prints, per clip, the worst remaining penetration and hand drift."""
+    import numpy as np
+    R = _regions(mesh)
+    hips = next(pb for pb in arm.pose.bones if pb.parent is None)
+    neck, head = arm.pose.bones[P + "Neck"], arm.pose.bones[P + "Head"]
+    for n in names:
+        mode = CONTACTS.get(n)
+        if not mode:
+            continue
+        mode = mode[0]
+        act = bpy.data.actions[n]
+        arm.animation_data.action = act
+        a, b = [int(x) for x in act.frame_range]
+        lock = {"L": None, "R": None}
+        worst = 0.0
+        for f in range(a, b + 1):
+            scene.frame_set(f)
+            z = _skin_z(mesh)
+            # whole-body vertical: knees / belly on the floor
+            ref = {"kneel": ("shin", "thigh"), "prone": ("torso", "thigh")}.get(mode)
+            if ref:
+                low = min(z[R[k], 2].min() for k in ref)
+                Mw = _world(arm, hips)
+                _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ Mw)
+                _key(hips, loc=True)
+                z = _skin_z(mesh)
+            # kneeling: the tops of the feet rest on the floor instead of sinking into it
+            if mode == "kneel":
+                for s in ("L", "R"):
+                    fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
+                    fz = z[R["foot" + s], 2].min()
+                    ax = _world(arm, fb).to_3x3().col[0]
+                    step = math.radians(2.0)
+                    sign, tries = None, 0
+                    while fz < -0.002 and tries < 20:
+                        tries += 1
+                        if sign is None:
+                            _rotate_about(arm, fb, ax, step)
+                            up = _skin_z(mesh)[R["foot" + s], 2].min()
+                            _rotate_about(arm, fb, ax, -step)
+                            sign = 1.0 if up > fz else -1.0
+                        _rotate_about(arm, fb, ax, sign * step)
+                        fz = _skin_z(mesh)[R["foot" + s], 2].min()
+                    _key(fb)
+                    worst = max(worst, max(0.0, -fz))
+                z = _skin_z(mesh)
+            # planted hands: pinned to one spot, palm on the floor
+            if mode in ("kneel", "hands"):
+                for s in ("L", "R"):
+                    hz = z[R["hand" + s], 2].min()
+                    hd = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Hand"]
+                    # planted weight: full on the floor, fading out as the hand lifts (no pop when a hand leaves or lands)
+                    wgt = max(0.0, min(1.0, (0.09 - hz) / 0.05))
+                    if wgt <= 0.0:
+                        lock[s] = None
+                        continue
+                    W = _world(arm, hd).translation.copy()
+                    if lock[s] is None and hz < 0.015:                # pinned from the moment it really touches down
+                        lock[s] = W.copy()
+                    for _ in range(3):
+                        anchor = lock[s] if lock[s] is not None else W
+                        full = Vector((anchor.x, anchor.y, W.z - hz))
+                        tgt = W.lerp(full, wgt)
+                        if (tgt - W).length < 0.0015:
+                            break
+                        _two_bone(arm, s, tgt)
+                        z = _skin_z(mesh)
+                        hz = z[R["hand" + s], 2].min()
+                        W = _world(arm, hd).translation.copy()
+                    if wgt >= 1.0:
+                        worst = max(worst, abs(hz))
+            # bridge: shoulders, arms and back rest on the floor (never in it); the planted feet follow down onto the floor
+            if mode == "bridge":
+                low = z[R["torso"], 2].min()
+                if low < 0:
+                    _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ _world(arm, hips))
+                    _key(hips, loc=True)
+                    z = _skin_z(mesh)
+                for s in ("L", "R"):
+                    fz = z[R["foot" + s], 2].min()
+                    if abs(fz) > 0.002:
+                        fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
+                        A = _world(arm, fb).translation.copy()
+                        _two_bone(arm, s, A - Vector((0, 0, fz)), limb="leg")
+                z = _skin_z(mesh)
+            # the back of the head never sinks into the floor
+            if mode in ("back", "prone", "bridge"):
+                L_ = _world(arm, arm.pose.bones[P + "LeftShoulder"]).translation
+                Rr = _world(arm, arm.pose.bones[P + "RightShoulder"]).translation
+                axis = L_ - Rr
+                hz = z[R["head"], 2].min()
+                step = math.radians(2.5)
+                sign = None
+                tries = 0
+                while hz < 0.003 and tries < 14:
+                    tries += 1
+                    if sign is None:                               # find which way lifts the head
+                        _rotate_about(arm, neck, axis, step)
+                        up = _skin_z(mesh)[R["head"], 2].min()
+                        _rotate_about(arm, neck, axis, -step)
+                        sign = 1.0 if up > hz else -1.0
+                    _rotate_about(arm, neck, axis, sign * step * 0.4)
+                    _rotate_about(arm, head, axis, sign * step * 0.6)
+                    hz = _skin_z(mesh)[R["head"], 2].min()
+                _key(neck)
+                _key(head)
+                worst = max(worst, max(0.0, -hz))
+                if mode == "prone":
+                    z = _skin_z(mesh)
+            if mode == "prone":
+                low = min(z[R[k], 2].min() for k in ("torso", "thigh"))
+                if low < 0:
+                    _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ _world(arm, hips))
+                    _key(hips, loc=True)
+        print(f"  contacts {n}: {mode}, worst remaining {worst * 100:.1f} cm", flush=True)
+    arm.animation_data.action = None

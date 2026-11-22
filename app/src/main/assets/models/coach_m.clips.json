@@ -130,7 +130,7 @@
     },
     {
       "name": "footwork_pivot",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -140,7 +140,7 @@
     },
     {
       "name": "high_knee_march",
-      "durationSeconds": 2.0,
+      "durationSeconds": 3.967,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -190,7 +190,7 @@
     },
     {
       "name": "mountain_climber_slow",
-      "durationSeconds": 3.067,
+      "durationSeconds": 3.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -255,7 +255,7 @@
     },
     {
       "name": "warmup_march",
-      "durationSeconds": 2.567,
+      "durationSeconds": 3.567,
       "reviewStatus": "draft_pending_coach_review"
     }
   ]

@@ -121,6 +121,16 @@ class Rig:
             sc = v.dot(d)
             if best is None or sc > best:
                 best, bp = sc, float(i)
+        # refine inside the winning 2-degree cell (golden-section), so the foot turns smoothly instead of in 2-degree steps
+        lo_, hi_ = bp - 2.0, bp + 2.0
+        f_ = lambda p: (self.foot_q(s, yaw, p) @ self.fv[s]).normalized().dot(d)
+        for _ in range(24):
+            m1, m2 = lo_ + (hi_ - lo_) * 0.382, lo_ + (hi_ - lo_) * 0.618
+            if f_(m1) < f_(m2):
+                lo_ = m1
+            else:
+                hi_ = m2
+        bp = (lo_ + hi_) / 2
         return (A + self.foot_q(s, yaw, bp) @ self.fv[s], yaw, bp)
 
     def hip_joint(self, sp, s):
@@ -451,7 +461,7 @@ def idle(r, st):
 
 
 # =============================================================================================== march
-def march(r, st, step_s=0.62, lift_m=0.30, fwd_m=0.20, swing=1.0):
+def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9):
     Ts = step_s * st["tempo"]
     steps = 4
     T = Ts * steps
@@ -469,9 +479,9 @@ def march(r, st, step_s=0.62, lift_m=0.30, fwd_m=0.20, swing=1.0):
             swinging = (step % 2 == 0) == (s == "L")
             g = 0.0
             if swinging:
-                a = smooth((u - 0.10) / 0.80)
+                a = smoother((u - 0.10) / 0.80)
                 g = math.sin(math.pi * a)
-            f = r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0, pitch=34.0 * g ** 0.8)
+            f = r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0, pitch=34.0 * g)
             ball = f[0] + V(0, -fwd * g * g * var, lift * g * var)
             # the heel leaves first and the toes touch first: the pitch above pivots on the ball while it is still down
             feet[s] = (ball, f[1], f[2])
@@ -484,9 +494,13 @@ def march(r, st, step_s=0.62, lift_m=0.30, fwd_m=0.20, swing=1.0):
         sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
         # pelvis height from the standing leg only
         stand = "R" if step % 2 == 0 else "L"
-        base = r.fit_z(sp, 0.996, sides=(stand,))
-        # blend the height across the changeover so the pelvis never steps
-        sp["pos"].z = base + bob - 0.005 * r.k
+        other = "L" if stand == "R" else "R"
+        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
+        z_other = r.fit_z(sp, 0.996, sides=(other,))
+        # blend the height across the changeover (half each at the switch, the standing leg at mid-swing), so the pelvis
+        # never steps when the standing leg changes
+        ws = 0.5 + 0.5 * math.sin(math.pi * u)
+        sp["pos"].z = min(z_stand, lerp(z_other, z_stand, ws)) + bob - 0.005 * r.k
         lagt = t - 0.045
         arm_w = -math.sin(math.pi * lagt / Ts)                  # +1 at mid right-leg swing ... left arm forward then
 
@@ -1113,7 +1127,7 @@ def step_jack(r, st):
             moving = s == side
             ax = sg * (w0 + (reach_out * e if moving else 0.0))
             f = r.foot(s, ax, r.ankle0[s].y, sg * 8.0, pitch=(12.0 * lift if moving else 0.0))
-            feet[s] = (f[0] + V(0, 0, 0.035 * k * lift if moving else 0.0), f[1], f[2])
+            feet[s] = (f[0] + V(0, 0, 0.065 * k * lift if moving else 0.0), f[1], f[2])
         b = breath(t, T, 0.0)
         cx = 0.5 * (feet["L"][0].x + feet["R"][0].x)
         sp = torso_spec(V(cx * 0.8, r.P0.y + 0.004 * k, 0), pitch=1.0, spine=0.5, chest=-1.5 - 2.0 * e, head_pitch=0.5, br=b * 0.5)
@@ -1348,7 +1362,7 @@ def side_lunge(r, st):
 
 
 def high_knee_march(r, st):
-    return march(r, st, step_s=0.48, lift_m=0.40, fwd_m=0.24, swing=1.25)
+    return march(r, st, step_s=0.95, lift_m=0.46, fwd_m=0.24, swing=1.25)   # thigh up to about level
 
 
 def arm_circles(r, st):
@@ -1482,7 +1496,7 @@ def bird_dog(r, st):
             A_ext = Hj + V(0, 0.99 * r.leg, 0.0)
             A0 = r.ankle(leg, feet[leg])
             A = A0.lerp(A_ext, e) + V(0, 0, 0.10 * k * math.sin(math.pi * e) * (1 - e))
-            feet[leg] = r.foot_toward(leg, A, V(0, 0.4, -1.0).lerp(V(0, 0.2, -1.0), e))
+            feet[leg] = r.foot_toward(leg, A, V(0, 1.0, -0.25).lerp(V(0, 0.2, -1.0), smooth(e)))
             sp["feet"] = feet
             sp["kpole"] = {leg: V(0, -0.2, -1).lerp(V(0, 0, -1), e), arm_side if False else ("L" if leg == "R" else "R"): V(0, -0.3, -1)}
             sp["kpole"] = {s: (V(0, 0.2, -1) if s == leg else V(0, -0.3, -1)) for s, _ in SIDES}
@@ -1544,7 +1558,7 @@ def knee_pushup(r, st):
         return (lo + hi) / 2
     dx = 0.105 * k
     th_top = solve(wrist_h + math.sqrt((0.9965 * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
-    th_bot = solve(wrist_h + 0.175 * k)
+    th_bot = solve(wrist_h + 0.215 * k)                           # chest a fist above the floor, elbows clear of it
     _, top = r.torso(_kneeling_line(r, st, th_top, knee_y))
     wrist = {s: V(top["S_" + s].x + sg * dx, top["S_" + s].y + 0.03 * k, wrist_h) for s, sg in SIDES}
 
@@ -1578,19 +1592,28 @@ def mountain_climber_slow(r, st):
             t = T1 * i / (n - 1)
             e = _phases(t, segs)
             sp = _pushup_pose(r, st, geo, 0.0, t)
-            phi = phi_top + 6.0 * e                              # hips rise a touch as the knee comes in
-            feet, pos = body(phi)
-            sp["pos"] = pos + V(0, 0, 0.03 * k * e)
-            sp["pel"] = Q(0, phi, 0)
+            # the body pivots about the shoulders (hands stay planted) and the hips rise a little while the knee passes
+            # under them, so the knee never brushes the floor
+            dl = 15.0 * max(0.0, math.sin(math.pi * min(1.0, e))) ** 0.6
+            _, pts0 = r.torso(sp)
+            Sm = (pts0["S_L"] + pts0["S_R"]) / 2
+            Rd = Rx(dl)
+            for key_ in ("pel", "spi", "che", "nek", "hed"):
+                sp[key_] = Rd @ sp[key_]
+            sp["pos"] = Sm + Rd @ (sp["pos"] - Sm)
+            feet, _ = body(phi_top)
             ball, yaw, pitch = feet[side]
             Hj = sp["pos"] + sp["pel"] @ r.hj[side]
-            K_in = Hj + V(0, -0.30 * k, -0.20 * k)
-            A_in = K_in + (V(0, 0.9, -0.45).normalized()) * r.l2[side]
+            K_in = Hj + V(0, -0.36 * k, -0.05 * k)           # knee drives up toward the chest
+            A_in = K_in + (V(0, 0.9, -0.30).normalized()) * r.l2[side]      # the foot hovers under the hips, off the floor
             A0 = r.ankle(side, feet[side])
-            A = A0.lerp(A_in, e) + V(0, 0, 0.05 * k * math.sin(math.pi * e))
-            feet[side] = r.foot_toward(side, A, V(0, -0.2, -1.0).lerp(V(0, -0.6, -1.0), e)) if e > 0.02 else feet[side]
+            # the foot lifts first, travels under the body, and lands back on the ball
+            A = A0.lerp(A_in, smooth(e)) + V(0, 0, 0.12 * k * math.sin(math.pi * min(1.0, e * 1.15)))
+            d0 = (r.foot_q(side, yaw, pitch) @ r.fv[side]).normalized()
+            feet[side] = r.foot_toward(side, A, d0.lerp(V(0, 0.5, -1.0).normalized(), smooth(e)), yaw=yaw)
             sp["feet"] = feet
-            sp["kpole"] = {s: V(0, -1, -0.2) if s == side else V(0, -0.2, -1) for s, _ in SIDES}
+            sg_ = 1.0 if side == "L" else -1.0                    # the knee travels a little outside the elbow line
+            sp["kpole"] = {s: V(sg_ * 0.12 * smooth(e), -1, 0.05) if s == side else V(0, -0.2, -1) for s, _ in SIDES}
             out.append(sp)
     return out
 
@@ -1729,7 +1752,7 @@ def footwork_pivot(r, st):
         t = T * i / (n - 1)
         a = 40.0 * _phases(t, [(0.4, 0, 0), (0.6, 0, 1), (0.6, 1, 1), (0.6, 1, 0), (1.0, 0, 0)])
         lift = math.sin(math.pi * smooth((t - 0.4) / 0.6)) if 0.4 < t < 1.0 else (math.sin(math.pi * smooth((t - 1.6) / 0.6)) if 1.6 < t < 2.2 else 0.0)
-        sp = _stance_pose(r, st, t, bob_amp=0.0, loop=T, rear_step=lift * 0.6)
+        sp = _stance_pose(r, st, t, bob_amp=0.0, loop=T, rear_step=lift * 1.6)
         W = Matrix.Translation(P) @ Matrix.Rotation(math.radians(a), 4, "Z") @ Matrix.Translation(-P)
         sp["world"] = W
         # feet are solved in the unturned frame; the lead foot stays planted because the turn is about its ball

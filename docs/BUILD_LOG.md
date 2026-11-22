@@ -798,3 +798,24 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - Today plate plays each session move in turn as a flipbook (`<id>_frames.webp`: the 7 study exposures side by side, 360x450 each; `MotionFlipbook`, still study with reduced motion); the filmstrip marks the move playing. Assets +2.3 MB.
 - Workout notification expires by itself (`setTimeoutAfter`) and is cleared when a new app process starts, so a workout closed by Android never leaves a stale notification; the session itself is still restored from disk.
 - Phone setup: optional "Check the camera picture" — live camera with body trace, frame turns yellow when the whole body is steadily tracked (TrackingStateEvaluator FULL_BODY); camera permission asked only when opened.
+
+## 2026-11-22 (evening) — Animation glitch pass (both coaches, all 51 clips)
+Checked every clip on the exported GLBs: loop seams, joins of paired clips, joint accelerations (pops), foot slide,
+skin-vs-floor per body region, and QC renders (side + front, 6 frames per clip). Found and fixed:
+- **Floor contact on the real coach mesh** (new `rigged_coach.settle_contacts`, after the transfer): kneeling clips
+  (cat-cow, bird dog, knee push-up) had knees/thighs up to 6.5 cm in the floor and hands sinking or hovering 3–5 cm;
+  lying clips had the head 4–7 cm in the floor (glute bridge, dead bug) and the chest 3 cm in (superman); the plank's
+  hands were 2.4 cm in. Now: knees on the floor, tops of the feet on the floor, planted hands pinned by two-bone IK
+  (one spot, palm on the floor, fade in/out as a hand lifts), head tucked just clear, back on the floor in the bridge
+  with the feet re-planted by leg IK. Remaining error ≤ 0.5 cm except the mountain climber's hands (≤ 2.5 cm at the tuck).
+- **Bird dog** popped up 7 cm at every side change / loop (the moving foot started from a different direction than
+  the base pose); now continuous (seam 12.5 → 1.7 cm).
+- **Mountain climber**: the knee went through the floor and the hands lifted 16 cm; a snap at the start of each drive.
+  Now the body pivots about the shoulders (hips rise as the knee passes under), knee drives up toward the chest, foot
+  hovers, hands stay planted.
+- **Marches**: a foot-pitch kick at lift-off and a pelvis step at each leg change (no blending) caused pops (114 m/s²);
+  the warm-up and high-knee marches were nearly identical and too quick. Fixed the lift curve, blended pelvis height,
+  warm-up gentle (lift 22 cm), high-knee thigh to about level, both slower.
+- **Step jack / pivot**: the stepping foot dragged along the floor; now lifts 6.5 / ~5 cm.
+- `foot_toward` refined past its 2° grid (feet no longer turn in visible steps).
+- Re-rendered all motion studies from the new clips.
