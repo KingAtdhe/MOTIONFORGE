@@ -11,3 +11,5 @@ squat_f_side|bodyweight_squat|3
 march_f_front|bodyweight_squat|0
 march_f_front|reverse_lunge|0
 march_f_front|push_up|0
+lunge_m_front|reverse_lunge|2
+jab_m_q45|boxing_jab|4

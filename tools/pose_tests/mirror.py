@@ -37,7 +37,9 @@ class Cycle:
     def observe(s,L,w,h): pass
     def cues(s): return []
     def start(s): pass
+    margin=10; band=8
     def update(s,t,w,h,L,tracking):
+        s.t=t
         raw=s.angle(L,w,h) if (tracking and L is not None) else None
         if raw is None: s.phase="U"; s.w=[]; return None
         s.w.append(raw); s.w=s.w[-s.win:]; a=sum(s.w)/len(s.w)
@@ -45,7 +47,7 @@ class Cycle:
         if s.phase=="U":
             if a>=s.top: s.phase="T"
         elif s.phase=="T":
-            if a<s.top-10: s.phase="D"; s.t0=t; s.minA=a; s.start()
+            if a<s.top-s.margin: s.phase="D"; s.t0=t; s.minA=a; s.start()
         elif s.phase=="D":
             if a<=s.bot: s.phase="B"; s.tb=t
             elif a>=s.top:
@@ -55,7 +57,7 @@ class Cycle:
             if a>=s.top:
                 if t-s.t0>=s.minrep: s.count+=1; s.events.append((t,"rep%d"%s.count,s.cues()))
                 s.phase="T"
-        if s.phase=="B" and a<=s.bot+8: s.observe(L,w,h)
+        if s.phase=="B" and a<=s.bot+s.band: s.observe(L,w,h)
         return a
 class Squat(Cycle):
     def __init__(s): super().__init__(160,115,135)
@@ -113,13 +115,20 @@ class PushUp(Cycle):
             if s.pike>=0.6*s.sb: return ["PIKE"]
         return []
 class Lunge(Cycle):
-    def __init__(s,top=155,bottom=115,shallow=138,upright=50,lean=30): super().__init__(top,bottom,shallow); s.up,s.lean=upright,lean
+    def __init__(s,top=0.92,bottom=0.80,shallow=0.88,upright=50,lean=30,base_ms=5000): super().__init__(top,bottom,shallow); s.up,s.lean,s.bms=upright,lean,base_ms; s.st=[]; s.margin=0.03; s.band=0.03
     def start(s): s.sb=s.lb=0
     def angle(s,L,w,h):
-        v=[x for x in (ang(L,LH,LK,LA,w,h),ang(L,RH,RK,RA,w,h)) if x is not None]
         tl=torso_tilt(L,w,h)
-        if not v or tl is None or tl>s.up: return None
-        return min(v)
+        if tl is None or tl>s.up or not vis(L,LS,RS,LH,RH): return None
+        sm=mid(L,LS,RS,w,h); hp=mid(L,LH,RH,w,h); torso=math.hypot(sm[0]-hp[0],sm[1]-hp[1])
+        if torso<5: return None
+        an=[L[i][1]*h for i in (LA,RA) if L[i][3]>=0.6]
+        if not an: return None
+        r=(max(an)-hp[1])/torso
+        if s.phase in ("U","T"):
+            s.st.append((s.t,r)); s.st=[x for x in s.st if s.t-x[0]<=s.bms]
+        if not s.st: return None
+        b=max(x[1] for x in s.st); return r/b
     def observe(s,L,w,h):
         fr=frontal(L,w,h)
         if fr is None or fr>0.45: return
@@ -132,7 +141,7 @@ def run(path, counter, verbose=False):
     for t,w,h,L in load(path):
         st=tr.update(L); states[st]=states.get(st,0)+1
         a=counter.update(t,w,h,L,st=="TRACKING")
-        trace.append("%s%s"%("--" if a is None else "%3.0f"%a, "" if st=="TRACKING" else st[0].lower()))
+        trace.append("%s%s"%("--" if a is None else ("%3.0f"%a if a>2 else "%.2f"%a), "" if st=="TRACKING" else st[0].lower()))
     if verbose:
         for i in range(0,len(trace),15): print("   ",i//15," ".join(trace[i:i+15]))
     return counter.count, counter.events, states

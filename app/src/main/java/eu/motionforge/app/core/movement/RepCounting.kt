@@ -26,7 +26,7 @@ sealed interface RepEvent {
     data object ShallowRep : RepEvent
 }
 
-/** [angle] is the movement's measured joint angle (knee for squats and lunges, elbow for push-ups). */
+/** [angle] is the movement's measured signal: knee angle (squat), elbow angle (push-up), hip height vs standing (lunge). */
 data class RepUpdate(val count: Int, val phase: RepPhase, val angle: Double?, val event: RepEvent? = null)
 
 interface RepCounter {
@@ -81,9 +81,16 @@ abstract class CycleRepCounter(
     protected val minVisibility: Float = 0.6f,
     protected val minRuleFrames: Int = 3,
     protected val ruleFraction: Double = 0.6,
+    /** How far below [topAngle] the signal must go before a descent starts (same units as the signal). */
+    private val descentMargin: Double = 10.0,
+    /** Frames within this much of [bottomAngle] are "at the bottom" for the form rules. */
+    private val bottomBand: Double = 8.0,
 ) : RepCounter {
     private var count = 0
     private var phase = RepPhase.UNKNOWN
+
+    /** Where the current cycle is (subclasses that normalise their signal need it). */
+    protected val currentPhase: RepPhase get() = phase
     private var cycleStartMs = 0L
     private var minAngle = 180.0
     private val window = ArrayDeque<Double>()
@@ -126,7 +133,7 @@ abstract class CycleRepCounter(
         if (phase == RepPhase.DESCENDING || phase == RepPhase.BOTTOM) minAngle = minOf(minAngle, a)
         when (phase) {
             RepPhase.UNKNOWN -> if (a >= topAngle) phase = RepPhase.TOP
-            RepPhase.TOP -> if (a < topAngle - DESCENT_MARGIN) {
+            RepPhase.TOP -> if (a < topAngle - descentMargin) {
                 phase = RepPhase.DESCENDING
                 cycleStartMs = t
                 minAngle = a
@@ -147,7 +154,7 @@ abstract class CycleRepCounter(
                 phase = RepPhase.TOP
             }
         }
-        if (phase == RepPhase.BOTTOM && a <= bottomAngle + BOTTOM_BAND) observeBottom(frame)
+        if (phase == RepPhase.BOTTOM && a <= bottomAngle + bottomBand) observeBottom(frame)
         return RepUpdate(count, phase, a, event)
     }
 
@@ -180,10 +187,6 @@ abstract class CycleRepCounter(
         return px(this[BodyLandmark.LEFT_SHOULDER], this[BodyLandmark.RIGHT_SHOULDER]) / torso
     }
 
-    protected companion object {
-        const val DESCENT_MARGIN = 10.0
-        const val BOTTOM_BAND = 8.0
-    }
 }
 
 enum class PushUpIssue(override val message: String, override val spoken: String) : FormCue {
@@ -269,31 +272,54 @@ enum class LungeIssue(override val message: String, override val spoken: String)
 }
 
 /**
- * Lunge counter (reverse lunge, split squat): the more-bent knee (hip–knee–ankle) cycles from straight
- * ([topAngle]) to bent ([bottomAngle]); each lunge counts once, whichever leg works. Measured only while the
- * torso is fairly upright, so bending over is never counted as a lunge.
+ * Lunge counter (reverse lunge, split squat). The signal is how high the hips are: the vertical distance from the
+ * hips down to the lower ankle, over the torso length (so distance to the camera does not matter), divided by the
+ * person's own standing value (the highest seen in the last [baselineMs] outside a rep). A lunge is a cycle from
+ * standing tall (above [topRatio]) down to [bottomRatio] of standing height and back; each lunge counts once,
+ * whichever leg works. Unlike the knee angle, the hip drop reads the same from the front, the side and the
+ * diagonal (a knee bending toward the camera looks straight in a 2D image). Rendered test videos: standing 1.0,
+ * lunges reach 0.51–0.70, marching on the spot never goes under 0.93.
+ * Measured only while the torso is fairly upright, so bending over is never counted as a lunge.
  * Form rule, side-on only: the torso leans more than [maxLean] from vertical in most bottom frames.
  */
 class LungeRepCounter(
-    topAngle: Double = 155.0,
-    bottomAngle: Double = 115.0,
-    shallowAngle: Double = 138.0,
+    topRatio: Double = 0.92,
+    bottomRatio: Double = 0.80,
+    shallowRatio: Double = 0.88,
+    private val baselineMs: Long = 5_000,
     private val maxUprightTilt: Double = 50.0,
     private val maxLean: Double = 30.0,
-) : CycleRepCounter(topAngle, bottomAngle, shallowAngle) {
+) : CycleRepCounter(topRatio, bottomRatio, shallowRatio, descentMargin = 0.03, bottomBand = 0.03) {
     private var sideBottom = 0
     private var lean = 0
+    private val standing = ArrayDeque<Pair<Long, Double>>()
 
     override fun startCycle() { sideBottom = 0; lean = 0 }
 
+    override fun reset() {
+        super.reset()
+        standing.clear()
+    }
+
     override fun angle(f: PoseFrame): Double? {
-        val knees = listOfNotNull(
-            f.angleAt(BodyLandmark.LEFT_HIP, BodyLandmark.LEFT_KNEE, BodyLandmark.LEFT_ANKLE),
-            f.angleAt(BodyLandmark.RIGHT_HIP, BodyLandmark.RIGHT_KNEE, BodyLandmark.RIGHT_ANKLE),
-        )
         val tilt = f.torsoFromVertical() ?: return null
-        if (knees.isEmpty() || tilt > maxUprightTilt) return null
-        return knees.min()
+        if (tilt > maxUprightTilt) return null
+        if (!f.visible(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)) return null
+        val s = f.mid(BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER)
+        val h = f.mid(BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP)
+        val torso = hypot(s.first - h.first, s.second - h.second)
+        if (torso < 5.0) return null
+        val ankle = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE).filter { f.visible(it) }
+            .maxOfOrNull { f[it].y * f.imageHeight.toDouble() } ?: return null
+        val ratio = (ankle - h.second) / torso
+        val t = f.timestampMs
+        // the standing height is learnt only outside a rep, so a long hold at the bottom never lowers it
+        if (currentPhase == RepPhase.UNKNOWN || currentPhase == RepPhase.TOP) {
+            standing.addLast(t to ratio)
+            while (standing.isNotEmpty() && t - standing.first().first > baselineMs) standing.removeFirst()
+        }
+        val base = standing.maxOfOrNull { it.second } ?: return null
+        return if (base <= 0.0) null else ratio / base
     }
 
     override fun observeBottom(f: PoseFrame) {
