@@ -166,7 +166,7 @@ private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
                             .then(if (d == today && !done) Modifier.border(2.dp, MfColors.Cobalt, CircleShape) else Modifier),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (done) Text("✓", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleMedium)
+                        if (done) Text("✓", color = eu.motionforge.app.core.design.MfColors.OnGold, style = MaterialTheme.typography.titleMedium)
                     }
                     Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Ink else MaterialTheme.colorScheme.onSurfaceVariant)
                 }

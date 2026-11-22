@@ -97,7 +97,7 @@ fun HomeScreen(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text("Ready to move?", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
+            Text("Ready to move?", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
         }
 
         if (unfinished != null) UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished)
@@ -170,27 +170,38 @@ private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
             role = Role.Button
             contentDescription = "Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves"
         },
-        shape = RoundedCornerShape(28.dp),
-        color = accent,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
     ) {
-        Box(Modifier.fillMaxSize()) {
-            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().width(210.dp).padding(top = 14.dp))
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        listOf(accent.copy(alpha = 0.26f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(820f, 120f),
+                        radius = 900f,
+                    ),
+                ),
+        ) {
+            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().width(210.dp).padding(top = 18.dp))
             Column(
-                Modifier.align(Alignment.BottomStart).fillMaxWidth(0.62f).padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                Modifier.align(Alignment.BottomStart).fillMaxWidth(0.6f).padding(22.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("Today's session", style = MaterialTheme.typography.titleSmall, color = Color.White.copy(alpha = 0.82f))
-                Text(plan.title, style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                Eyebrow("Today's session", color = accent)
+                Text(plan.title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text(
-                    "$minutes min, ${moves.size} moves",
+                    "$minutes min · ${moves.size} moves",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.82f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(10.dp))
-                Surface(shape = RoundedCornerShape(50), color = Color.White) {
-                    Text("Start", Modifier.padding(horizontal = 26.dp, vertical = 11.dp), style = MaterialTheme.typography.titleMedium, color = accent)
+                Spacer(Modifier.height(12.dp))
+                Surface(shape = RoundedCornerShape(14.dp), color = accent) {
+                    Text("Start session", Modifier.padding(horizontal = 20.dp, vertical = 12.dp), style = MaterialTheme.typography.titleSmall, color = MfColors.OnGold)
                 }
             }
         }
@@ -201,7 +212,12 @@ private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
 @Composable
 private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
     val today = remember { LocalDate.now().dayOfWeek }
-    Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("This week", style = MaterialTheme.typography.titleSmall)
@@ -225,10 +241,10 @@ private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
                 ) {
                     Box(
                         Modifier
-                            .size(22.dp)
+                            .size(20.dp)
                             .clip(CircleShape)
-                            .background(if (done) MfColors.Cobalt else Color.Transparent)
-                            .then(if (!done) Modifier.border(2.dp, if (d == today) MfColors.Ink else MfColors.Rule, CircleShape) else Modifier),
+                            .background(if (done) MfColors.Gold else Color.Transparent)
+                            .then(if (!done) Modifier.border(1.5.dp, if (d == today) MfColors.Ink else MfColors.Rule, CircleShape) else Modifier),
                     )
                     Text(name.take(1), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

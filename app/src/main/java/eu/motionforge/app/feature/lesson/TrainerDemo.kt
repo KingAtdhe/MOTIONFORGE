@@ -164,7 +164,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                 FilledIconButton(
                     onClick = { playback.playing = !playback.playing },
                     modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = androidx.compose.ui.graphics.Color.White),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent, contentColor = eu.motionforge.app.core.design.MfColors.OnGold),
                 ) {
                     if (playback.playing) {
                         Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Pause" })

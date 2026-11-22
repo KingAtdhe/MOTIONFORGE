@@ -54,6 +54,8 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        // screenshot tests (Robolectric native graphics) render the real Compose screens with the app's resources
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -139,4 +141,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

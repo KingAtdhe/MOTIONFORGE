@@ -51,7 +51,7 @@ fun OnboardingScreen(viewModel: OnboardingViewModel) {
 }
 
 @Composable
-private fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent: (OnboardingEvent) -> Unit) {
+internal fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent: (OnboardingEvent) -> Unit) {
     // System back walks the flow instead of leaving the app mid-onboarding.
     BackHandler(enabled = state.step != OnboardingStep.WELCOME) { onEvent(OnboardingEvent.Back) }
 

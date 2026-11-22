@@ -24,11 +24,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen() // launch screen: MOTIONFORGE mark on the night background
         super.onCreate(savedInstanceState)
-        // light app chrome: dark status/navigation icons whatever the phone's dark-mode setting
-        val ground = android.graphics.Color.rgb(0xEC, 0xEF, 0xF3)
+        // dark app chrome: light status/navigation icons whatever the phone's dark-mode setting
+        val ground = android.graphics.Color.rgb(0x0B, 0x0B, 0x0D)
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(ground, ground),
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(ground),
         )
         setContent {
             MotionForgeTheme {

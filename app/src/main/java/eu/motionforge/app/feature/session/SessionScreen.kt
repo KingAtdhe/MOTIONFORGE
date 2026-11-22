@@ -120,8 +120,8 @@ fun SessionScreen(
                 ctl?.isAppearanceLightStatusBars = false
                 ctl?.isAppearanceLightNavigationBars = false
                 onDispose {
-                    ctl?.isAppearanceLightStatusBars = true
-                    ctl?.isAppearanceLightNavigationBars = true
+                    ctl?.isAppearanceLightStatusBars = false     // the whole app is dark now
+                    ctl?.isAppearanceLightNavigationBars = false
                 }
             }
             MotionForgeTheme(night = true) {
@@ -330,13 +330,13 @@ private fun RunningStage(
             modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = if (voiceCues) "Voice coach on, tap to mute" else "Voice coach muted, tap to turn on" },
         ) { Text(if (voiceCues) "🔊 Voice coach on" else "🔇 Voice coach muted", color = if (voiceCues) accent else MfColors.OnNightMuted) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
-            RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = Color(0xFFFF6B6B))
+            RoundAction("■", "End", onClick = { viewModel.onEvent(SessionEvent.Stop) }, content = MfColors.Halt)
             RoundAction(
                 if (paused) "▶" else "❚❚",
                 if (paused) "Resume" else "Pause",
                 onClick = { viewModel.onEvent(if (paused) SessionEvent.Resume else SessionEvent.Pause) },
                 container = accent,
-                content = Color.White,
+                content = MfColors.OnGold,
                 size = 76.dp,
             )
             RoundAction("⏭", if (step is SessionStep.Rest) "Skip rest" else "Skip", onClick = { viewModel.onEvent(SessionEvent.Skip) })
@@ -463,7 +463,7 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
         border = androidx.compose.foundation.BorderStroke(1.dp, if (selected) MfColors.Ink else MaterialTheme.colorScheme.outline),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text("$n", style = MaterialTheme.typography.titleMedium, color = if (selected) Color.White else MfColors.Ink)
+            Text("$n", style = MaterialTheme.typography.titleMedium, color = if (selected) MfColors.OnGold else MfColors.Ink)
         }
     }
 }
