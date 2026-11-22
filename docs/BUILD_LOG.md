@@ -833,3 +833,42 @@ joins/accelerations. Fixed:
   hung 25 cm (f) / 34 cm (m) above the floor (now ~0 / 2.5 cm, per-coach hinge depth `kb_lean`).
 - Shoulder press, lateral raise, row and band pull-apart: no clipping found. Joins ≤ 3 mm, no acceleration spikes.
 - Re-rendered the curl, RDL and kettlebell motion studies.
+
+## 2026-11-22 (night) — Camera counting checked on rendered videos; push-ups, lunges, split squats counted
+**How it is verified (no phone needed):** `tools/pose_tests/` renders videos of the app's own coaches doing a known
+number of reps (Blender, phone-like camera ~1 m high, 62° FOV, room background, 15 fps; front / side / 3/4 / -3/4),
+runs them through the same `pose_landmarker_lite.task` the app ships (MediaPipe Python, VIDEO mode), and stores the
+landmarks as fixtures (`app/src/test/resources/pose_fixtures`). `RenderedVideoRepTest` feeds them through exactly what a
+session does — the full-body tracking gate, then the rep counter or boxing monitor — and checks the counts; correct
+coach demos must get no form corrections. `tools/pose_tests/mirror.py` is a Python mirror used for quick tuning only.
+26 checks, all passing:
+| move | videos | result |
+|---|---|---|
+| squat | f/m × front, side, 3/4 | 3/3 each |
+| sumo squat | f front | 3/3 |
+| push-up | f side, m 3/4 | 3/3 each |
+| push-up head-on | f front | 0 — legs hidden, tracking pauses, card asks for a side view (by design) |
+| knee push-up / incline | f 3/4 | 3/3 each |
+| reverse lunge | f side, m front, m 3/4 | 2/2 each |
+| split squat | m side | 3/3 |
+| jab | f front, m 3/4 | 4/4 each |
+| negatives: marching, boxing stance | as squat, lunge, push-up | 0 |
+**Bugs found and fixed by this:**
+- Side-on, the app never started tracking (far knee/ankle/arm ~0.5 visibility → "occluded" for the whole video),
+  although the card told people to stand side-on. Tracking gate now accepts the near side (`eitherSide`).
+- Squat "slow down" fired on every controlled rep: it timed only 150°→115° of the descent. Now timed to the deepest
+  point (< 0.5 s = rushed).
+- Jabs filmed from the front were never counted (2D reach toward the camera peaks ~0.8, threshold was 0.86); at an angle
+  the monitor refused to assess (bladed stance → shoulders look narrow; rear arm hidden). Now: reach > 0.60 at
+  shoulder height, return < 0.50, distances scaled by torso length, rear-hand and feet rules only when visible.
+- Lunges from the front: the knee angle can't be read (the knee bends toward the camera), so lunges count on hip
+  height (hips→lower ankle over torso length) as a dip-and-recovery from the cycle's own high point — also handles
+  split squats, which stay in the split stance between reps.
+**New:** `CountedMove` (squat, sumo squat, push-up, knee/incline push-up, reverse lunge, split squat) with counters
+`SquatRepCounter`, `PushUpRepCounter` (elbow angle, only in a push-up position; hips sag/pike cue side-on),
+`LungeRepCounter`; sessions pick the counter per step; lesson texts updated. Not verified: real people, real phones,
+lighting/clothing variety, timing on device — the renders are a strong check of the logic, not a substitute for that.
+**Also:** `ActiveSessionStoreTest` — a workout written by one process is read back by a fresh one, comes back paused;
+saved/discarded or day-old ones don't. CI caches and pre-fetches Robolectric's Android jar (download flake).
+**Male coach clip QC:** all 51 male clips now reviewed in side + front renders (36 tonight, the rest in the earlier
+passes); no floor penetration, floating, popping or broken poses found.
