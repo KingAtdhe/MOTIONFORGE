@@ -93,14 +93,22 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
         }
         TrainerDemo(exercise)
         Column(Modifier.padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(exercise.name, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.semantics { heading() })
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                eu.motionforge.app.core.design.KindMark(exercise.category.accent)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "${exercise.category.displayName}, ${exercise.level.displayName.lowercase()}, ${formatLength(exercise.durationSeconds)}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(exercise.name, style = MaterialTheme.typography.displaySmall, modifier = Modifier.semantics { heading() })
             Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FactChip(exercise.category.displayName)
-            FactChip(exercise.level.displayName)
-            FactChip(formatLength(exercise.durationSeconds))
-            FactChip("Camera: ${exercise.recommendedView.displayName.lowercase()}")
+            Text(
+                "Best seen by the camera from the ${exercise.recommendedView.displayName.lowercase()}.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         if (exercise.reviewStatus == ReviewStatus.DRAFT_PENDING_COACH_REVIEW) {
@@ -126,34 +134,33 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             )
         }
 
-        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) }, color = exercise.category.accent)
+        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) })
 
         SectionTitle("How to do it")
-        val accent = exercise.category.accent
-        exercise.instructions.forEachIndexed { i, step ->
-            Row(verticalAlignment = Alignment.Top) {
-                Box(
-                    Modifier.size(32.dp).background(accent.copy(alpha = 0.16f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("${i + 1}", style = MaterialTheme.typography.titleLarge, color = accent)
+        Column {
+            exercise.instructions.forEachIndexed { i, step ->
+                androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                Row(Modifier.padding(vertical = 14.dp), verticalAlignment = Alignment.Top) {
+                    Text("${i + 1}", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(44.dp))
+                    Text(step, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 2.dp))
                 }
-                Spacer(Modifier.width(14.dp))
-                Text(step, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
             }
+            androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         }
 
         if (exercise.commonCues.isNotEmpty()) {
             SectionTitle("Keep in mind")
-            exercise.commonCues.forEach { Text("•  $it", style = MaterialTheme.typography.bodyMedium) }
+            exercise.commonCues.forEach { Text(it, style = MaterialTheme.typography.bodyLarge) }
         }
 
         if (exercise.commonMistakes.isNotEmpty()) {
             SectionTitle("Common mistakes")
-            exercise.commonMistakes.forEach { m ->
-                Panel {
-                    Text("✕  ${m.mistake}", style = MaterialTheme.typography.titleMedium, color = MfColors.Halt)
-                    Text("✓  ${m.adjustment}", style = MaterialTheme.typography.bodyMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                exercise.commonMistakes.forEach { m ->
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(m.mistake, style = MaterialTheme.typography.titleMedium)
+                        Text(m.adjustment, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
         }
@@ -177,5 +184,5 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
 
 @Composable
 private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+    Text(text, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 10.dp).semantics { heading() })
 }

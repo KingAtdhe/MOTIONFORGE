@@ -21,37 +21,42 @@ import eu.motionforge.app.R
 import eu.motionforge.app.core.model.TrainingCategory
 
 /**
- * MOTIONFORGE identity (v2, "premium"): a warm near-black ground, graphite surfaces separated by fine hairlines, warm
- * off-white type, and one signature colour — champagne gold — used sparingly for the primary action and for fitness.
- * Fighting fundamentals use a deep copper. Colour is always paired with text, never the only signal.
- * The names below are kept from v1 so every screen picks up the new palette.
+ * MOTIONFORGE identity v3 — "training campaign".
+ *
+ * The coach renders are the brand: they sit large on a photo-studio grey backdrop, and heavy, extra-wide Archivo
+ * lettering is set over them like a sports poster. Everything around that stays quiet: true black and white, no card
+ * outlines, no glows, sentence-case labels. Colour is information only — a small chalk-blue or glove-red marker says
+ * which kind of lesson it is, and the workout timer uses the same hue. The primary action is a white pill.
+ * v1 colour names are kept so every screen picks up the palette.
  */
 object MfColors {
-    // grounds and surfaces
-    val Ground = Color(0xFF0B0B0D)          // app background
-    val Paper = Color(0xFF151518)           // cards / panels
-    val Raised = Color(0xFF1D1D21)          // pressed / nested surfaces
-    val Rule = Color(0xFF2A2A30)            // hairlines
-    val Ink = Color(0xFFF3F1EC)             // primary text (warm white)
-    val Slate = Color(0xFF9D9BA3)           // secondary text
+    val Ground = Color(0xFF000000)          // the page
+    val Paper = Color(0xFF171716)           // quiet blocks (notes, settings groups)
+    val Raised = Color(0xFF232321)          // pressed / nested
+    val Rule = Color(0xFF2E2E2C)            // dividers, only where rows need separating
+    val Ink = Color(0xFFFFFFFF)
+    val Slate = Color(0xFF8F8F8A)           // secondary text
 
-    // signature and category colours
-    val Gold = Color(0xFFD7B474)
-    val GoldDeep = Color(0xFFB08A4A)
-    val Copper = Color(0xFFD0714A)
-    val Cobalt = Gold                       // v1 name for the fitness / primary colour
-    val Glove = Copper                      // v1 name for the fighting colour
-    val OnGold = Color(0xFF16130E)
+    // the studio backdrop behind every coach render (a seamless paper sweep: lighter at the top, darker at the floor)
+    val StudioTop = Color(0xFF3A3A37)
+    val StudioFloor = Color(0xFF1C1C1B)
 
-    // status colours, readable as text on the dark ground
-    val Signal = Color(0xFF7DD3A8)
-    val Caution = Color(0xFFE6BC5C)
-    val Halt = Color(0xFFEF7468)
+    // information colours
+    val Chalk = Color(0xFF9CC4FF)           // fitness
+    val GloveRed = Color(0xFFFF5A4E)        // fighting fundamentals
+    val Cobalt = Chalk                      // v1 names
+    val Glove = GloveRed
+    val Gold = Chalk                        // v2 name (now: fitness marker)
+    val OnGold = Color(0xFF000000)          // text on a filled accent or white button
 
-    // the workout screen: a touch darker so the camera and coach carry the screen
-    val Night = Color(0xFF070708)
-    val NightRaised = Color(0xFF17171A)
-    val NightRule = Color(0xFF2A2A30)
+    val Signal = Color(0xFF6CD49B)
+    val Caution = Color(0xFFF2C14E)
+    val Halt = Color(0xFFFF6159)
+
+    // the workout screen uses the same ground
+    val Night = Ground
+    val NightRaised = Paper
+    val NightRule = Rule
     val OnNight = Ink
     val OnNightMuted = Slate
     val CautionOnNight = Caution
@@ -61,35 +66,36 @@ object MfColors {
 /** Category colour (always paired with a text label). */
 val TrainingCategory.accent: Color
     get() = when (this) {
-        TrainingCategory.FITNESS -> MfColors.Gold
-        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.Copper
+        TrainingCategory.FITNESS -> MfColors.Chalk
+        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.GloveRed
     }
 
-/** Category colour on the workout scheme (same hues; the grounds are equally dark). */
 val TrainingCategory.accentOnNight: Color
     get() = accent
 
-/** Manrope (variable font, OFL): one geometric family for everything, weight carries the hierarchy. */
+/** Archivo (variable, OFL): one family; width and weight carry the hierarchy. */
 @OptIn(ExperimentalTextApi::class)
-private fun manrope(weight: Int) = Font(
-    R.font.manrope,
+private fun archivo(weight: Int, width: Float) = Font(
+    R.font.archivo,
     weight = FontWeight(weight),
     style = FontStyle.Normal,
-    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight), FontVariation.width(width)),
 )
 
-val BodyFont = FontFamily(manrope(400), manrope(500), manrope(600), manrope(700), manrope(800))
-val DisplayFont = BodyFont
+/** Extra-wide, heavy: headlines and big numbers, the "poster" voice. */
+val DisplayFont = FontFamily(archivo(700, 125f), archivo(800, 125f), archivo(900, 125f))
+/** Semi-wide: card and section titles. */
+val TitleFont = FontFamily(archivo(600, 110f), archivo(700, 110f))
+/** Normal width: everything you read. */
+val BodyFont = FontFamily(archivo(400, 100f), archivo(500, 100f), archivo(600, 100f), archivo(700, 100f))
 
 private val scheme = darkColorScheme(
-    primary = MfColors.Gold,
-    onPrimary = MfColors.OnGold,
-    primaryContainer = Color(0xFF2A2418),
-    onPrimaryContainer = MfColors.Gold,
-    secondary = MfColors.Copper,
-    onSecondary = MfColors.OnGold,
-    secondaryContainer = Color(0xFF2A1C16),
-    onSecondaryContainer = MfColors.Copper,
+    primary = MfColors.Ink,
+    onPrimary = Color.Black,
+    primaryContainer = MfColors.Raised,
+    onPrimaryContainer = MfColors.Ink,
+    secondary = MfColors.GloveRed,
+    onSecondary = Color.Black,
     background = MfColors.Ground,
     onBackground = MfColors.Ink,
     surface = MfColors.Paper,
@@ -99,48 +105,42 @@ private val scheme = darkColorScheme(
     surfaceContainer = MfColors.Paper,
     surfaceContainerHigh = MfColors.Raised,
     outline = MfColors.Rule,
-    outlineVariant = Color(0xFF222227),
+    outlineVariant = MfColors.Rule,
     error = MfColors.Halt,
-    onError = MfColors.OnGold,
-)
-
-private val nightScheme = scheme.copy(
-    background = MfColors.Night,
-    surface = MfColors.NightRaised,
-    surfaceVariant = MfColors.NightRaised,
-    outline = MfColors.NightRule,
+    onError = Color.Black,
 )
 
 private val typography = Typography(
-    displayLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 72.sp, lineHeight = 74.sp, letterSpacing = (-0.03).em),
-    displayMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 52.sp, lineHeight = 56.sp, letterSpacing = (-0.03).em),
-    displaySmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 40.sp, letterSpacing = (-0.02).em),
-    headlineLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 36.sp, letterSpacing = (-0.02).em),
-    headlineMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp, lineHeight = 32.sp, letterSpacing = (-0.015).em),
-    headlineSmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 27.sp, letterSpacing = (-0.01).em),
-    titleLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 24.sp, letterSpacing = (-0.005).em),
+    displayLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Black, fontSize = 64.sp, lineHeight = 60.sp, letterSpacing = (-0.02).em),
+    displayMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Black, fontSize = 48.sp, lineHeight = 46.sp, letterSpacing = (-0.02).em),
+    displaySmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 34.sp, lineHeight = 34.sp, letterSpacing = (-0.015).em),
+    headlineLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 31.sp, letterSpacing = (-0.015).em),
+    headlineMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 25.sp, lineHeight = 27.sp, letterSpacing = (-0.01).em),
+    headlineSmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 22.sp, letterSpacing = (-0.005).em),
+    titleLarge = TextStyle(fontFamily = TitleFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, lineHeight = 21.sp),
     titleMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
     titleSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
-    bodyLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 25.sp),
+    bodyLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 21.sp),
     bodySmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 17.sp),
-    labelLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.01.em),
-    labelMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.01.em),
-    labelSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.14.em),
+    labelLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp),
+    labelMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 17.sp),
+    labelSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp),
 )
 
+// radii follow hierarchy: pictures are nearly square-cut, blocks softer, buttons are pills
 private val shapes = Shapes(
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
+    extraSmall = RoundedCornerShape(2.dp),
+    small = RoundedCornerShape(4.dp),
+    medium = RoundedCornerShape(10.dp),
+    large = RoundedCornerShape(14.dp),
 )
 
-/** [night] = the workout scheme (running session, camera): the same identity on an even darker ground. */
+/** [night] kept for callers; the whole app now runs on the same black ground. */
 @Composable
 fun MotionForgeTheme(night: Boolean = false, content: @Composable () -> Unit) {
-    val colors = if (night) nightScheme else scheme
-    MaterialTheme(colorScheme = colors, typography = typography, shapes = shapes) {
-        // text outside a Surface (onboarding, page headings) must default to the light ink, not the platform's black
-        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides colors.onBackground, content = content)
+    MaterialTheme(colorScheme = scheme, typography = typography, shapes = shapes) {
+        // text outside a Surface (onboarding, page headings) defaults to white, not the platform's black
+        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides scheme.onBackground, content = content)
     }
 }

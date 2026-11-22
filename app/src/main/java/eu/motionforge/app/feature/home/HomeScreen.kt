@@ -2,6 +2,10 @@ package eu.motionforge.app.feature.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import eu.motionforge.app.core.design.stageBrush
+import eu.motionforge.app.core.design.StageFloor
+import eu.motionforge.app.core.design.KindMark
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -83,10 +87,11 @@ fun HomeScreen(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        Column(Modifier.padding(horizontal = 4.dp, vertical = 8.dp)) {
+        val side = Modifier.padding(horizontal = 20.dp)
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp)) {
             val hour = remember { LocalTime.now().hour }
             Text(
                 when (hour) {
@@ -100,15 +105,15 @@ fun HomeScreen(
             Text("Ready to move?", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.semantics { heading() })
         }
 
-        if (unfinished != null) UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished)
+        if (unfinished != null) Box(side) { UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished) }
 
         when (catalog) {
-            CatalogUiState.Loading -> Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            CatalogUiState.Loading -> Row(side, verticalAlignment = Alignment.CenterVertically) {
                 CircularProgressIndicator(strokeWidth = 2.dp)
                 Spacer(Modifier.width(12.dp))
                 Text("Loading lessons…")
             }
-            is CatalogUiState.Error -> Panel {
+            is CatalogUiState.Error -> Panel(side) {
                 Eyebrow("Lessons unavailable", color = MfColors.Halt)
                 Text(catalog.message, style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(onClick = onRetry) { Text("Try again") }
@@ -119,17 +124,17 @@ fun HomeScreen(
                 if (quick != null) {
                     TodayStage(quick, coach, onStartQuickSession)
                 } else {
-                    Panel { Text("No lessons are available in this build.") }
+                    Panel(side) { Text("No lessons are available in this build.") }
                 }
 
-                WeekStrip(trainedDaysThisWeek, sessionsThisWeek)
+                Box(side) { WeekStrip(trainedDaysThisWeek, sessionsThisWeek) }
 
                 val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
                 val suggestion = LessonSuggestions.suggest(exercises, preferences.focus, preferences.goal, preferences.lastViewedExerciseId)
                 val picks = listOfNotNull(lastViewed?.let { "Continue" to it }, suggestion?.takeIf { it != lastViewed }?.let { "Suggested" to it })
                 if (picks.isNotEmpty()) {
-                    SectionHeader("For you")
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(side) { SectionHeader("For you") }
+                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         picks.forEach { (label, ex) -> HomeTile(ex, coach, onOpenLesson, label) }
                     }
                 }
@@ -137,8 +142,8 @@ fun HomeScreen(
                 TrainingCategory.entries.forEach { category ->
                     val inCategory = exercises.filter { it.category == category }
                     if (inCategory.isNotEmpty()) {
-                        SectionHeader(category.displayName, trailing = "See all", trailingColor = category.accent, onTrailing = { onOpenCategory(category) })
-                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(side) { SectionHeader(category.displayName, trailing = "See all", onTrailing = { onOpenCategory(category) }) }
+                        Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             inCategory.forEach { HomeTile(it, coach, onOpenLesson) }
                         }
                     }
@@ -146,7 +151,7 @@ fun HomeScreen(
             }
         }
 
-        Panel {
+        Panel(side) {
             Eyebrow("Train safely", color = MfColors.Caution)
             Text(
                 "Train in clear space, at your own pace. Stop if you feel pain, dizziness or unusual discomfort. " +
@@ -158,50 +163,46 @@ fun HomeScreen(
     }
 }
 
-/** The signature block: today's session on a solid colour field, the moves' names huge behind the coach. */
+/**
+ * The signature block: today's session as an edge-to-edge studio shot of the coach, with the session's name set large in
+ * the extra-wide face across the lower part of the picture, like a training poster. One tap starts it.
+ */
 @Composable
 private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
     val accent = plan.type.accent
     val minutes = (plan.totalSeconds + 30) / 60
     val moves = plan.steps.filterIsInstance<SessionStep.Work>()
-    Surface(
-        onClick = onStart,
-        modifier = Modifier.fillMaxWidth().height(340.dp).semantics {
-            role = Role.Button
-            contentDescription = "Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves"
-        },
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(480.dp)
+            .background(stageBrush(accent))
+            .clickable(onClick = onStart)
+            .semantics {
+                role = Role.Button
+                contentDescription = "Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves"
+            },
     ) {
+        StageFloor(accent, Modifier.align(Alignment.BottomCenter).padding(bottom = 150.dp))
+        CoachArt(coach.heroArt, Modifier.align(Alignment.TopEnd).fillMaxHeight(0.86f).width(250.dp).padding(top = 16.dp, end = 8.dp))
+        // the type sits over the coach's legs; a short fade keeps it readable without boxing it in
         Box(
             Modifier
-                .fillMaxSize()
-                .background(
-                    androidx.compose.ui.graphics.Brush.radialGradient(
-                        listOf(accent.copy(alpha = 0.26f), Color.Transparent),
-                        center = androidx.compose.ui.geometry.Offset(820f, 120f),
-                        radius = 900f,
-                    ),
-                ),
-        ) {
-            CoachArt(coach.heroArt, Modifier.align(Alignment.BottomEnd).fillMaxHeight().width(210.dp).padding(top = 18.dp))
-            Column(
-                Modifier.align(Alignment.BottomStart).fillMaxWidth(0.6f).padding(22.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Eyebrow("Today's session", color = accent)
-                Text(plan.title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(
-                    "$minutes min · ${moves.size} moves",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(12.dp))
-                Surface(shape = RoundedCornerShape(14.dp), color = accent) {
-                    Text("Start session", Modifier.padding(horizontal = 20.dp, vertical = 12.dp), style = MaterialTheme.typography.titleSmall, color = MfColors.OnGold)
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(230.dp)
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.72f)))),
+        )
+        Column(Modifier.align(Alignment.BottomStart).padding(start = 20.dp, end = 20.dp, bottom = 22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Today", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.72f))
+            Text(plan.title, style = MaterialTheme.typography.displayMedium, color = Color.White)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                KindMark(accent)
+                Spacer(Modifier.width(8.dp))
+                Text("$minutes min, ${moves.size} moves", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f))
+                Spacer(Modifier.weight(1f))
+                Surface(shape = RoundedCornerShape(50), color = Color.White) {
+                    Text("Start session", Modifier.padding(horizontal = 20.dp, vertical = 12.dp), style = MaterialTheme.typography.titleSmall, color = Color.Black)
                 }
             }
         }
@@ -212,13 +213,8 @@ private fun TodayStage(plan: SessionPlan, coach: Coach, onStart: () -> Unit) {
 @Composable
 private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
     val today = remember { LocalDate.now().dayOfWeek }
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+    Surface(color = Color.Transparent, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("This week", style = MaterialTheme.typography.titleSmall)
                 Text(
@@ -241,9 +237,9 @@ private fun WeekStrip(trained: Set<DayOfWeek>, sessionsThisWeek: Int?) {
                 ) {
                     Box(
                         Modifier
-                            .size(20.dp)
+                            .size(18.dp)
                             .clip(CircleShape)
-                            .background(if (done) MfColors.Gold else Color.Transparent)
+                            .background(if (done) MfColors.Ink else Color.Transparent)
                             .then(if (!done) Modifier.border(1.5.dp, if (d == today) MfColors.Ink else MfColors.Rule, CircleShape) else Modifier),
                     )
                     Text(name.take(1), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -259,9 +255,8 @@ private fun UnfinishedCard(snap: SessionSnapshot, onResume: (SessionSnapshot) ->
     val finished = st.phase == SessionPhase.FINISHED
     val accent = st.plan.type.accent
     Surface(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(2.dp, accent),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -289,7 +284,8 @@ private fun HomeTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) ->
         accent = exercise.category.accent,
         artPath = coach.lessonArt(exercise.id),
         onClick = { onOpenLesson(exercise.id) },
-        modifier = Modifier.width(168.dp),
+        modifier = Modifier.width(176.dp),
+        artHeight = 220.dp,
         badge = badge,
     )
 }

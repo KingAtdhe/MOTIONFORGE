@@ -1,42 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launch icon for Android 12+: the bezel draws itself, then the monogram fades in (about 0.8 s). -->
+<!-- Launch icon for Android 12+: one moment only — the square lands beside the M (about 0.6 s). -->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt">
     <aapt:attr name="android:drawable">
-        <vector     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:name="ring" android:pathData="M54,23.5 a30.5,30.5 0 1,1 0,61 a30.5,30.5 0 1,1 0,-61" android:strokeWidth="0.9" android:strokeAlpha="0.55">
-            <aapt:attr name="android:strokeColor">
-                <gradient android:type="linear" android:startX="20" android:startY="20" android:endX="88" android:endY="88">
-                    <item android:offset="0" android:color="#FFF2DDAA" />
-                    <item android:offset="0.55" android:color="#FFD2AC66" />
-                    <item android:offset="1" android:color="#FF9C7638" />
-                </gradient>
-            </aapt:attr>
-    </path>
-    <group>
-        <clip-path android:pathData="M0,35 h108 v37 h-108 z" />
-        <path android:name="mark" android:pathData="M36.86,76 L43.26,36 L56.24,58 L76.26,36 L69.86,76" android:strokeWidth="6.6" android:strokeLineJoin="miter" android:strokeMiterLimit="10">
-            <aapt:attr name="android:strokeColor">
-                <gradient android:type="linear" android:startX="20" android:startY="20" android:endX="88" android:endY="88">
-                    <item android:offset="0" android:color="#FFF2DDAA" />
-                    <item android:offset="0.55" android:color="#FFD2AC66" />
-                    <item android:offset="1" android:color="#FF9C7638" />
-                </gradient>
-            </aapt:attr>
-        </path>
-    </group>
+        <vector android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+            <group android:translateX="23.595" android:translateY="69.35" android:scaleX="0.04466" android:scaleY="0.04466">
+                <path android:pathData="M74 0V-688H462L547 -436Q555 -415 563.0 -387.5Q571 -360 578.5 -332.5Q586 -305 591 -285H598Q603 -304 610.5 -330.0Q618 -356 626.5 -384.5Q635 -413 643 -436L728 -688H1104V0H857V-300Q857 -325 857.5 -355.0Q858 -385 859.0 -414.0Q860 -443 860 -464H852Q845 -441 835.5 -410.5Q826 -380 816.5 -350.5Q807 -321 799 -300L691 0H472L364 -300Q353 -332 342.5 -363.5Q332 -395 324.0 -421.5Q316 -448 311 -464H303Q304 -448 304.5 -421.5Q305 -395 305.5 -363.5Q306 -332 306 -300V0Z" android:fillColor="#FFFFFFFF" />
+            </group>
+            <group android:name="dot" android:pivotX="78.10" android:pivotY="69.35">
+                <path android:pathData="M75.1,63.349999999999994 h6.0 v6.0 h-6.0 z" android:fillColor="#FF9CC4FF" />
+            </group>
         </vector>
     </aapt:attr>
-    <target android:name="ring">
+    <target android:name="dot">
         <aapt:attr name="android:animation">
-            <objectAnimator android:propertyName="trimPathEnd" android:valueFrom="0" android:valueTo="1"
-                android:duration="700" android:interpolator="@android:interpolator/fast_out_slow_in" />
-        </aapt:attr>
-    </target>
-    <target android:name="mark">
-        <aapt:attr name="android:animation">
-            <objectAnimator android:propertyName="strokeAlpha" android:valueFrom="0" android:valueTo="1" android:startOffset="200"
-                android:duration="550" android:interpolator="@android:interpolator/linear_out_slow_in" />
+            <set>
+                <objectAnimator android:propertyName="translateY" android:valueFrom="-16" android:valueTo="0" android:startOffset="120"
+                    android:duration="420" android:interpolator="@android:interpolator/bounce" />
+                <objectAnimator android:propertyName="scaleY" android:valueFrom="1.25" android:valueTo="1" android:startOffset="120"
+                    android:duration="420" android:interpolator="@android:interpolator/decelerate_quad" />
+            </set>
         </aapt:attr>
     </target>
 </animated-vector>

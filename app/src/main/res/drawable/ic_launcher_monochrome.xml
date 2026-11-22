@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Single-colour layer for Android 13+ themed icons -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <group>
-        <clip-path android:pathData="M0,35 h108 v37 h-108 z" />
-        <path android:pathData="M36.86,76 L43.26,36 L56.24,58 L76.26,36 L69.86,76" android:strokeWidth="6.6" android:strokeLineJoin="miter" android:strokeMiterLimit="10" android:strokeColor="#FF000000"></path>
+    <group android:translateX="23.595" android:translateY="69.35" android:scaleX="0.04466" android:scaleY="0.04466">
+        <path android:pathData="M74 0V-688H462L547 -436Q555 -415 563.0 -387.5Q571 -360 578.5 -332.5Q586 -305 591 -285H598Q603 -304 610.5 -330.0Q618 -356 626.5 -384.5Q635 -413 643 -436L728 -688H1104V0H857V-300Q857 -325 857.5 -355.0Q858 -385 859.0 -414.0Q860 -443 860 -464H852Q845 -441 835.5 -410.5Q826 -380 816.5 -350.5Q807 -321 799 -300L691 0H472L364 -300Q353 -332 342.5 -363.5Q332 -395 324.0 -421.5Q316 -448 311 -464H303Q304 -448 304.5 -421.5Q305 -395 305.5 -363.5Q306 -332 306 -300V0Z" android:fillColor="#FF000000" />
     </group>
+    <path android:pathData="M75.1,63.349999999999994 h6.0 v6.0 h-6.0 z" android:fillColor="#FF000000" />
 </vector>

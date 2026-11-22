@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -50,17 +51,16 @@ import eu.motionforge.app.core.pose.TrackingState
 
 // ---------------------------------------------------------------------------------------------- surfaces
 
-/** Graphite surface with a hairline edge for a block of content. Clickable only when [onClick] is given. */
+/** A quiet block for notes and settings: a slightly lifted tone, no outline. Clickable only when [onClick] is given. */
 @Composable
 fun Panel(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    val edge = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    val shape = RoundedCornerShape(10.dp)
     val inner: @Composable () -> Unit = {
-        Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
+        Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
     }
     if (onClick != null) {
         Surface(
@@ -68,33 +68,29 @@ fun Panel(
             modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).semantics { role = Role.Button },
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
-            border = edge,
             content = inner,
         )
     } else {
-        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = MaterialTheme.colorScheme.surface, border = edge, content = inner)
+        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = MaterialTheme.colorScheme.surface, content = inner)
     }
 }
 
-/** Small section label: uppercase, letter-spaced, quiet ("SAFETY"). Screen readers get the original casing. */
+/** Small label for a block ("Safety"). Sentence case; colour carries status where it matters. */
 @Composable
 fun Eyebrow(text: String, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
-    Text(
-        text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-        color = color,
-        modifier = Modifier.semantics { contentDescription = text },
-    )
+    Text(text, style = MaterialTheme.typography.labelLarge, color = color)
 }
 
 /** Heading for a block of the page, optionally with an action on the right ("See all"). */
 @Composable
-fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color = MaterialTheme.colorScheme.primary, onTrailing: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color = MaterialTheme.colorScheme.onBackground, onTrailing: (() -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().padding(top = 14.dp), verticalAlignment = Alignment.Bottom) {
         Text(title, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f).semantics { heading() })
         if (trailing != null) {
             if (onTrailing != null) {
-                androidx.compose.material3.TextButton(onClick = onTrailing) { Text(trailing, color = trailingColor, style = MaterialTheme.typography.labelLarge) }
+                androidx.compose.material3.TextButton(onClick = onTrailing, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)) {
+                    Text(trailing, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
+                }
             } else {
                 Text(trailing, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -102,21 +98,27 @@ fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color 
     }
 }
 
+/** A small filled square that marks a lesson's kind next to its text label (never alone). */
+@Composable
+fun KindMark(color: Color, modifier: Modifier = Modifier) {
+    Box(modifier.size(8.dp).background(color))
+}
+
 // ---------------------------------------------------------------------------------------------- status
 
 /**
  * Tracking status chip. Uses a text label and a shape marker as well as colour, so status is never conveyed by
- * colour alone. Lives on the dark workout scheme.
+ * colour alone. Lives over the camera picture.
  */
 @Composable
 fun TrackingStatusChip(state: TrackingState, modifier: Modifier = Modifier) {
     val (color, marker) = when (state) {
         TrackingState.TRACKING -> MfColors.SignalOnNight to "●"
         TrackingState.CALIBRATING, TrackingState.CAMERA_INITIALIZING, TrackingState.PAUSED -> MfColors.OnNightMuted to "◐"
-        TrackingState.CAMERA_ERROR, TrackingState.CAMERA_PERMISSION_DENIED -> Color(0xFFFF6B6B) to "■"
+        TrackingState.CAMERA_ERROR, TrackingState.CAMERA_PERMISSION_DENIED -> MfColors.Halt to "■"
         else -> MfColors.CautionOnNight to "▲"
     }
-    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MfColors.Night.copy(alpha = 0.82f), border = BorderStroke(1.dp, MfColors.NightRule)) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = Color.Black.copy(alpha = 0.72f)) {
         Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(marker, color = color, style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.width(8.dp))
@@ -133,11 +135,10 @@ fun ChoiceButton(label: String, selected: Boolean, onClick: () -> Unit, modifier
     Surface(
         modifier = modifier.heightIn(min = 44.dp).selectable(selected = selected, onClick = onClick, role = Role.Checkbox),
         shape = RoundedCornerShape(50),
-        color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface,
     ) {
         Box(Modifier.padding(horizontal = 16.dp, vertical = 11.dp), contentAlignment = Alignment.Center) {
-            Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface)
+            Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) Color.Black else MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -156,29 +157,27 @@ fun SelectableOption(
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton),
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface,
     ) {
+        val fg = if (selected) Color.Black else MaterialTheme.colorScheme.onSurface
+        val fg2 = if (selected) Color.Black.copy(alpha = 0.66f) else MaterialTheme.colorScheme.onSurfaceVariant
         Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge, color = fg)
+                Text(description, style = MaterialTheme.typography.bodyMedium, color = fg2)
+            }
+            Spacer(Modifier.width(12.dp))
             androidx.compose.material3.RadioButton(
                 selected = selected,
                 onClick = null,
-                colors = androidx.compose.material3.RadioButtonDefaults.colors(
-                    selectedColor = MaterialTheme.colorScheme.primary,
-                    unselectedColor = MaterialTheme.colorScheme.outline,
-                ),
+                colors = androidx.compose.material3.RadioButtonDefaults.colors(selectedColor = Color.Black, unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant),
             )
-            Spacer(Modifier.width(12.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
         }
     }
 }
 
-/** Pill-shaped single-choice control (speed, camera angle, filters). Each option exposes its selected state. */
+/** Single-choice control (speed, camera angle, filters): the chosen option is a white pill, the rest plain text. */
 @Composable
 fun SegmentedPill(
     options: List<String>,
@@ -188,41 +187,37 @@ fun SegmentedPill(
     accent: Color = MaterialTheme.colorScheme.onSurface,
     compact: Boolean = false,
 ) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-        Row(Modifier.padding(4.dp)) {
-            options.forEachIndexed { i, label ->
-                val selected = i == selectedIndex
-                Surface(
-                    modifier = Modifier
-                        .heightIn(min = if (compact) 40.dp else 44.dp)
-                        .selectable(selected = selected, onClick = { onSelect(i) }, role = Role.RadioButton),
-                    shape = RoundedCornerShape(50),
-                    color = if (selected) accent else Color.Transparent,
-                ) {
-                    Box(Modifier.padding(horizontal = if (compact) 12.dp else 16.dp, vertical = if (compact) 7.dp else 10.dp), contentAlignment = Alignment.Center) {
-                        Text(
-                            label,
-                            style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
-                            color = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        options.forEachIndexed { i, label ->
+            val selected = i == selectedIndex
+            Surface(
+                modifier = Modifier
+                    .heightIn(min = if (compact) 40.dp else 44.dp)
+                    .selectable(selected = selected, onClick = { onSelect(i) }, role = Role.RadioButton),
+                shape = RoundedCornerShape(50),
+                color = if (selected) accent else Color.Transparent,
+            ) {
+                Box(Modifier.padding(horizontal = if (compact) 12.dp else 16.dp, vertical = if (compact) 8.dp else 10.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        label,
+                        style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
+                        color = if (selected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
     }
 }
 
-/** Small read-only fact, e.g. "60 s". */
+/** Small read-only fact, e.g. "60 s": plain secondary text, spaced by its row. */
 @Composable
 fun FactChip(text: String, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(50), color = Color.Transparent, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
-        Text(text, Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    Text(text, modifier, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 // ---------------------------------------------------------------------------------------------- actions
 
-/** Full-width main action. */
+/** Full-width main action: a white pill (or the given colour) with black text. */
 @Composable
 fun PrimaryButton(
     text: String,
@@ -234,11 +229,11 @@ fun PrimaryButton(
     androidx.compose.material3.Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 54.dp),
+        shape = RoundedCornerShape(50),
         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
             containerColor = color,
-            contentColor = MfColors.OnGold,
+            contentColor = Color.Black,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
@@ -252,7 +247,7 @@ fun RoundAction(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    container: Color = MaterialTheme.colorScheme.surface,
+    container: Color = MaterialTheme.colorScheme.surfaceVariant,
     content: Color = MaterialTheme.colorScheme.onSurface,
     size: Dp = 56.dp,
 ) {
@@ -262,7 +257,6 @@ fun RoundAction(
             modifier = Modifier.width(size).height(size).semantics { contentDescription = label; role = Role.Button },
             shape = CircleShape,
             color = container,
-            border = if (container == MaterialTheme.colorScheme.surface) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null,
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(symbol, style = MaterialTheme.typography.titleLarge, color = content, modifier = Modifier.clearAndSetSemantics {})
@@ -274,14 +268,12 @@ fun RoundAction(
 
 // ---------------------------------------------------------------------------------------------- numbers
 
-/** Big number with a caption. */
+/** Big number in the poster face with a plain caption under it; no box. */
 @Composable
 fun StatTile(value: String, label: String, modifier: Modifier = Modifier, accent: Color = MaterialTheme.colorScheme.onSurface) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(18.dp), color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(value, style = MaterialTheme.typography.headlineLarge, color = accent)
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+    Column(modifier.padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(value, style = MaterialTheme.typography.displaySmall, color = accent)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -295,19 +287,19 @@ fun CountdownRing(
     caption: String? = null,
     dimmed: Boolean = false,
 ) {
-    val track = MaterialTheme.colorScheme.outline
+    val track = MaterialTheme.colorScheme.surfaceVariant
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     Box(modifier, contentAlignment = Alignment.Center) {
         Canvas(Modifier.matchParentSize()) {
-            val stroke = size.minDimension * 0.055f
+            val stroke = size.minDimension * 0.045f
             val arcSize = Size(size.minDimension - stroke, size.minDimension - stroke)
             val topLeft = Offset((size.width - arcSize.width) / 2, (size.height - arcSize.height) / 2)
-            val style = Stroke(stroke, cap = StrokeCap.Round)
+            val style = Stroke(stroke, cap = StrokeCap.Butt)
             drawArc(track, -90f, 360f, false, topLeft, arcSize, style = style)
             drawArc(if (dimmed) muted else accent, -90f, 360f * fraction.coerceIn(0f, 1f), false, topLeft, arcSize, style = style)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, style = MaterialTheme.typography.displaySmall, color = if (dimmed) muted else MaterialTheme.colorScheme.onSurface)
+            Text(label, style = MaterialTheme.typography.headlineLarge, color = if (dimmed) muted else MaterialTheme.colorScheme.onSurface)
             if (caption != null) Text(caption, style = MaterialTheme.typography.labelMedium, color = muted)
         }
     }
@@ -316,8 +308,8 @@ fun CountdownRing(
 // ---------------------------------------------------------------------------------------------- lesson cards
 
 /**
- * Picture card for a lesson: the coach performing the move in front of the move's name on a tinted field, the
- * name and length below. The whole card is one button; the picture is decorative (the title says what it is).
+ * A lesson as a picture and a caption: the coach performing the move on the studio backdrop, the name and length set
+ * under it. No card shell. The whole thing is one button; the picture is decorative (the title says what it is).
  */
 @Composable
 fun LessonTile(
@@ -333,39 +325,38 @@ fun LessonTile(
     Surface(
         onClick = onClick,
         modifier = modifier.semantics { role = Role.Button },
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        shape = RoundedCornerShape(4.dp),
+        color = Color.Transparent,
     ) {
         Column {
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(artHeight)
+                    .clip(RoundedCornerShape(4.dp))
                     .background(stageBrush(accent)),
             ) {
                 StageFloor(accent, Modifier.align(Alignment.BottomCenter))
-                CoachArt(artPath, Modifier.fillMaxSize().padding(top = 12.dp, bottom = 2.dp))
+                CoachArt(artPath, Modifier.fillMaxSize().padding(top = 12.dp, bottom = 4.dp))
                 if (badge != null) {
-                    Surface(
-                        modifier = Modifier.align(Alignment.TopStart).padding(10.dp),
-                        shape = RoundedCornerShape(50),
-                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
-                        border = BorderStroke(1.dp, accent.copy(alpha = 0.5f)),
-                    ) {
-                        Text(badge.uppercase(), Modifier.padding(horizontal = 9.dp, vertical = 3.dp), style = MaterialTheme.typography.labelSmall, color = accent)
+                    Surface(modifier = Modifier.align(Alignment.TopStart).padding(8.dp), shape = RoundedCornerShape(50), color = Color.White) {
+                        Text(badge, Modifier.padding(horizontal = 9.dp, vertical = 3.dp), style = MaterialTheme.typography.labelSmall, color = Color.Black)
                     }
                 }
             }
-            Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Column(Modifier.padding(top = 10.dp, bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onBackground)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KindMark(accent)
+                    Spacer(Modifier.width(6.dp))
+                    Text(meta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
             }
         }
     }
 }
 
-/** A tinted stage with the exercise name behind whatever [content] draws (a coach still or the live 3D coach). */
+/** The studio backdrop with the coach (a still or the live 3D coach) in front of it. */
 @Composable
 fun CoachStage(
     name: String,
@@ -375,7 +366,7 @@ fun CoachStage(
 ) {
     Box(
         modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(4.dp))
             .background(stageBrush(accent))
     ) {
         StageFloor(accent, Modifier.align(Alignment.BottomCenter))
@@ -383,24 +374,26 @@ fun CoachStage(
     }
 }
 
-/** Spotlit stage: a soft pool of the accent colour from above, falling off into the graphite ground. */
+/** Photo-studio seamless backdrop: a warm grey sweep, lighter behind the coach, falling darker towards the floor. */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun stageBrush(accent: Color): Brush = Brush.verticalGradient(
-    0f to accent.copy(alpha = 0.16f),
-    0.55f to MaterialTheme.colorScheme.surfaceVariant,
-    1f to MaterialTheme.colorScheme.surface,
+    0f to MfColors.StudioTop,
+    0.7f to Color(0xFF2A2A28),
+    1f to MfColors.StudioFloor,
 )
 
-/** Soft elliptical floor shadow so the coach stands on something instead of floating. */
+/** Soft contact shadow so the coach stands on the floor instead of floating. */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun StageFloor(accent: Color, modifier: Modifier = Modifier) {
     Box(
         modifier
-            .padding(bottom = 18.dp)
-            .fillMaxWidth(0.62f)
-            .height(26.dp)
+            .padding(bottom = 12.dp)
+            .fillMaxWidth(0.6f)
+            .height(22.dp)
             .clip(androidx.compose.foundation.shape.GenericShape { size, _ -> addOval(androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height)) })
-            .background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.32f), Color.Transparent))),
+            .background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.45f), Color.Transparent))),
     )
 }
 

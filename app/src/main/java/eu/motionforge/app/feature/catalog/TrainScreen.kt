@@ -107,11 +107,15 @@ fun TrainScreen(
 private fun LessonGridTile(exercise: Exercise, coach: Coach, onOpenLesson: (String) -> Unit, modifier: Modifier) {
     LessonTile(
         title = exercise.name,
-        meta = formatLength(exercise.durationSeconds),
+        meta = if (exercise.needsEquipment) {
+            formatLength(exercise.durationSeconds) + ", " + exercise.equipment.first().substringBefore(" (").lowercase()
+        } else {
+            formatLength(exercise.durationSeconds)
+        },
         accent = exercise.category.accent,
         artPath = coach.lessonArt(exercise.id),
         onClick = { onOpenLesson(exercise.id) },
         modifier = modifier,
-        artHeight = 190.dp,
+        artHeight = 210.dp,
     )
 }
