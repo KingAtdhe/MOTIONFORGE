@@ -785,3 +785,11 @@ the chest. Two passes added to `Rig.write`, so every clip gets them:
 - Session plate: last ~4 s of tracked poses (in memory only) drawn as a geometric chronophotograph; share renders a PNG to cache and shares via FileProvider (`${applicationId}.plates`).
 - Icon/splash v5: a squat as four stick-figure exposures, last in yellow, on black (`tools/branding_icon_v5.py` + joints json); Barlow wordmark (`tools/branding_wordmark_v5.py`).
 - Not verified in screenshots: the running workout screen, notification and headphone buttons (need a device).
+
+## 2026-11-22 (review pass on v5)
+- Fixed: lesson stage could be empty (no 3D clip / 3D failed) with a white back arrow on the silver page; the motion study now stands in on the black stage, also in the workout view. "Loading" text was black on black. Welcome plate was blank; now one squat study plate.
+- Workout: landscape layout (numbers left, camera right); the app allows rotation only during a workout (configChanges handled, no recreation). Haptic/pulse only for newly counted reps (not on restore).
+- Today filmstrip scrolls when a session has more than 4 moves; Moves notes lower-case; "Clear" in the filter sheet keeps the Fitness/Fighting choice.
+- Setup explains the workout notification before Android asks for it.
+- Removed the old coach thumbnails (1.6 MB); lessonArt/heroArt point at the studies. DemoClipsTest checks every study and strip exists.
+- Screenshot test now also renders the workout (portrait, landscape) and the phone setup.
