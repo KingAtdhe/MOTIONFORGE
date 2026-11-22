@@ -6,7 +6,7 @@ import eu.motionforge.app.core.design.SectionHeader
 import eu.motionforge.app.core.design.formatClock
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
-androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
