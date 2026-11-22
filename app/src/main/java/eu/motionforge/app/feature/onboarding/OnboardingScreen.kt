@@ -105,8 +105,9 @@ internal fun OnboardingContent(state: OnboardingState, saving: Boolean, onEvent:
                     onClick = { onEvent(OnboardingEvent.Continue) },
                     enabled = state.canContinue && !saving,
                     modifier = Modifier.heightIn(min = 56.dp),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 28.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = eu.motionforge.app.core.design.MfColors.Yellow, contentColor = androidx.compose.ui.graphics.Color.Black),
                 ) {
                     Text(
                         when {
@@ -147,12 +148,12 @@ private fun ColumnScope.AgeStep(onEvent: (OnboardingEvent) -> Unit) {
     Button(
         onClick = { onEvent(OnboardingEvent.AgeAnswered(isAdult = true)) },
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
     ) { Text("I am 18 or older") }
     OutlinedButton(
         onClick = { onEvent(OnboardingEvent.AgeAnswered(isAdult = false)) },
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
         border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.onBackground),
     ) { Text("I am under 18") }
 }
@@ -254,17 +255,14 @@ private fun ColumnScope.CoachStep(selected: GenderAnswer?, onEvent: (OnboardingE
 /** Both coaches side by side; the highlighted one is shown at full strength. Decorative (choices are labelled). */
 @Composable
 private fun CoachPair(modifier: Modifier, highlight: Coach? = null) {
-    Row(modifier) {
-        listOf(Coach.FEMALE to eu.motionforge.app.core.design.MfColors.Cobalt, Coach.MALE to eu.motionforge.app.core.design.MfColors.Blaze).forEach { (c, field) ->
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(Coach.FEMALE to "bodyweight_squat", Coach.MALE to "boxing_cross").forEach { (c, lesson) ->
             val dim = highlight != null && highlight != c
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(if (dim) MaterialTheme.colorScheme.surfaceVariant else field),
-            ) {
-                CoachArt(c.heroArt, Modifier.fillMaxSize().alpha(if (dim) 0.35f else 1f))
-            }
+            eu.motionforge.app.core.design.MotionStudy(
+                c.studyArt(lesson),
+                Modifier.weight(1f).fillMaxHeight().alpha(if (dim) 0.35f else 1f),
+                crop = true,
+            )
         }
     }
 }

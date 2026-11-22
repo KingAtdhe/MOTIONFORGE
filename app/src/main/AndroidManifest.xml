@@ -3,6 +3,9 @@
 
     <!-- Requested only when the user enters a camera-based screen, after an in-app explanation. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The running workout as an ongoing notification / Live Update (asked for when a session starts). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
 
     <!-- Camera is needed for live tracking but the app (demos, catalogue, progress) works without one. -->
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
@@ -25,6 +28,15 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.MotionForge.Starting">
+        <!-- Shares the session plate image the user chooses to send. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.plates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/plate_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

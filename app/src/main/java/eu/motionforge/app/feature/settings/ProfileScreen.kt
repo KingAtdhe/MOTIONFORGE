@@ -59,6 +59,16 @@ fun ProfileScreen(
     onOpenTechnicalChecks: () -> Unit,
     onResetData: () -> Unit,
 ) {
+    ScreenColumn(title = "Profile") { ProfileContent(preferences, onOpenTechnicalChecks, onResetData) }
+}
+
+/** Settings as part of a page: training, coach, voice, camera and privacy, safety, developer checks, reset. */
+@Composable
+fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
+    preferences: UserPreferences,
+    onOpenTechnicalChecks: () -> Unit,
+    onResetData: () -> Unit,
+) {
     val context = LocalContext.current
     fun granted() = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     var cameraGranted by rememberSaveable { mutableStateOf(granted()) }
@@ -66,8 +76,7 @@ fun ProfileScreen(
     var confirmReset by rememberSaveable { mutableStateOf(false) }
     val prefsRepo = remember { (context.applicationContext as MotionForgeApplication).container.preferences }
     val scope = rememberCoroutineScope()
-
-    ScreenColumn(title = "Profile") {
+    run {
         ProfileSection("Training") {
             Text("Focus: ${preferences.focus?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Goal: ${preferences.goal?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
@@ -82,14 +91,12 @@ fun ProfileScreen(
                         modifier = Modifier
                             .weight(1f)
                             .selectable(selected = selected, onClick = { scope.launch { prefsRepo.setCoach(c) } }, role = Role.RadioButton),
-                        shape = RoundedCornerShape(4.dp),
+                        shape = RoundedCornerShape(6.dp),
                         color = androidx.compose.ui.graphics.Color.Transparent,
-                        border = if (selected) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else null,
+                        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(180.dp).background(if (c == eu.motionforge.app.core.model.Coach.MALE) MfColors.Blaze else MfColors.Cobalt)) {
-                                CoachArt(c.heroArt, Modifier.fillMaxSize().padding(top = 8.dp))
-                            }
+                            eu.motionforge.app.core.design.MotionStudy(c.studyArt("boxing_cross"), Modifier.fillMaxWidth().height(180.dp), crop = true)
                             Text(
                                 c.displayName + if (selected) ", selected" else "",
                                 style = MaterialTheme.typography.labelLarge,
@@ -148,13 +155,7 @@ fun ProfileScreen(
             Text("Technical checks", style = MaterialTheme.typography.titleMedium)
             Text("Camera + pose tracking test and 3D animation test.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        OutlinedButton(
-            onClick = { confirmReset = true },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-            shape = RoundedCornerShape(2.dp),
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, MfColors.Halt),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MfColors.Halt),
-        ) { Text("Reset app data") }
+        eu.motionforge.app.core.design.SecondaryButton("Reset app data", onClick = { confirmReset = true }, color = MfColors.Halt)
         Text(
             "Version ${BuildConfig.VERSION_NAME}. Intended for adults (18+).",
             style = MaterialTheme.typography.labelSmall,

@@ -5,14 +5,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -21,107 +20,104 @@ import eu.motionforge.app.R
 import eu.motionforge.app.core.model.TrainingCategory
 
 /**
- * MOTIONFORGE identity v4 — "gym floor".
+ * MOTIONFORGE identity v5 — "motion lab" (docs: MOTIONFORGE design plan, approved 2026-11-22).
  *
- * A light, concrete-grey page with black type, like a printed training programme pinned up in a gym. The coach always
- * stands in a flat field of colour — electric cobalt for fitness, blaze orange for fighting — so a lesson's kind is
- * the size of the picture, not a dot. Big numbers (minutes, reps, the timer) use Archivo at its narrowest width, titles
- * at its widest. Buttons are square-cut black bars. The workout screen stays dark for the camera.
- * Older colour names are kept so every screen picks up the palette.
+ * The app reads like a training lab's notebook: light silver pages with black photographic plates set into them. Every
+ * lesson is shown as a motion study — several exposures of the coach on one plate, after Marey's chronophotographs —
+ * and one timing-board yellow marks anything live or tappable. The workout screen is the full black plate, read from
+ * the floor 2 m away. Type is Barlow, drawn from road signs, so numbers hold up at a distance.
+ * Older colour names are kept as aliases so every screen picks up the palette.
  */
 object MfColors {
-    val Ground = Color(0xFFE3E3DE)          // the page: concrete grey
-    val Paper = Color(0xFFF1F1EE)           // quiet blocks
-    val Raised = Color(0xFFD3D3CD)          // pressed / tracks
-    val Rule = Color(0xFFBDBDB6)            // hairlines
-    val Ink = Color(0xFF000000)
-    val Slate = Color(0xFF5E5E59)           // secondary text (7:1 on the page)
+    val Plate = Color(0xFF000000)           // motion studies, the 3D stage, the workout
+    val Silver = Color(0xFFE8E8E4)          // the page
+    val Sheet = Color(0xFFF4F4F1)           // quiet blocks on the page
+    val Ink = Color(0xFF0D0D0D)
+    val Graphite = Color(0xFF66665F)        // secondary text, 7:1 on silver
+    val Rule = Color(0xFFCFCFC9)
+    val Yellow = Color(0xFFFFD60A)          // timing-board yellow: the one action, live numbers. Always black text on it.
+    val Cue = Color(0xFFFF6A3D)             // a correction during the workout, on the plate only, always with words
 
-    // the two fields the coach stands in
-    val Cobalt = Color(0xFF2B3BFF)          // fitness
-    val Blaze = Color(0xFFFF5A1F)           // fighting fundamentals
-    val OnCobalt = Color(0xFFFFFFFF)
-    val OnBlaze = Color(0xFF000000)
-    val Chalk = Cobalt                      // older names
-    val GloveRed = Blaze
-    val Glove = Blaze
-    val Gold = Cobalt
-    val OnGold = Color(0xFFFFFFFF)          // text on a filled accent or black button
-    val StudioTop = Cobalt
-    val StudioFloor = Cobalt
+    // older names
+    val Ground = Silver
+    val Paper = Sheet
+    val Raised = Color(0xFFDADAD5)
+    val Slate = Graphite
+    val Cobalt = Plate
+    val Blaze = Plate
+    val OnCobalt = Color.White
+    val OnBlaze = Color.White
+    val Chalk = Plate
+    val GloveRed = Plate
+    val Glove = Plate
+    val Gold = Yellow
+    val OnGold = Color(0xFF000000)
+    val StudioTop = Plate
+    val StudioFloor = Plate
 
     val Signal = Color(0xFF0B7A43)
-    val Caution = Color(0xFF8A5A00)
+    val Caution = Color(0xFF7A5200)
     val Halt = Color(0xFFC8261B)
 
-    // the workout screen: black, for the camera picture
-    val Night = Color(0xFF000000)
-    val NightRaised = Color(0xFF1A1A19)
+    // the workout screen
+    val Night = Plate
+    val NightRaised = Color(0xFF161615)
     val NightRule = Color(0xFF2E2E2C)
     val OnNight = Color(0xFFFFFFFF)
-    val OnNightMuted = Color(0xFF9A9A94)
-    val CautionOnNight = Color(0xFFF2C14E)
-    val SignalOnNight = Color(0xFF6CD49B)
+    val OnNightMuted = Color(0xFFA3A39C)
+    val CautionOnNight = Cue
+    val SignalOnNight = Color(0xFF7BE0A8)
 }
 
-/** Category colour (always paired with a text label). */
-val TrainingCategory.accent: Color
-    get() = when (this) {
-        TrainingCategory.FITNESS -> MfColors.Cobalt
-        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.Blaze
-    }
+/** Lessons are told apart by words and by their motion study, not by colour: both kinds sit on the black plate. */
+val TrainingCategory.accent: Color get() = MfColors.Plate
 
-/** Text colour that reads on [accent] used as a field. */
-val TrainingCategory.onAccent: Color
-    get() = when (this) {
-        TrainingCategory.FITNESS -> MfColors.OnCobalt
-        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.OnBlaze
-    }
+/** Text on a plate. */
+val TrainingCategory.onAccent: Color get() = Color.White
 
-/** On the black workout screen. */
-val TrainingCategory.accentOnNight: Color
-    get() = when (this) {
-        TrainingCategory.FITNESS -> Color(0xFF8A96FF)
-        TrainingCategory.FIGHTING_FUNDAMENTALS -> MfColors.Blaze
-    }
+/** Live numbers on the workout plate. */
+val TrainingCategory.accentOnNight: Color get() = MfColors.Yellow
 
-/** Text colour for a field of [c] (one of the two category colours). */
-fun onField(c: Color): Color = if (c == MfColors.Blaze) MfColors.OnBlaze else Color.White
+/** Text colour for a field of [c]. */
+fun onField(c: Color): Color = if (c == MfColors.Yellow) Color.Black else Color.White
 
-/** Archivo (variable, OFL): one family; width and weight carry the hierarchy. */
-@OptIn(ExperimentalTextApi::class)
-private fun archivo(weight: Int, width: Float) = Font(
-    R.font.archivo,
-    weight = FontWeight(weight),
-    style = FontStyle.Normal,
-    variationSettings = FontVariation.Settings(FontVariation.weight(weight), FontVariation.width(width)),
+/** Barlow: everything you read. */
+val BodyFont = FontFamily(
+    Font(R.font.barlow_regular, FontWeight.Normal),
+    Font(R.font.barlow_medium, FontWeight.Medium),
+    Font(R.font.barlow_semibold, FontWeight.SemiBold),
+    Font(R.font.barlow_bold, FontWeight.Bold),
+)
+/** Barlow Semi Condensed: screen titles and section heads. */
+val DisplayFont = FontFamily(
+    Font(R.font.barlow_semicond_semibold, FontWeight.SemiBold),
+    Font(R.font.barlow_semicond_bold, FontWeight.Bold),
+)
+val TitleFont = BodyFont
+/** Barlow Condensed: numbers you read from a distance (reps, time). */
+val NumeralFont = FontFamily(
+    Font(R.font.barlow_cond_semibold, FontWeight.SemiBold),
+    Font(R.font.barlow_cond_bold, FontWeight.Bold),
+    Font(R.font.barlow_cond_extrabold, FontWeight.ExtraBold),
 )
 
-/** Extra-wide, heavy: headlines and big numbers, the "poster" voice. */
-val DisplayFont = FontFamily(archivo(700, 125f), archivo(800, 125f), archivo(900, 125f))
-/** Semi-wide: card and section titles. */
-val TitleFont = FontFamily(archivo(600, 110f), archivo(700, 110f))
-/** Narrowest, heaviest: big numbers only (minutes, reps, the timer). */
-val NumeralFont = FontFamily(archivo(800, 62f), archivo(900, 62f))
-/** Normal width: everything you read. */
-val BodyFont = FontFamily(archivo(400, 100f), archivo(500, 100f), archivo(600, 100f), archivo(700, 100f))
-
-private val scheme = androidx.compose.material3.lightColorScheme(
+private val scheme = lightColorScheme(
     primary = MfColors.Ink,
     onPrimary = Color.White,
     primaryContainer = MfColors.Raised,
     onPrimaryContainer = MfColors.Ink,
-    secondary = MfColors.Blaze,
+    secondary = MfColors.Yellow,
     onSecondary = Color.Black,
-    background = MfColors.Ground,
+    background = MfColors.Silver,
     onBackground = MfColors.Ink,
-    surface = MfColors.Ground,
+    surface = MfColors.Silver,
     onSurface = MfColors.Ink,
     surfaceVariant = MfColors.Raised,
-    onSurfaceVariant = MfColors.Slate,
-    surfaceContainer = MfColors.Paper,
-    surfaceContainerHigh = MfColors.Paper,
-    surfaceContainerLow = MfColors.Paper,
+    onSurfaceVariant = MfColors.Graphite,
+    surfaceContainer = MfColors.Sheet,
+    surfaceContainerLow = MfColors.Sheet,
+    surfaceContainerHigh = MfColors.Sheet,
+    surfaceContainerHighest = MfColors.Raised,
     outline = MfColors.Rule,
     outlineVariant = MfColors.Rule,
     error = MfColors.Halt,
@@ -133,7 +129,7 @@ private val nightScheme = darkColorScheme(
     onPrimary = Color.Black,
     primaryContainer = MfColors.NightRaised,
     onPrimaryContainer = Color.White,
-    secondary = MfColors.Blaze,
+    secondary = MfColors.Yellow,
     onSecondary = Color.Black,
     background = MfColors.Night,
     onBackground = MfColors.OnNight,
@@ -150,43 +146,43 @@ private val nightScheme = darkColorScheme(
 )
 
 private val typography = Typography(
-    displayLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Black, fontSize = 64.sp, lineHeight = 60.sp, letterSpacing = (-0.02).em),
-    displayMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Black, fontSize = 48.sp, lineHeight = 46.sp, letterSpacing = (-0.02).em),
-    displaySmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 34.sp, lineHeight = 34.sp, letterSpacing = (-0.015).em),
-    headlineLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 31.sp, letterSpacing = (-0.015).em),
-    headlineMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.ExtraBold, fontSize = 25.sp, lineHeight = 27.sp, letterSpacing = (-0.01).em),
-    headlineSmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 22.sp, letterSpacing = (-0.005).em),
-    titleLarge = TextStyle(fontFamily = TitleFont, fontWeight = FontWeight.Bold, fontSize = 17.sp, lineHeight = 21.sp),
+    displayLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 48.sp, lineHeight = 50.sp, letterSpacing = (-0.01).em),
+    displayMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 40.sp, lineHeight = 42.sp, letterSpacing = (-0.01).em),
+    displaySmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 34.sp, lineHeight = 37.sp),
+    headlineLarge = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 33.sp),
+    headlineMedium = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 24.sp, lineHeight = 28.sp),
+    headlineSmall = TextStyle(fontFamily = DisplayFont, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 24.sp),
+    titleLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, lineHeight = 23.sp),
     titleMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
     titleSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
     bodyLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
     bodyMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 21.sp),
-    bodySmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 17.sp),
-    labelLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp),
+    bodySmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 18.sp),
+    labelLarge = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 18.sp),
     labelMedium = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 17.sp),
-    labelSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp),
+    labelSmall = TextStyle(fontFamily = BodyFont, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
 )
 
-// radii follow hierarchy: pictures are nearly square-cut, blocks softer, buttons are pills
 private val shapes = Shapes(
-    extraSmall = RoundedCornerShape(2.dp),
-    small = RoundedCornerShape(2.dp),
-    medium = RoundedCornerShape(3.dp),
-    large = RoundedCornerShape(4.dp),
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(6.dp),
+    medium = RoundedCornerShape(6.dp),
+    large = RoundedCornerShape(10.dp),
 )
 
-/** Big narrow numbers. */
+/** Big numbers in Barlow Condensed with tabular figures, so a ticking timer never jumps. */
 object MfType {
-    val Numeral = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.Black, fontSize = 64.sp, lineHeight = 60.sp, letterSpacing = (-0.01).em)
-    val NumeralHuge = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.Black, fontSize = 148.sp, lineHeight = 132.sp, letterSpacing = (-0.02).em)
-    val NumeralSmall = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 30.sp)
+    val Numeral = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.ExtraBold, fontSize = 56.sp, lineHeight = 56.sp, fontFeatureSettings = "tnum")
+    /** About 20 mm tall on a typical phone: readable from 2 m (10 mm per metre). */
+    val NumeralHuge = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.ExtraBold, fontSize = 120.sp, lineHeight = 112.sp, fontFeatureSettings = "tnum")
+    val NumeralSmall = TextStyle(fontFamily = NumeralFont, fontWeight = FontWeight.Bold, fontSize = 26.sp, lineHeight = 28.sp, fontFeatureSettings = "tnum")
 }
 
-/** Light "gym floor" theme; [night] = the black workout screen. */
+/** Light "motion lab" theme; [night] = the black workout plate. */
 @Composable
 fun MotionForgeTheme(night: Boolean = false, content: @Composable () -> Unit) {
     val cs = if (night) nightScheme else scheme
     MaterialTheme(colorScheme = cs, typography = typography, shapes = shapes) {
-        androidx.compose.runtime.CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides cs.onBackground, content = content)
+        CompositionLocalProvider(androidx.compose.material3.LocalContentColor provides cs.onBackground, content = content)
     }
 }

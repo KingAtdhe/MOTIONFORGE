@@ -1,5 +1,8 @@
 package eu.motionforge.app.feature.lesson
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -81,30 +84,50 @@ fun LessonDetailScreen(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice: (String) -> Unit) {
+    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val prefsFlow = androidx.compose.runtime.remember { (appContext as eu.motionforge.app.MotionForgeApplication).container.preferences.preferences }
+    val coach = prefsFlow.collectAsState(initial = null).value?.coach ?: eu.motionforge.app.core.model.Coach.DEFAULT
+    var study by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
+            .padding(bottom = 104.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Box {
-            TrainerDemo(exercise)
+            if (study) {
+                eu.motionforge.app.core.design.MotionStudy(
+                    coach.studyArt(exercise.id),
+                    Modifier.fillMaxWidth().height(460.dp),
+                    description = "Motion study of ${exercise.name}: several moments of the movement on one picture",
+                )
+            } else {
+                TrainerDemo(exercise)
+            }
             androidx.compose.material3.IconButton(onClick = onBack, modifier = Modifier.padding(4.dp)) {
                 androidx.compose.material3.Icon(
                     androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = eu.motionforge.app.core.design.onField(exercise.category.accent),
+                    tint = androidx.compose.ui.graphics.Color.White,
                 )
             }
+            eu.motionforge.app.core.design.SegmentedPill(
+                options = listOf("3D coach", "Motion study"),
+                selectedIndex = if (study) 1 else 0,
+                onSelect = { study = it == 1 },
+                modifier = Modifier.align(Alignment.TopEnd).padding(10.dp),
+                compact = true,
+            )
         }
-        Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(exercise.name, style = MaterialTheme.typography.displaySmall, modifier = Modifier.semantics { heading() })
             Text(exercise.purpose, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Column {
-            eu.motionforge.app.core.design.HeavyRule()
+            eu.motionforge.app.core.design.MeasureScale()
             Row(Modifier.padding(top = 10.dp)) {
                 LessonFact(eu.motionforge.app.core.design.formatClock(exercise.durationSeconds), "Length", Modifier.weight(1f))
                 LessonFact(exercise.level.displayName, "Level", Modifier.weight(1f))
@@ -119,8 +142,6 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
                 color = MfColors.Caution,
             )
         }
-
-        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) }, trailing = eu.motionforge.app.core.design.formatClock(exercise.durationSeconds))
 
         Panel {
             Eyebrow("Safety")
@@ -180,6 +201,16 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             )
         }
         }
+    }
+    Box(
+        Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        PrimaryButton("Start practice", onClick = { onStartPractice(exercise.id) }, trailing = eu.motionforge.app.core.design.formatClock(exercise.durationSeconds))
+    }
     }
 }
 

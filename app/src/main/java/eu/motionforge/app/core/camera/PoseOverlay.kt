@@ -19,7 +19,7 @@ fun PoseOverlay(
     frame: PoseFrame,
     modifier: Modifier = Modifier,
     minVisibility: Float = 0.6f,
-    confidentColor: Color = Color(0xFF6EE7B7),
+    confidentColor: Color = Color.White,
     uncertainColor: Color = Color(0x66FFFFFF),
 ) {
     Canvas(modifier = modifier) {
@@ -52,10 +52,12 @@ fun PoseOverlay(
                 cap = StrokeCap.Round,
             )
         }
-        frame.landmarks.forEach { lm ->
+        // joints as small timing-yellow marks: the "geometric chronophotograph" look of the motion studies
+        frame.landmarks.forEachIndexed { i, lm ->
+            if (i in 1..10) return@forEachIndexed   // face points: keep the trace about the body, not the face
             drawCircle(
-                color = if (lm.visibility >= minVisibility) confidentColor else uncertainColor,
-                radius = 7f,
+                color = if (lm.visibility >= minVisibility) Color(0xFFFFD60A) else uncertainColor,
+                radius = 6f,
                 center = lm.toOffset(),
             )
         }

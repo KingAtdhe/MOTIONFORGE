@@ -77,10 +77,9 @@ object Routes {
 private data class TopLevelDestination(val route: String, val label: String, val icon: ImageVector)
 
 private val topLevel = listOf(
-    TopLevelDestination(Routes.HOME, "Home", Icons.Filled.Home),
-    TopLevelDestination(Routes.TRAIN, "Train", Icons.Filled.PlayArrow),
-    TopLevelDestination(Routes.PROGRESS, "Progress", Icons.Filled.DateRange),
-    TopLevelDestination(Routes.PROFILE, "Profile", Icons.Filled.Person),
+    TopLevelDestination(Routes.HOME, "Today", Icons.Filled.Home),
+    TopLevelDestination(Routes.TRAIN, "Moves", Icons.Filled.PlayArrow),
+    TopLevelDestination(Routes.PROFILE, "You", Icons.Filled.Person),
 )
 
 private fun NavHostController.navigateTopLevel(route: String) = navigate(route) {
@@ -128,7 +127,7 @@ fun MotionForgeApp(
                                 colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
                                     selectedIconColor = eu.motionforge.app.core.design.MfColors.Ink,
                                     selectedTextColor = eu.motionforge.app.core.design.MfColors.Ink,
-                                    indicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    indicatorColor = eu.motionforge.app.core.design.MfColors.Yellow,
                                     unselectedIconColor = eu.motionforge.app.core.design.MfColors.Slate,
                                     unselectedTextColor = eu.motionforge.app.core.design.MfColors.Slate,
                                 ),
@@ -191,14 +190,18 @@ fun MotionForgeApp(
                 )
             }
             composable(Routes.PROGRESS) {
-                ProgressScreen(history = history, coach = preferences.coach, onStartSession = {
-                    container.activeSession.clear()
-                    navController.navigate(Routes.quickSession())
-                })
+                // older links to Progress land on You
+                LaunchedEffect(Unit) { navController.navigateTopLevel(Routes.PROFILE) }
             }
             composable(Routes.PROFILE) {
-                ProfileScreen(
+                eu.motionforge.app.feature.settings.YouScreen(
+                    history = history,
                     preferences = preferences,
+                    coach = preferences.coach,
+                    onStartSession = {
+                        container.activeSession.clear()
+                        navController.navigate(Routes.quickSession())
+                    },
                     onOpenTechnicalChecks = { navController.navigate(Routes.SPIKES) },
                     onResetData = onResetData,
                 )
@@ -254,7 +257,7 @@ fun MotionForgeApp(
                         onClose = { navController.popBackStack() },
                         onOpenProgress = {
                             navController.popBackStack()
-                            navController.navigateTopLevel(Routes.PROGRESS)
+                            navController.navigateTopLevel(Routes.PROFILE)
                         },
                     )
                 }

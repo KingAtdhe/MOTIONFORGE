@@ -51,10 +51,16 @@ import java.time.format.DateTimeFormatter
 /** [history] is null while loading. */
 @Composable
 fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: () -> Unit) {
-    ScreenColumn(title = "Progress") {
+    ScreenColumn(title = "Progress") { ProgressContent(history, coach, onStartSession) }
+}
+
+/** Progress as part of a page: this week, the last four weeks and the history contact sheet. */
+@Composable
+fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List<SessionRecord>?, coach: Coach, onStartSession: () -> Unit) {
+    run {
         if (history == null) {
             Text("Loading your history…")
-            return@ScreenColumn
+            return
         }
         val zone = remember { ZoneId.systemDefault() }
         val summary = remember(history) { ProgressStats.summarize(history, LocalDate.now(zone), zone) }
@@ -64,7 +70,8 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
             StatTile("${summary.minutesThisWeek}", "Minutes this week", Modifier.weight(1f))
         }
 
-        WeekDots(summary.trainedDaysThisWeek, LocalDate.now(zone).dayOfWeek)
+        eu.motionforge.app.core.design.SectionHeader("This week")
+        eu.motionforge.app.core.design.WeekTicks(summary.trainedDaysThisWeek, LocalDate.now(zone).dayOfWeek)
 
         if (history.isEmpty()) {
             Panel {
@@ -76,7 +83,7 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
                 )
             }
             PrimaryButton("Start a short session", onClick = onStartSession)
-            return@ScreenColumn
+            return
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -111,8 +118,8 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
             history.forEachIndexed { i, r ->
                 if (i > 0) eu.motionforge.app.core.design.ThinRule()
                 Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.width(64.dp).height(80.dp).background(r.type.accent)) {
-                        r.exercises.firstOrNull()?.let { CoachArt(coach.lessonArt(it.exerciseId), Modifier.fillMaxSize().padding(top = 4.dp)) }
+                    r.exercises.firstOrNull()?.let {
+                        eu.motionforge.app.core.design.MotionStudy(coach.studyArt(it.exerciseId), Modifier.width(64.dp).height(80.dp), crop = true)
                     }
                     Column(Modifier.padding(horizontal = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(Instant.ofEpochMilli(r.startedAtMillis).atZone(zone).format(dateFormat), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -133,32 +140,3 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
     }
 }
 
-/** Mon–Sun as seven blocks, filled black on days you trained. Text label per day, so it's not colour-only. */
-@Composable
-private fun WeekDots(trained: Set<DayOfWeek>, today: DayOfWeek) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        eu.motionforge.app.core.design.SectionHeader("This week")
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            DayOfWeek.values().forEach { d ->
-                val done = d in trained
-                val name = d.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.weight(1f).semantics(mergeDescendants = true) {
-                        contentDescription = "$name: " + if (done) "trained" else "no session"
-                    },
-                ) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .background(if (done) MfColors.Ink else androidx.compose.ui.graphics.Color.Transparent)
-                            .then(if (!done) Modifier.border(if (d == today) 3.dp else 1.dp, if (d == today) MfColors.Ink else MfColors.Rule) else Modifier),
-                    )
-                    Text(name.take(2), style = MaterialTheme.typography.labelMedium, color = if (d == today) MfColors.Ink else MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-    }
-}

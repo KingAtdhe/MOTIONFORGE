@@ -151,10 +151,29 @@ class SessionViewModel(
         }
     }
 
+    // The last few seconds of steadily tracked body points, kept in memory only, for the session plate.
+    private val trail = ArrayDeque<eu.motionforge.app.core.pose.PoseFrame>()
+    private var lastTrailMs = 0L
+
+    /** Up to [count] evenly spaced poses from the last tracked seconds of work (empty without the camera). */
+    fun plateFrames(count: Int = 8): List<eu.motionforge.app.core.pose.PoseFrame> {
+        if (trail.size < 4) return emptyList()
+        val n = minOf(count, trail.size)
+        return List(n) { i -> trail[i * (trail.size - 1) / (n - 1).coerceAtLeast(1)] }
+    }
+
     /** Pose results from the camera (main thread). */
     fun onPose(output: PoseOutput) {
         val trackingState = evaluator.update(output)
         _tracking.value = trackingState
+        val now = clock()
+        if (output is PoseOutput.Detected && trackingState.allowsFeedback && _state.value.phase == SessionPhase.RUNNING &&
+            _state.value.currentStep is SessionStep.Work && now - lastTrailMs >= 160
+        ) {
+            lastTrailMs = now
+            trail.addLast(output.frame)
+            while (trail.size > 24) trail.removeFirst()
+        }
         val s = _state.value
         val step = s.currentStep
         if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps && output is PoseOutput.Detected) {
