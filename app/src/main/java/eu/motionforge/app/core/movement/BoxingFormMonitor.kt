@@ -57,8 +57,10 @@ class BoxingFormMonitor(
     private val handsLowBelowShoulder: Double = 0.15,
     private val feetNarrow: Double = 0.75,
     private val feetWide: Double = 2.1,
-    private val extendedRatio: Double = 0.86,
-    private val guardRatio: Double = 0.70,
+    private val extendedRatio: Double = 0.60,
+    private val guardRatio: Double = 0.50,
+    /** An extended arm only counts as a jab with the hand around shoulder height (not hanging by the side). */
+    private val jabHeight: Double = 0.6,
     private val returnMs: Long = 1_500,
     private val minJabMs: Long = 400,
     private val minFrontalRatio: Double = 0.40,
@@ -185,7 +187,9 @@ class BoxingFormMonitor(
                 val lead = if (leadIsLeft) rl else rr
                 val rear = if (leadIsLeft) rw else lw
                 val t = f.timestampMs
-                if (!extended && lead > extendedRatio && t - lastJabAt > minJabMs) {
+                val leadWrist = if (leadIsLeft) lw else rw
+                val atShoulderHeight = leadWrist.y * h < shoulderY + jabHeight * sw
+                if (!extended && lead > extendedRatio && atShoulderHeight && t - lastJabAt > minJabMs) {
                     extended = true; extendedAt = t; jabCount++; lastJabAt = t; rearDroppedThisJab = false; slowThisJab = false
                 }
                 if (extended) {

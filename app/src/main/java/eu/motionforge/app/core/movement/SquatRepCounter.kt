@@ -28,7 +28,9 @@ enum class SquatIssue(override val message: String, override val spoken: String)
  * (hip–knee–ankle, 2D, averaged over the legs that are clearly visible, smoothed over a short window).
  *
  * Form rules, evaluated over the frames of each cycle and reported once when it ends:
- * - [SquatIssue.RUSHED]: the way down took less than [minDescentMs].
+ * - [SquatIssue.RUSHED]: the way down, from leaving the top to the deepest point, took less than [minDescentMs]
+ *   (a drop rather than a lowering). Timed to the deepest point, not to counting depth: the middle of even a slow
+ *   descent passes counting depth quickly, which flagged controlled squats on the rendered test videos.
  * - [SquatIssue.KNEES_IN]: camera roughly in front, and at the bottom the knees are clearly closer together
  *   than the ankles (ratio below [kneesInRatio]) in most bottom frames.
  * - [SquatIssue.CHEST_DROP]: camera roughly from the side, and at the bottom the hip→shoulder line leans more than
@@ -52,7 +54,7 @@ class SquatRepCounter(
     private val minVisibility: Float = 0.6f,
     private val minRepMs: Long = 700,
     private val smoothingWindow: Int = 3,
-    private val minDescentMs: Long = 550,
+    private val minDescentMs: Long = 500,
     private val kneesInRatio: Double = 0.75,
     private val maxLeanDegrees: Double = 60.0,
     private val shallowAngle: Double = 135.0,
@@ -64,6 +66,7 @@ class SquatRepCounter(
     private var phase = RepPhase.UNKNOWN
     private var cycleStartMs = 0L
     private var bottomAtMs = 0L
+    private var deepestAtMs = 0L
     private var minAngle = 180.0
     private var frontalBottom = 0
     private var kneesInBottom = 0
@@ -86,6 +89,7 @@ class SquatRepCounter(
     private fun startCycle(t: Long) {
         cycleStartMs = t
         bottomAtMs = 0L
+        deepestAtMs = t
         minAngle = 180.0
         frontalBottom = 0; kneesInBottom = 0; sideBottom = 0; leanBottom = 0
     }
@@ -102,7 +106,10 @@ class SquatRepCounter(
         val t = frame.timestampMs
         var event: RepEvent? = null
 
-        if (phase == RepPhase.DESCENDING || phase == RepPhase.BOTTOM) minAngle = minOf(minAngle, angle)
+        if ((phase == RepPhase.DESCENDING || phase == RepPhase.BOTTOM) && angle < minAngle) {
+            minAngle = angle
+            deepestAtMs = t
+        }
         when (phase) {
             RepPhase.UNKNOWN -> if (angle >= standingAngle) phase = RepPhase.TOP
             RepPhase.TOP -> if (angle < standingAngle - DESCENT_MARGIN) {
@@ -132,7 +139,7 @@ class SquatRepCounter(
     }
 
     private fun issuesOfCycle(): Set<FormCue> = buildSet {
-        if (bottomAtMs > 0 && bottomAtMs - cycleStartMs < minDescentMs) add(SquatIssue.RUSHED)
+        if (bottomAtMs > 0 && deepestAtMs - cycleStartMs < minDescentMs) add(SquatIssue.RUSHED)
         if (frontalBottom >= minRuleFrames && kneesInBottom >= ruleFraction * frontalBottom) add(SquatIssue.KNEES_IN)
         if (sideBottom >= minRuleFrames && leanBottom >= ruleFraction * sideBottom) add(SquatIssue.CHEST_DROP)
     }

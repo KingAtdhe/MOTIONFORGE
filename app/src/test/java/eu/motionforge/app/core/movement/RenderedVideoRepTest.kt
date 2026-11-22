@@ -70,5 +70,7 @@ class RenderedVideoRepTest {
         val table = results.joinToString("\n") { r -> "${if (r.got == r.expected) "ok  " else "FAIL"} ${r.name} (${r.exercise}) expected ${r.expected} got ${r.got} | ${r.detail}" }
         println(table)
         assertTrue("Rendered-video counts:\n$table", results.all { it.got == it.expected })
+        // the coaches lower with control: no rep of theirs may be called rushed
+        assertTrue("Controlled coach squats flagged as rushed:\n$table", results.none { "RUSHED" in it.detail })
     }
 }
