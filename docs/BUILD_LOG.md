@@ -929,3 +929,19 @@ punch lessons now say to face the phone.
 **Not counted:** rolls (head moves only ±0.13 and dips 0.06 — one roll would read as two slips); footwork (spec:
 guided timing drill, no automatic scoring — the renders show steps would be easy to count: hips shift 0.3–0.4 torso
 lengths per step, if that changes).
+
+## 2026-11-23 — Training plans and rep-based progress
+**Plans** (`feature/plan/TrainingPlans.kt`): Foundations (no equipment), Boxing basics, Dumbbell strength — 4 weeks,
+3 sessions a week, days alternating A/B. Camera-counted moves have a rep target per week; the target is one more than
+the last counted set for that exercise, never below the plan's number and never more than 6 above it
+(`PlanProgression`). With the camera counting, a set ends the moment the target is reached (the timer is a cap of
+~4 s a rep); without the camera the target is guidance. The coach announces "12 reps" instead of seconds and says
+when the target is reached. Plan state is two local preferences (active plan, sessions done); saving a plan session
+moves the plan on (never backwards, never twice). Home: with a plan, today's plate and the start button are the next
+plan session with its targets, and "Your plan" shows a tick per session (done / next / to come) with "Leave plan";
+without one, the three plans to start. Targets are fixed when a session opens.
+**Progress:** "Reps" section — per exercise the last 8 counted sets as bars, last count, best, and "New best" when
+the latest set beats every earlier one. No streaks (kept from the original "no pressure mechanics" rule).
+**Summary:** each set shows "target reached" or "of a 12 target". Tests: `TrainingPlansTest` (catalog coverage,
+keys, target rules, weeks/days, set ends at target, target survives the app being killed, trends). Screenshot
+`12_home_plan`.

@@ -108,9 +108,10 @@ fun HomeScreen(
     // with a plan, today's session is the plan's next one
     val quick = planSession ?: quickSession
     val start = if (planSession != null) onStartPlanSession else onStartQuickSession
-    val planLabel = activePlan?.takeIf { planSession != null }?.let { p ->
+    val planLabel = activePlan?.takeIf { planSession != null }?.name
+    val planHeading = activePlan?.takeIf { planSession != null }?.let { p ->
         val i = preferences.planSessionsDone
-        "${p.name} · week ${p.weekOf(i) + 1}"
+        "Week ${p.weekOf(i) + 1} · day ${p.dayOf(i).label}"
     }
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -154,7 +155,7 @@ fun HomeScreen(
                         if (!reduce) LaunchedEffect(quick) {
                             while (true) { kotlinx.coroutines.delay(4200); active = (active + 1) % moveCount }
                         }
-                        TodayPlate(quick, coach, active, start, side, eyebrow = planLabel ?: "Today")
+                        TodayPlate(quick, coach, active, start, side, eyebrow = planLabel ?: "Today", heading = planHeading ?: quick.title)
                         Filmstrip(quick, coach, active, side)
                         PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
                     } else {
@@ -232,7 +233,7 @@ fun HomeScreen(
 
 /** Today's session: each move's exposures playing in turn on a black plate, the session's name and length under it. */
 @Composable
-private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: () -> Unit, modifier: Modifier, eyebrow: String = "Today") {
+private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: () -> Unit, modifier: Modifier, eyebrow: String = "Today", heading: String = plan.title) {
     val minutes = (plan.totalSeconds + 30) / 60
     val moves = plan.steps.filterIsInstance<SessionStep.Work>()
     val shown = moves[active.coerceIn(0, moves.lastIndex)]
@@ -264,7 +265,7 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: ()
             MeasureScale(Modifier.align(Alignment.BottomCenter).padding(horizontal = 14.dp, vertical = 10.dp), color = Color.White.copy(alpha = 0.5f))
         }
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(plan.title, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.weight(1f))
+            Text(heading, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.weight(1f))
             Text("$minutes", style = MfType.Numeral)
             Text(" min", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
         }
