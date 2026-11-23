@@ -131,3 +131,20 @@ stance_m_front|standing_knee_crunch|0
 curl_f_front|dumbbell_overhead_triceps_extension|0
 march_f_front|dumbbell_reverse_fly|0
 stance_m_front|boxing_jab_jab_cross|0
+# batch 5 (2026-11-23): dumbbell squat, dumbbell reverse lunge, standing oblique crunch (each knee lift), double jab (per pair)
+dbsquat_f_front|dumbbell_squat|3
+dbsquat_m_side|dumbbell_squat|3
+dblunge_f_side|dumbbell_reverse_lunge|4
+dblunge_m_front|dumbbell_reverse_lunge|4
+obl_f_front|standing_oblique_crunch|8
+obl_m_q45|standing_oblique_crunch|8
+dj_f_front|boxing_double_jab|3
+dj_m_q45|boxing_double_jab|3
+dj_m_front_south|boxing_double_jab|3
+neg_idle_knee_m_front|standing_oblique_crunch|0
+neg_idle_knee_m_front|boxing_double_jab|0
+squat_f_front|standing_oblique_crunch|0
+dbsquat_f_front|standing_oblique_crunch|0
+stance_m_front|boxing_double_jab|0
+stance_m_front|dumbbell_squat|0
+march_f_front|dumbbell_reverse_lunge|0

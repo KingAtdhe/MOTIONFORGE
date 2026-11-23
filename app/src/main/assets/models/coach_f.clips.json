@@ -24,6 +24,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_double_jab",
+      "durationSeconds": 1.733,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_guard_return",
       "durationSeconds": 3.0,
       "reviewStatus": "draft_pending_coach_review"
@@ -139,8 +144,18 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "db_reverse_lunge",
+      "durationSeconds": 7.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "db_shoulder_press",
       "durationSeconds": 2.7,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "db_squat",
+      "durationSeconds": 3.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -236,6 +251,11 @@
     {
       "name": "mountain_climber_slow",
       "durationSeconds": 3.133,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "oblique_crunch",
+      "durationSeconds": 5.067,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

@@ -1944,5 +1944,159 @@
     ],
     "limitations": "This is a guided drill. The camera does not score footwork.",
     "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_squat",
+    "name": "Dumbbell Squat",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_squat",
+    "purpose": "Add light load to the bodyweight squat with a dumbbell held at each side.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Master the bodyweight squat first. Use a light weight you can control for every rep. Stop if you feel pain in your knees, hips or back.",
+    "instructions": [
+      "Stand with feet about shoulder-width apart, a dumbbell in each hand, arms long at your sides, palms facing in.",
+      "Sit your hips back and down, knees following the direction of your toes.",
+      "Keep your chest up and let the weights hang straight down.",
+      "Push through the whole foot to stand tall."
+    ],
+    "commonCues": [
+      "Arms long, shoulders down.",
+      "Knees follow the toes.",
+      "Stand all the way up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Letting the heels lift",
+        "adjustment": "Sit back a little more and go only as low as your heels stay down."
+      },
+      {
+        "mistake": "Shrugging the weights up",
+        "adjustment": "Let the arms hang; the legs do the work."
+      }
+    ],
+    "limitations": "The camera counts repetitions from your knee angle; it does not judge technique or the load. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_reverse_lunge",
+    "name": "Dumbbell Reverse Lunge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_reverse_lunge",
+    "purpose": "The reverse lunge with a light dumbbell in each hand, alternating legs.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor, with room to step back.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Learn the bodyweight reverse lunge first. Use light weights and step back only as far as you can control. Stop if you feel pain in your knees or hips.",
+    "instructions": [
+      "Stand tall with a dumbbell in each hand, arms long at your sides.",
+      "Step one foot back and lower until the back knee is a hand's width above the floor.",
+      "Keep the front knee over the middle of the foot and the chest tall.",
+      "Push through the front foot to step back to standing, then switch legs."
+    ],
+    "commonCues": [
+      "Step back, drop straight down.",
+      "Weights hang still.",
+      "Drive through the front heel."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Letting the weights swing",
+        "adjustment": "Slow down and keep the arms relaxed and long."
+      },
+      {
+        "mistake": "Front knee collapsing inward",
+        "adjustment": "Keep the knee pointing over the middle toes; take a shorter step."
+      }
+    ],
+    "limitations": "The camera counts each lunge from how far your hips lower; it does not judge technique or the load. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "standing_oblique_crunch",
+    "name": "Standing Oblique Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "oblique_crunch",
+    "purpose": "Lift one knee out to the side while bending sideways toward it, for the sides of your core without lying down.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Move slowly and keep your balance; stand near a wall if you feel unsteady. Do not pull on your head or neck. Stop if you feel pain in your back or hips.",
+    "instructions": [
+      "Stand tall with your fingertips lightly at the sides of your head, elbows wide.",
+      "Lift one knee up and out to the side.",
+      "At the same time bend sideways so that elbow comes down toward the knee.",
+      "Lower the foot, stand tall, and switch sides."
+    ],
+    "commonCues": [
+      "Knee out, elbow down.",
+      "Bend sideways, not forward.",
+      "Stand tall between reps."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Twisting forward instead of bending sideways",
+        "adjustment": "Keep the chest facing forward and shorten the side of your waist."
+      },
+      {
+        "mistake": "Pulling the head down with the hand",
+        "adjustment": "Keep the fingertips light; the elbow follows your side."
+      }
+    ],
+    "limitations": "The camera counts each knee lift from how high your knee rises; it does not judge technique. Face the phone with your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_double_jab",
+    "name": "Double Jab",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_double_jab",
+    "purpose": "Practise two quick jabs in a row, bringing the hand back to the face between them.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw a jab and bring it back toward your face.",
+      "As it comes back, throw the second jab.",
+      "Return the hand to guard and reset before the next pair."
+    ],
+    "commonCues": [
+      "Snap, snap, home.",
+      "Rear hand stays on the chin.",
+      "Don't lean in on the second jab."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Only half-returning the first jab",
+        "adjustment": "Bring it back at least to chin level before the second."
+      },
+      {
+        "mistake": "Leaning forward on the second jab",
+        "adjustment": "Keep your head over your stance; reach with the arm, not the body."
+      }
+    ],
+    "limitations": "The camera counts each double jab as one; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

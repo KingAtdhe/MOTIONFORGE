@@ -79,6 +79,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     KNEE_LIFT("Knee check", "Keep your whole body in view, facing the phone or side-on.",
         "Each knee lift is counted when the foot comes back down.",
         "That one was low. Lift the knee a little higher if it's comfortable."),
+    SIDE_KNEE_LIFT("Knee check", "Face the phone with your whole body in view.",
+        "Each knee lift is counted when the foot comes back down.",
+        "That one was low. Lift the knee a little higher if it's comfortable."),
     OVERHEAD("Triceps check", "Keep your upper body and arms in view, hands visible above your head.",
         "Each rep is counted when your arms are straight overhead again.",
         "That one didn't go the full way."),
@@ -87,9 +90,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     companion object {
         /** Which counter a lesson uses, or null when the camera does not count that lesson. */
         fun forExercise(id: String): CountedMove? = when (id) {
-            "bodyweight_squat", "sumo_squat" -> SQUAT
+            "bodyweight_squat", "sumo_squat", "dumbbell_squat" -> SQUAT
             "push_up", "knee_push_up", "incline_push_up" -> PUSH_UP
-            "reverse_lunge", "split_squat", "forward_lunge", "side_lunge" -> LUNGE
+            "reverse_lunge", "split_squat", "forward_lunge", "side_lunge", "dumbbell_reverse_lunge" -> LUNGE
             "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack",
             "dumbbell_hammer_curl", "dumbbell_front_raise" -> ARM_LIFT
             "dumbbell_overhead_triceps_extension" -> OVERHEAD
@@ -100,8 +103,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "glute_bridge" -> BRIDGE
             "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
             "boxing_one_two", "boxing_one_two_hook" -> PUNCH
-            "boxing_jab_jab_cross" -> COMBO
+            "boxing_jab_jab_cross", "boxing_double_jab" -> COMBO
             "high_knee_march", "standing_knee_crunch" -> KNEE_LIFT
+            "standing_oblique_crunch" -> SIDE_KNEE_LIFT
             "boxing_slip" -> SLIP
             else -> null
         }
@@ -126,6 +130,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             COMBO -> ComboRepCounter()
             SLIP -> SlipRepCounter()
             KNEE_LIFT -> KneeLiftRepCounter()
+            // the knee goes out to the side, so it rises less (peaks ~0.47 above standing, against ~0.6 in front)
+            SIDE_KNEE_LIFT -> KneeLiftRepCounter(travel = 0.38)
             OVERHEAD -> OverheadDropRepCounter()
             null -> null
         }

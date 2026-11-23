@@ -978,3 +978,24 @@ clip_audit clean (no foot slide, floor contact steady). Lessons: 50 total; motio
   3/3 front, 3/4, and a southpaw (mirrored) video.
 Fixture checks: +22 lines in pose_fixtures/expected.txt. `tools/pose_tests/landmarks.py`: the model path line was
 broken (quoted expression), fixed.
+
+## 2026-11-23 (afternoon) — Batch 5: dumbbell squat, dumbbell reverse lunge, standing oblique crunch, double jab
+Clips (authored_clips.py, batch 5), both coaches rebuilt:
+- `db_squat`: the squat path (92 % depth) with dumbbells hanging, palms in. First render: the weights sat against
+  the knees at the bottom — the hands now move out with the knees (11 → 19 cm from the shoulder line).
+- `db_reverse_lunge`: the validated reverse lunge with dumbbells (the lunge already hangs the arms).
+- `oblique_crunch`: hands by the ears; the knee lifts out to the side (peak: knee 16 cm below the hip, 30 cm out)
+  while the trunk side-bends ~15° toward it. First render: the shin was flung out sideways (foot target too far out,
+  knee pole sideways) — the foot now stays under the knee and the knee points up-and-out; first audit: 1.5 cm slide
+  from the toe turning out at lift-off — the toe-out and sideways move now start once the foot is off the floor (0.4 cm).
+- `boxing_double_jab`: two jabs, the hand back to the face between them.
+clip_audit (both coaches): planted-foot slide ≤ 0.6 cm, no floor drift; peak accelerations at the level of the
+existing squat / lunge / jab clips. Renders checked front, side and 3/4 at the key frames.
+Lessons: 54. Plans: Boxing basics day A adds the double jab; Dumbbell strength adds the dumbbell squat (A) and the
+dumbbell reverse lunge (B).
+**Counting** (rendered videos through the app's pose model, all exact): dumbbell squat 3/3 front and side
+(squat counter, no form flags); dumbbell reverse lunge 4/4 side and front (lunge counter); double jab 3/3 front,
+3/4 and southpaw, one per pair (`ComboRepCounter`); oblique crunch 8/8 front and 3/4 with its own threshold
+(`SIDE_KNEE_LIFT`, travel 0.38: the knee goes out, so it rises less — 6/8 with the knee crunch's 0.45; 0.38 keeps
+every squat video at 0). **Known limit:** side-on, the far knee is hidden when it lifts away from the camera, so only
+the near leg counts (4 of 8) — the lesson says to face the phone.

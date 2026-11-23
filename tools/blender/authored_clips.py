@@ -551,6 +551,8 @@ def _squat_pose(r, st, u, a, t, width=1.02, toe=20.0, lean_max=40.0, shin=33.0, 
 
     def arms(pts):
         res = {}
+        if arms_mode == "hang":                                  # dumbbells hanging at the sides, palms in
+            return {s: hang(r, pts, s, sg, out=0.11 + 0.08 * u, fwd=0.0, reach=0.985) for s, sg in SIDES}   # wider as the knees come out (first render: weights against the knees)
         if arms_mode == "chest":                                 # hands together in front of the chest
             for s, sg in SIDES:
                 S = pts["S_" + s]
@@ -2239,6 +2241,94 @@ def jab_jab_cross(r, st):
     return out
 
 
+# =============================================================================================== batch 5 (2026-11-23)
+def db_squat(r, st):
+    """Bodyweight squat path with a dumbbell hanging in each hand, palms in, arms long beside the legs."""
+    segs, T = _rep_segments(st, 0.4, 2.0, 0.3, 1.45, 0.45)
+    n = frames(T)
+    return [_squat_pose(r, st, 0.92 * _phases(T * i / (n - 1), segs), 0.0, T * i / (n - 1), arms_mode="hang")
+            for i in range(n)]
+
+
+def db_reverse_lunge(r, st):
+    """The validated reverse lunge (right then left) with dumbbells hanging at the sides."""
+    return reverse_lunge(r, st)
+
+
+OBL_SIGN = 1.0
+
+
+def oblique_crunch(r, st):
+    """Standing oblique crunch: hands by the ears, elbows wide; one knee lifts out to the side (hip opened ~35 deg)
+    while the trunk bends sideways so that elbow comes down toward it; back to standing; then the other side.
+    Stepping as the knee crunch (planted foot, pelvis height from the standing leg)."""
+    Ts = 1.8 * st["tempo"]
+    steps = 4
+    T = Ts * steps
+    n = frames(T)
+    w = 0.092 * r.k
+    lift, side = 0.34 * r.k, 0.12 * r.k                            # foot stays under the knee (first render: shin flung out)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        step = int(t / Ts) % steps
+        u = (t / Ts) % 1.0
+        up_side = "L" if step % 2 == 0 else "R"
+        usg = 1.0 if up_side == "L" else -1.0
+        feet = {}
+        gs = 0.0
+        for s, sg in SIDES:
+            g = 0.0
+            if s == up_side:
+                g = math.sin(math.pi * smoother((u - 0.12) / 0.76))
+                gs = g
+            # the toe turns out and the foot moves sideways only once it is off the floor (first audit: 1.5 cm slide
+            # from the foot pivoting at lift-off)
+            f = r.foot(s, sg * w, r.ankle0[s].y, sg * (6.0 + 30.0 * g * g), pitch=25.0 * g)
+            feet[s] = (f[0] + V(sg * side * g ** 1.5, -0.05 * r.k * g, lift * g), f[1], f[2])
+        c = gs ** 1.2
+        b = breath(t, T / 2, 0.3)
+        # side bend toward the lifted knee (roll), the pelvis shifts a little over the standing foot
+        sp = torso_spec(V(-0.022 * r.k * usg * gs, r.P0.y + 0.004 * r.k, 0), roll=-3.0 * usg * gs, pitch=2.0 + 2.0 * c,
+                        spine=1.0, chest=-1.0, br=b * 0.6, head_pitch=1.5)
+        bend = OBL_SIGN * 24.0 * usg * c                         # trunk side bend toward the lifted knee
+        sp["spi"] = Ry(bend * 0.45) @ sp["spi"]
+        sp["che"] = Ry(bend) @ sp["che"]
+        sp["nek"] = Ry(bend * 0.8) @ sp["nek"]
+        sp["hed"] = Ry(bend * 0.6) @ sp["hed"]
+        sp["feet"] = feet
+        sp["kpole"] = {s: (V(sg * 0.65, -0.55, 0.55) if s == up_side else V(sg * 0.10, -1, 0)) for s, sg in SIDES}
+        stand = "R" if up_side == "L" else "L"
+        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
+        z_other = r.fit_z(sp, 0.996, sides=(up_side,))
+        ws = 0.5 + 0.5 * math.sin(math.pi * u)
+        sp["pos"].z = min(z_stand, lerp(z_other, z_stand, ws)) - 0.005 * r.k
+
+        def arms(pts):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                wpos = S + V(-sg * 0.045 * r.k, 0.035 * r.k, 0.205 * r.k)
+                res[s] = {"w": wpos, "pole": V(sg * 1.0, -0.15, 0.25), "fingers": V(-sg * 0.3, 0.2, 1.0).normalized(), "palm": V(-sg * 0.2, -1.0, 0.0)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def double_jab(r, st):
+    """Two quick jabs (the second starts as the first comes back), then a moment in guard."""
+    T = 2.6
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        j = max(_punch_curve(t, 0.30, 0.36, 0.08, 0.34), _punch_curve(t, 0.92, 0.36, 0.10, 0.40))
+        jh = max(_punch_curve(t + 0.05, 0.30, 0.36, 0.08, 0.34), _punch_curve(t + 0.05, 0.92, 0.36, 0.10, 0.40))
+        out.append(_stance_pose(r, st, t, e_jab=j, loop=T, hip={"e_jab": jh}))
+    return out
+
+
 # which clips show which prop (tools/blender/coach_props.py adds the meshes and keys their visibility)
 PROPS_BY_CLIP = {
     "db_curl": ("dumbbell_L", "dumbbell_R"), "db_shoulder_press": ("dumbbell_L", "dumbbell_R"),
@@ -2248,6 +2338,7 @@ PROPS_BY_CLIP = {
     "band_pull_apart": ("band",),
     "db_hammer_curl": ("dumbbell_L", "dumbbell_R"), "db_front_raise": ("dumbbell_L", "dumbbell_R"),
     "db_reverse_fly": ("dumbbell_L", "dumbbell_R"), "db_overhead_triceps": ("dumbbell_L", "dumbbell_R"),
+    "db_squat": ("dumbbell_L", "dumbbell_R"), "db_reverse_lunge": ("dumbbell_L", "dumbbell_R"),
     "incline_pushup_down": ("bench",), "incline_pushup_up": ("bench",),
 }
 
@@ -2317,6 +2408,10 @@ def build_all(arm, height, name):
     # batch 4 (2026-11-23)
     for name, fn in (("knee_crunch", knee_crunch), ("db_reverse_fly", db_reverse_fly), ("db_overhead_triceps", db_overhead_triceps),
                      ("boxing_jab_jab_cross", jab_jab_cross)):
+        r.write(name, fn(r, st))
+    # batch 5 (2026-11-23)
+    for name, fn in (("db_squat", db_squat), ("db_reverse_lunge", db_reverse_lunge), ("oblique_crunch", oblique_crunch),
+                     ("boxing_double_jab", double_jab)):
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]
