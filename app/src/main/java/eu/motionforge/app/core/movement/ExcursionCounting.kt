@@ -213,3 +213,79 @@ class CalfRaiseRepCounter(travel: Double = 0.07) : ExcursionRepCounter(+1, trave
         return if (feet.isEmpty()) null else feet.average()
     }
 }
+
+/**
+ * Hooks and uppercuts: the punching elbow comes up from the guard (tucked, ~0.4–0.5 torso lengths below the
+ * shoulder) toward shoulder height. Signal: the higher of the visible elbows, above the shoulders, in torso lengths.
+ * The arm doesn't straighten in these punches, so the jab's reach rule can't see them.
+ */
+class PunchRepCounter(travel: Double = 0.20) : ExcursionRepCounter(+1, travel, minRepMs = 250) {
+    override fun signal(f: PoseFrame): Double? {
+        val (s, h, len) = f.torso() ?: return null
+        if (tilt(s, h) > 40.0) return null
+        val lifts = ARMS.filter { (sh, el, _) -> f.seen(sh, el) }.map { (sh, el, _) -> (f.px(sh).second - f.px(el).second) / len }
+        return lifts.maxOrNull()
+    }
+}
+
+/**
+ * Slips: the head moves sideways off its resting line (nose relative to the hips, in torso lengths). The resting line
+ * is learnt slowly while the head is in the middle, so a stance that leans a little to one side doesn't count; each
+ * slip to either side is one rep.
+ */
+class SlipRepCounter(private val travel: Double = 0.10, private val minRepMs: Long = 250) : RepCounter {
+    private var count = 0
+    private var phase = RepPhase.UNKNOWN
+    private var base = 0.0
+    private var extreme = 0.0
+    private var outSinceMs = 0L
+    private var lastGoodMs = -1L
+    private val window = ArrayDeque<Double>()
+    override val repetitions: Int get() = count
+
+    override fun reset() { count = 0; lose() }
+    private fun lose() { phase = RepPhase.UNKNOWN; window.clear(); lastGoodMs = -1L }
+
+    override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
+        val raw = if (tracking) lateral(frame) else null
+        if (raw == null) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
+            lose(); return RepUpdate(count, phase, null)
+        }
+        lastGoodMs = frame.timestampMs
+        window.addLast(raw)
+        while (window.size > 3) window.removeFirst()
+        val x = window.average()
+        val t = frame.timestampMs
+        var event: RepEvent? = null
+        when (phase) {
+            RepPhase.UNKNOWN -> { phase = RepPhase.TOP; base = x }
+            RepPhase.TOP -> {
+                base += 0.08 * (x - base)                                     // slow: follows the stance, not a slip
+                if (abs(x - base) > travel) { phase = RepPhase.BOTTOM; extreme = abs(x - base); outSinceMs = t }
+            }
+            RepPhase.DESCENDING, RepPhase.BOTTOM -> {
+                val d = abs(x - base)
+                extreme = maxOf(extreme, d)
+                if (d < extreme - 0.8 * travel) {
+                    if (t - outSinceMs >= minRepMs) { count++; event = RepEvent.RepCompleted(count, emptySet()) }
+                    phase = RepPhase.TOP
+                }
+            }
+        }
+        return RepUpdate(count, phase, x, event)
+    }
+
+    private fun lateral(f: PoseFrame): Double? {
+        val vis = { l: BodyLandmark -> f[l].visibility >= 0.6f }
+        if (!listOf(BodyLandmark.NOSE, BodyLandmark.LEFT_SHOULDER, BodyLandmark.RIGHT_SHOULDER, BodyLandmark.LEFT_HIP, BodyLandmark.RIGHT_HIP).all(vis)) return null
+        val w = f.imageWidth.toDouble(); val h = f.imageHeight.toDouble()
+        val sx = (f[BodyLandmark.LEFT_SHOULDER].x + f[BodyLandmark.RIGHT_SHOULDER].x) / 2.0 * w
+        val sy = (f[BodyLandmark.LEFT_SHOULDER].y + f[BodyLandmark.RIGHT_SHOULDER].y) / 2.0 * h
+        val hx = (f[BodyLandmark.LEFT_HIP].x + f[BodyLandmark.RIGHT_HIP].x) / 2.0 * w
+        val hy = (f[BodyLandmark.LEFT_HIP].y + f[BodyLandmark.RIGHT_HIP].y) / 2.0 * h
+        val len = hypot(sx - hx, sy - hy)
+        if (len < 5.0) return null
+        return (f[BodyLandmark.NOSE].x * w - hx) / len
+    }
+}

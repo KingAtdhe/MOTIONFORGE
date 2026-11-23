@@ -64,6 +64,12 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     BRIDGE("Bridge check", "Put the phone side-on at floor level, body in view.",
         "Each rep is counted when your hips come back down.",
         "That one didn't go the full way."),
+    PUNCH("Punch check", "Face the phone with your upper body and both arms in view — turned away, the far arm is hidden.",
+        "Each punch is counted when your hand comes back to guard.",
+        "That one didn't come up fully."),
+    SLIP("Slip check", "Face the phone with your head and upper body in view.",
+        "Each slip is counted when your head comes back to the middle.",
+        "That one was small. Move your head a little further off the line if it's comfortable."),
     CALF_RAISE("Calf raise check", "Keep your whole body, feet included, in view.",
         "Each rep is counted when your heels come back down.",
         "That one didn't go the full way."),
@@ -81,6 +87,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             // the bodyweight hip hinge stays instructional only (spec); the loaded hinges are counted, never judged
             "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
+            "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut" -> PUNCH
+            "boxing_slip" -> SLIP
             else -> null
         }
 
@@ -99,6 +107,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             HINGE -> HingeRepCounter()
             BRIDGE -> BridgeRepCounter()
             CALF_RAISE -> CalfRaiseRepCounter()
+            PUNCH -> PunchRepCounter()
+            SLIP -> SlipRepCounter()
             null -> null
         }
     }

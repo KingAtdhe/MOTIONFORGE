@@ -1295,7 +1295,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_lead_hook",
     "purpose": "Practise the lead-hand hook slowly in the air: a short, bent-arm movement driven by turning the body.",
     "space": "Clear space around you of at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -1326,7 +1326,7 @@
         "adjustment": "Keep the rear fist next to your face throughout."
       }
     ],
-    "limitations": "The camera does not assess this movement. No power, impact or technique scoring.",
+    "limitations": "The camera counts each hook from your elbow coming up to shoulder height; it does not judge power or technique. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1336,7 +1336,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_slip",
     "purpose": "Practise moving your head a short distance off the centre line with a small bend of the knees and body, then returning.",
     "space": "Clear space around you of at least an arm's length. Nothing and nobody within reach.",
@@ -1367,7 +1367,7 @@
         "adjustment": "Keep both fists by your face as you move."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera counts each slip from your head moving off the centre line and back. Face the phone with your head and upper body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1420,7 +1420,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_rear_uppercut",
     "purpose": "Practise the rear-hand uppercut slowly in the air: a short upward punch driven by the legs and hips.",
     "space": "Clear space around you of at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -1447,7 +1447,7 @@
         "adjustment": "Keep the lead fist by your face."
       }
     ],
-    "limitations": "The camera does not assess this movement. No power, impact or technique scoring.",
+    "limitations": "The camera counts each uppercut from your elbow driving up; it does not judge power or technique. Face the phone with both arms in view — turned away, the rear arm is hidden. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1457,7 +1457,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_lead_uppercut",
     "purpose": "Practise the lead-hand uppercut slowly in the air.",
     "space": "Clear space around you of at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -1484,7 +1484,7 @@
         "adjustment": "Keep the fist close and rising straight up."
       }
     ],
-    "limitations": "The camera does not assess this movement. No power, impact or technique scoring.",
+    "limitations": "The camera counts each uppercut from your elbow driving up; it does not judge power or technique. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1494,7 +1494,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_rear_hook",
     "purpose": "Practise the rear-hand hook slowly in the air, turning the body through with the rear foot.",
     "space": "Clear space around you of at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -1521,7 +1521,7 @@
         "adjustment": "Let the rear heel lift and turn."
       }
     ],
-    "limitations": "The camera does not assess this movement. No power, impact or technique scoring.",
+    "limitations": "The camera counts each hook from your elbow coming up to shoulder height; it does not judge power or technique. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

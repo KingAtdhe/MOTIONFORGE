@@ -86,8 +86,37 @@ def run(path,c,verbose=False):
     if verbose:
         for i in range(0,len(trace),15): print("  ",i//15," ".join(trace[i:i+15]))
     return c.count,st
-if __name__=="__main__":
+if __name__=="__main__" and False:
     k=sys.argv[1]
     for p in sys.argv[2:]:
         n,st=run(p,KINDS[k](),verbose="-v" in sys.argv); 
         if p!="-v": print(p.split('/')[-1],k,"count",n,st)
+
+class Punch(Exc):
+    def __init__(s,tr=0.20): super().__init__(1,tr,minrep=250)
+    def sig(s,L,w,h):
+        T=torso(L,w,h)
+        if not T or tilt(T[0],T[1])>40: return None
+        v=[(L[a][1]*h-L[b][1]*h)/T[2] for a,b in ((LS,LE),(RS,RE)) if vis(L,a,b)]
+        return max(v) if v else None
+class Slip:
+    def __init__(s,tr=0.10,minrep=250): s.tr,s.minrep=tr,minrep; s.count=0; s.ph="U"; s.w=[]; s.lg=-1
+    def update(s,t,w,h,L,ok):
+        raw=None
+        if ok and L and vis(L,0,LS,RS,LH,RH):
+            T=torso(L,w,h); raw=(L[0][0]*w-T[1][0])/T[2] if T else None
+        if raw is None:
+            if s.lg>=0 and t-s.lg<=500: return None
+            s.ph="U"; s.w=[]; s.lg=-1; return None
+        s.lg=t; s.w.append(raw); s.w=s.w[-3:]; x=sum(s.w)/len(s.w)
+        if s.ph=="U": s.ph="T"; s.base=x
+        elif s.ph=="T":
+            s.base+=0.08*(x-s.base)
+            if abs(x-s.base)>s.tr: s.ph="B"; s.ext=abs(x-s.base); s.t0=t
+        else:
+            d=abs(x-s.base); s.ext=max(s.ext,d)
+            if d<s.ext-0.8*s.tr:
+                if t-s.t0>=s.minrep: s.count+=1
+                s.ph="T"
+        return x
+KINDS["punch"]=Punch; KINDS["slip"]=Slip

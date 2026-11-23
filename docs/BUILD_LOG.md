@@ -916,3 +916,16 @@ southpaw stance (mirrored video), push-ups from a phone lying sideways on the fl
 the straight arm as ~145°, top threshold 150° → 135°; an upright phone on the floor cuts the head off (the app
 asks to adjust, counts nothing) — the push-up setup tip now says to turn the phone sideways.
 Fixture checks: 72, all passing in CI.
+
+## 2026-11-23 (morning) — Hooks, uppercuts and slips counted
+Rendered every boxing and footwork drill (both coaches, front / side / 3/4) and designed the signals from the pose
+model's output: hooks and uppercuts = the punching elbow rising from the guard (−0.4…−0.5 torso lengths below the
+shoulder) toward shoulder height, ≥ 0.20 (`PunchRepCounter`; the jab's reach rule can't see a bent-arm punch);
+slips = the head (nose) moving ≥ 0.10 torso lengths off a slowly-learnt centre line and back (`SlipRepCounter`;
+stance jitter ±0.02, hooks 0.05). Verified: hooks and uppercuts 3/3 front, side, 3/4; slips 4/4 front and 3/4;
+stance, marching, jabs and hooks never count as slips. Quick moves needed a 0.25 s minimum (they spend ~0.33 s past
+the threshold). A rear uppercut filmed with the body turned away hides the punching arm: nothing is counted, and the
+punch lessons now say to face the phone.
+**Not counted:** rolls (head moves only ±0.13 and dips 0.06 — one roll would read as two slips); footwork (spec:
+guided timing drill, no automatic scoring — the renders show steps would be easy to count: hips shift 0.3–0.4 torso
+lengths per step, if that changes).

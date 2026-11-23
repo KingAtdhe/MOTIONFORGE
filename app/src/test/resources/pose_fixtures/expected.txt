@@ -76,3 +76,19 @@ pushup_m_side_floorland|push_up|3
 pushup_m_side_floorcam|push_up|0
 squat_f_front|push_up|0
 curl_f_front|push_up|0
+# hooks, uppercuts (punching elbow coming up), slips (head off the centre line)
+lhook_f_front|boxing_lead_hook|3
+rhook_m_front|boxing_rear_hook|3
+lupper_m_front|boxing_lead_uppercut|3
+lhook_m_q45|boxing_lead_hook|3
+lupper_f_side|boxing_lead_uppercut|3
+# turned away, the rear arm is hidden behind the body: nothing to count (the lesson says to face the phone)
+rupper_f_q45|boxing_rear_uppercut|0
+slip_f_front|boxing_slip|4
+slip_m_q45|boxing_slip|4
+stance_m_front|boxing_lead_hook|0
+march_f_front|boxing_rear_uppercut|0
+stance_m_front|boxing_slip|0
+lhook_f_front|boxing_slip|0
+jab_m_q45|boxing_slip|0
+lupper_m_front|boxing_slip|0
