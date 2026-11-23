@@ -56,6 +56,11 @@ SHOTS = {
     "boxing_rear_hook": ("boxing_rear_hook", ("far", "hand_R"), -35),
     "boxing_roll": ("boxing_roll", ("far", "head"), 20),
     "footwork_pivot": ("footwork_pivot", ("far", "foot_R"), 30),
+    "forward_lunge": ("forward_lunge", ("far", "hips"), 65),
+    "dumbbell_hammer_curl": ("db_hammer_curl", ("far", "hand_R"), 30),
+    "dumbbell_front_raise": ("db_front_raise", ("far", "hand_R"), 40),
+    "boxing_one_two": ("boxing_one_two", ("far", "hand_R"), -35),
+    "boxing_one_two_hook": ("boxing_one_two_hook", ("far", "hand_L"), -35),
     "hero": ("idle_neutral", 0.0, 18),
 }
 

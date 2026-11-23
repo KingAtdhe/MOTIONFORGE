@@ -72,7 +72,7 @@ object TrainingPlans {
             )),
             PlanDay("B", listOf(
                 PlanItem("boxing_stance", 45),
-                PlanItem("boxing_cross", 45),
+                PlanItem("boxing_one_two", 60, r(6, 8, 10, 12)),
                 PlanItem("boxing_lead_uppercut", 60, r(6, 8, 10, 12)),
                 PlanItem("boxing_rear_hook", 60, r(6, 8, 10, 12)),
             )),
@@ -94,6 +94,7 @@ object TrainingPlans {
                 PlanItem("standing_mobility_warmup", 60),
                 PlanItem("dumbbell_bent_over_row", 60, r(8, 10, 12, 12)),
                 PlanItem("dumbbell_lateral_raise", 60, r(8, 10, 10, 12)),
+                PlanItem("dumbbell_hammer_curl", 60, r(8, 10, 12, 12)),
                 PlanItem("dumbbell_romanian_deadlift", 60, r(8, 10, 12, 12)),
             )),
         ),

@@ -945,3 +945,18 @@ the latest set beats every earlier one. No streaks (kept from the original "no p
 **Summary:** each set shows "target reached" or "of a 12 target". Tests: `TrainingPlansTest` (catalog coverage,
 keys, target rules, weeks/days, set ends at target, target survives the app being killed, trends). Screenshot
 `12_home_plan`.
+
+## 2026-11-23 — New lessons: forward lunge, hammer curl, front raise, 1-2, 1-2-hook; side lunge counted
+Clips (authored_clips.py, batch 3), built on validated pieces: forward lunge = the reverse lunge's bottom position
+reached by stepping the front foot forward (back foot planted, heel rising); hammer curl = the curl path with the palms
+facing in (dumbbell turns with the hand: handle vertical at the top); front raise = the lateral raise's arc in front,
+palms turning down (first render: the two dumbbells' inner ends collided in front of the hips — hands widened to
+shoulder width); jab-cross and jab-cross-hook = the jab/cross/hook curves chained on the stance, hips leading.
+QC: front + side renders of all five on both coaches, close-ups of the dumbbell clips, audits (seams ≤ 6 mm; peak
+accelerations at or below the validated reverse lunge / single punches; planted-foot slide < 1 cm).
+Lessons (46 total), motion studies for both coaches. Counting, verified on renders (2 views each + negatives):
+forward lunge 2/2 (hip drop); hammer curl and front raise 3/3 (wrist height); combos counted per combination (3/3,
+2/2) — per-arm punch counting was tried and dropped: in the retimed clips punches overlap at the elbows and a guard
+elbow lifting can't be told from the next punch. Side lunge gets its own counter on the working knee (front: 174° →
+125°; the wide stance drops the hips too little for the hip-height rule): 4/4 front and 3/4.
+Plans: Boxing basics day B uses the one-two; Dumbbell strength day B adds the hammer curl.

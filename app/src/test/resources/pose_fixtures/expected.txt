@@ -92,3 +92,19 @@ stance_m_front|boxing_slip|0
 lhook_f_front|boxing_slip|0
 jab_m_q45|boxing_slip|0
 lupper_m_front|boxing_slip|0
+# new lessons (2026-11-23): forward lunge, hammer curl, front raise, combos (counted per combination), side lunge
+fwdlunge_f_front|forward_lunge|2
+fwdlunge_m_side|forward_lunge|2
+hammer_f_front|dumbbell_hammer_curl|3
+hammer_m_q45|dumbbell_hammer_curl|3
+frontraise_m_front|dumbbell_front_raise|3
+frontraise_f_side|dumbbell_front_raise|3
+onetwo_f_front|boxing_one_two|3
+onetwo_m_q45|boxing_one_two|3
+onetwohook_m_front|boxing_one_two_hook|2
+sidelunge_f_front|side_lunge|4
+sidelunge_m_q45|side_lunge|4
+march_f_front|forward_lunge|0
+stance_m_front|boxing_one_two|0
+march_f_front|side_lunge|0
+curl_f_front|side_lunge|0

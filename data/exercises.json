@@ -204,6 +204,45 @@
     "reviewStatus": "draft_pending_coach_review"
   },
   {
+    "id": "forward_lunge",
+    "name": "Forward Lunge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "forward_lunge",
+    "purpose": "Practise stepping forward into a lunge and pushing back to standing, one leg at a time.",
+    "space": "About 2 m front to back of clear, stable, non-slip floor. A wall or chair within reach for balance if you need it.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Start with a short step and a shallow depth. Keep the front knee over the foot. Stop if you feel pain in the knees, hips or back, or dizziness.",
+    "instructions": [
+      "Stand tall with your feet hip-width apart.",
+      "Step one foot forward and lower both knees until the back knee is a hand's width from the floor.",
+      "Push through the front foot to step back to standing.",
+      "Repeat with the other leg."
+    ],
+    "commonCues": [
+      "Short, controlled step.",
+      "Front knee over the foot.",
+      "Chest tall, push back with the front foot."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Front knee caving inward",
+        "adjustment": "Take a shorter step and keep the knee in line with the toes."
+      },
+      {
+        "mistake": "Leaning far forward",
+        "adjustment": "Keep the chest tall and lower straight down."
+      }
+    ],
+    "limitations": "The camera counts each lunge (either leg) from how far your hips drop. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
     "id": "glute_bridge",
     "name": "Glute Bridge",
     "category": "fitness",
@@ -452,7 +491,7 @@
     "level": "beginner",
     "durationSeconds": 60,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "side_lunge",
     "purpose": "Practise shifting your weight over one leg to the side while the other leg stays long.",
     "space": "About 2.5 m side to side of clear, non-slip floor.",
@@ -479,7 +518,7 @@
         "adjustment": "Keep the chest proud and reduce the depth."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts each side lunge from the bend of the working knee. Face the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -820,6 +859,45 @@
     "reviewStatus": "draft_pending_coach_review"
   },
   {
+    "id": "dumbbell_hammer_curl",
+    "name": "Dumbbell Hammer Curl",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_hammer_curl",
+    "purpose": "Practise curling light dumbbells with the palms facing each other.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Start with a light weight you can lift with control. Stop if you feel pain in your elbows, wrists or back.",
+    "instructions": [
+      "Stand tall with the dumbbells by your sides, palms facing in.",
+      "Keep the elbows by your sides and curl the weights up, thumbs leading.",
+      "Pause briefly.",
+      "Lower slowly all the way."
+    ],
+    "commonCues": [
+      "Elbows stay by your sides.",
+      "Thumbs up the whole way.",
+      "Slow on the way down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the body",
+        "adjustment": "Use a lighter weight and keep your torso still."
+      },
+      {
+        "mistake": "Elbows drifting forward",
+        "adjustment": "Keep the elbows close to your ribs."
+      }
+    ],
+    "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
     "id": "dumbbell_shoulder_press",
     "name": "Dumbbell Shoulder Press",
     "category": "fitness",
@@ -892,6 +970,45 @@
       {
         "mistake": "Swinging",
         "adjustment": "Slow down and pause at the bottom."
+      }
+    ],
+    "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_front_raise",
+    "name": "Dumbbell Front Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_front_raise",
+    "purpose": "Practise raising light dumbbells in front of you to shoulder height.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Use a very light weight. Raise only to shoulder height. Stop if you feel pain in your shoulders or back.",
+    "instructions": [
+      "Stand tall with the dumbbells in front of your thighs, palms facing you.",
+      "Raise your arms in front of you to shoulder height with a soft bend in the elbows.",
+      "Pause briefly.",
+      "Lower slowly."
+    ],
+    "commonCues": [
+      "Stop at shoulder height.",
+      "Ribs down, no leaning back.",
+      "Slow on the way down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back to lift the weight",
+        "adjustment": "Use a lighter weight and keep your torso still."
+      },
+      {
+        "mistake": "Raising above the shoulders",
+        "adjustment": "Stop when your hands reach shoulder height."
       }
     ],
     "limitations": "The camera counts repetitions from how high your hands rise; it does not judge technique. Keep your upper body and arms in view. Experimental.",
@@ -1212,6 +1329,80 @@
       }
     ],
     "limitations": "The camera counts crosses and checks that the lead hand stays up and the punch comes back to guard. It does not judge power, speed or accuracy. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_one_two",
+    "name": "Jab-Cross (1-2)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_one_two",
+    "purpose": "Practise linking the jab and the cross into the basic one-two combination.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw the jab and bring it back.",
+      "As the jab returns, throw the cross, turning the rear hip and heel.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Jab back as the cross goes.",
+      "Turn the rear hip and heel.",
+      "Hands home to guard."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the lead hand during the cross",
+        "adjustment": "Bring the jab all the way back to your face first."
+      },
+      {
+        "mistake": "Rushing the combination",
+        "adjustment": "Slow down until both punches are clean."
+      }
+    ],
+    "limitations": "The camera counts each one-two combination; it does not judge power, speed or accuracy. Throw the two punches as one flowing combination, facing the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_one_two_hook",
+    "name": "Jab-Cross-Hook (1-2-3)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_one_two_hook",
+    "purpose": "Practise adding a lead hook to the one-two.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw the jab, then the cross.",
+      "As the cross returns, throw a lead hook: elbow up to shoulder height, turn from the lead foot and hips.",
+      "Return to guard and reset."
+    ],
+    "commonCues": [
+      "Each punch starts as the last one comes home.",
+      "Hook elbow at shoulder height.",
+      "Hands home to guard."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Winding up the hook",
+        "adjustment": "Throw it from where your hand is, turning the hips."
+      },
+      {
+        "mistake": "Rear hand dropping during the hook",
+        "adjustment": "Keep the rear hand by your chin."
+      }
+    ],
+    "limitations": "The camera counts each jab-cross-hook combination; it does not judge power, speed or accuracy. Throw the three punches as one flowing combination, facing the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

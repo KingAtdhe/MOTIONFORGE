@@ -185,3 +185,11 @@ if __name__=="__main__":
         c={"lunge2":Lunge2,"squat":Squat,"pushup":PushUp,"kpushup":lambda:PushUp(knees=True),"lunge":Lunge}[kind]()
         n,ev,st=run(p,c,verbose="-v" in sys.argv[0:1] or len(sys.argv)==3)
         print(p.split('/')[-1], "count",n, ev, st)
+
+class SideLunge(Cycle):
+    def __init__(s,top=160,bottom=140,shallow=150): super().__init__(top,bottom,shallow)
+    def angle(s,L,w,h):
+        v=[x for x in (ang(L,LH,LK,LA,w,h),ang(L,RH,RK,RA,w,h)) if x is not None]
+        tl=torso_tilt(L,w,h)
+        if not v or tl is None or tl>50: return None
+        return min(v)

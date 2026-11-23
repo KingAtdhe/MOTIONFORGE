@@ -29,6 +29,7 @@ class DemoClipsTest {
         "incline_pushup_down", "incline_pushup_up", "kb_deadlift_down", "kb_deadlift_up", "knee_pushup_down",
         "knee_pushup_up", "mountain_climber_slow", "side_lunge", "split_squat", "sumo_squat_down", "sumo_squat_up",
         "superman",
+        "forward_lunge", "db_hammer_curl", "db_front_raise", "boxing_one_two", "boxing_one_two_hook",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */

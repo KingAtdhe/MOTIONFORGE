@@ -80,14 +80,16 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
         fun forExercise(id: String): CountedMove? = when (id) {
             "bodyweight_squat", "sumo_squat" -> SQUAT
             "push_up", "knee_push_up", "incline_push_up" -> PUSH_UP
-            "reverse_lunge", "split_squat" -> LUNGE
-            "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack" -> ARM_LIFT
+            "reverse_lunge", "split_squat", "forward_lunge", "side_lunge" -> LUNGE
+            "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack",
+            "dumbbell_hammer_curl", "dumbbell_front_raise" -> ARM_LIFT
             "dumbbell_bent_over_row" -> ROW
             "band_pull_apart" -> BAND
             // the bodyweight hip hinge stays instructional only (spec); the loaded hinges are counted, never judged
             "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
-            "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut" -> PUNCH
+            "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
+            "boxing_one_two", "boxing_one_two_hook" -> PUNCH
             "boxing_slip" -> SLIP
             else -> null
         }
@@ -95,12 +97,13 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
         /** How far the wrists must rise (torso lengths) for each arm-lift lesson. */
         private val ARM_TRAVEL = mapOf(
             "dumbbell_biceps_curl" to 0.45, "dumbbell_shoulder_press" to 0.45, "dumbbell_lateral_raise" to 0.40, "step_jack" to 0.90,
+            "dumbbell_hammer_curl" to 0.45, "dumbbell_front_raise" to 0.40,
         )
 
         fun counterFor(id: String): RepCounter? = when (forExercise(id)) {
             SQUAT -> SquatRepCounter()
             PUSH_UP -> PushUpRepCounter(bodyLineToKnees = id == "knee_push_up")
-            LUNGE -> LungeRepCounter()
+            LUNGE -> if (id == "side_lunge") SideLungeRepCounter() else LungeRepCounter()
             ARM_LIFT -> ArmLiftRepCounter(travel = ARM_TRAVEL.getValue(id), minRepMs = if (id == "step_jack") 300 else 700)
             ROW -> RowRepCounter()
             BAND -> BandPullRepCounter()
@@ -318,6 +321,29 @@ class PushUpRepCounter(
             if (sag >= ruleFraction * sideBottom) add(PushUpIssue.HIPS_SAG)
             else if (pike >= ruleFraction * sideBottom) add(PushUpIssue.HIPS_PIKE)
         }
+    }
+}
+
+/**
+ * Side lunge, filmed from the front: the working knee bends sideways in plain view (rendered test videos: 174° standing,
+ * ~125° at the bottom), while the wide stance lowers the hips too little for the lunge's hip-height rule. Counts the
+ * more-bent knee from [topAngle] down past [bottomAngle] and back, while the torso stays fairly upright.
+ */
+class SideLungeRepCounter(
+    // at an angle the far knee reads ~156–168° even standing, and only ~0.6 s of a lunge shows below 140°
+    topAngle: Double = 152.0,
+    bottomAngle: Double = 140.0,
+    shallowAngle: Double = 146.0,
+    private val maxTilt: Double = 50.0,
+) : CycleRepCounter(topAngle, bottomAngle, shallowAngle, minRepMs = 500) {
+    override fun angle(f: PoseFrame): Double? {
+        val tilt = f.torsoFromVertical() ?: return null
+        if (tilt > maxTilt) return null
+        val knees = listOfNotNull(
+            f.angleAt(BodyLandmark.LEFT_HIP, BodyLandmark.LEFT_KNEE, BodyLandmark.LEFT_ANKLE),
+            f.angleAt(BodyLandmark.RIGHT_HIP, BodyLandmark.RIGHT_KNEE, BodyLandmark.RIGHT_ANKLE),
+        )
+        return knees.minOrNull()
     }
 }
 
