@@ -163,3 +163,11 @@ ch_f_front|boxing_body_jab|0
 jjc_f_front|boxing_body_jab|0
 neg_idle_knee_m_front|boxing_body_jab|0
 march_f_front|boxing_body_jab|0
+# clip fixes (2026-11-23 night): the corrected clips still count exactly
+reg_incline_f_q45|incline_push_up|3
+reg_pushup_m_side|push_up|3
+reg_hkmarch_f_side|high_knee_march|8
+reg_obl_f_front|standing_oblique_crunch|8
+reg_kcrunch_m_q45|standing_knee_crunch|8
+reg_onetwo_f_front|boxing_one_two|3
+reg_jjc_m_q45|boxing_jab_jab_cross|3

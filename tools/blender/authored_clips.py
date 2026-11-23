@@ -240,10 +240,16 @@ class Rig:
             zh = zh.normalized() if zh.length > 1e-6 else zf
             xh = fing.cross(zh)
             # the forearm takes half of the wrist's pronation / supination, as the real forearm does over its length
+            # The twist is read from both hand axes, each weighted by how square it sits to the forearm. Reading it from
+            # the palm axis alone was ill-conditioned with the wrist bent back 90 deg (push-ups, planks: the palm normal
+            # runs along the forearm) and the forearm flipped up to 69 deg in one frame (QC).
             zp = zh - yf * zh.dot(yf)
-            if zp.length > 1e-4:
-                zp.normalize()
-                tw = math.atan2(zf.cross(zp).dot(yf), zf.dot(zp))
+            xp = xh - yf * xh.dot(yf)
+            cz, sz = zf.dot(zp), zf.cross(zp).dot(yf)               # angle of the hand's z about the forearm
+            cx, sx = xf.dot(xp), xf.cross(xp).dot(yf)               # angle of the hand's x about the forearm
+            c_, s_ = cz * zp.length + cx * xp.length, sz * zp.length + sx * xp.length
+            if c_ * c_ + s_ * s_ > 1e-8:
+                tw = math.atan2(s_, c_)
                 tw = max(-1.2, min(1.2, tw)) * 0.5
                 rot = Matrix.Rotation(tw, 3, yf)
                 xf, zf = rot @ xf, rot @ zf
@@ -317,6 +323,8 @@ class Rig:
 RETIME_DEFAULT = (2.2, 1.2)
 RETIME = {name: (1.0, 1.0) for name in ("idle_neutral", "warmup_march", "high_knee_march", "step_jack", "arm_circles",
                                          "plank_hold", "boxing_stance")}
+# knee lifts: the default warp sped the lifts up 1.2x and the pauses 2.2x -- rushed, snappy lifts (QC); gentler here
+RETIME.update({"knee_crunch": (1.4, 1.0), "oblique_crunch": (1.4, 1.0), "mountain_climber_slow": (1.6, 1.0)})
 # clips whose hands rest on the floor: the upper back must not lag, or the planted hands would slide
 PLANTED_HANDS = ("pushup_", "knee_pushup_", "incline_pushup_", "plank_hold", "mountain_climber_slow", "bird_dog",
                  "cat_cow", "superman", "glute_bridge")
@@ -461,7 +469,7 @@ def idle(r, st):
 
 
 # =============================================================================================== march
-def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9):
+def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9, win=(0.10, 0.80), soft=False):
     Ts = step_s * st["tempo"]
     steps = 4
     T = Ts * steps
@@ -479,7 +487,8 @@ def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9):
             swinging = (step % 2 == 0) == (s == "L")
             g = 0.0
             if swinging:
-                a = smoother((u - 0.10) / 0.80)
+                x = (u - win[0]) / win[1]
+                a = smooth(x) if soft else smoother(x)
                 g = math.sin(math.pi * a)
             f = r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0, pitch=34.0 * g)
             ball = f[0] + V(0, -fwd * g * g * var, lift * g * var)
@@ -692,9 +701,11 @@ def _pushup_geometry(r, st):
                 hi = mid
         return (lo + hi) / 2
     dx = 0.105 * r.k
-    top_z = wrist_h + math.sqrt((0.9965 * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
+    # soft elbows at the top (0.985 of the arm's reach): at 0.9965 the arms were all but locked and the elbow swung
+    # wildly whenever the planted hands were pinned (QC: forearm jitter of 5-8 cm a frame on the male coach)
+    top_z = wrist_h + math.sqrt((0.985 * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
     phi_top = solve_phi(top_z, 0.0)
-    phi_bot = solve_phi(wrist_h + 0.175 * r.k, 1.0)
+    phi_bot = solve_phi(wrist_h + st.get("bottom_h", 0.175) * r.k, 1.0)
     top = shoulders(phi_top, 0.0)
     wrist = {s: V(top["S_" + s].x + sg * dx, top["S_" + s].y + 0.03 * r.k, wrist_h) for s, sg in SIDES}
     return body, phi_top, phi_bot, wrist, blades
@@ -821,7 +832,7 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         def straight(g, e, tgt, sg):
             """Straight punch: the fist travels the straight line from the chin with the elbow kept down behind it; the fist
             only turns over (palm down, elbow rotating out a little) in the last part of the extension."""
-            turn = smoother((e - 0.45) / 0.55)
+            turn = smoother((e - 0.20) / 0.80)                  # (QC: over 0.45-1 the fist turned ~45 deg in one frame)
             ext = {"w": tgt, "pole": V(sg * 0.5, 0.05, -0.75), "fingers": V(0, -1, 0), "palm": V(sg * 0.12, 0, -1)}
             out = mix_arm(g, ext, turn)
             out["pole"] = g["pole"].lerp(V(sg * 0.18, 0.05, -1.0), smooth(min(1.0, e * 2.0))).lerp(ext["pole"], turn)
@@ -882,7 +893,9 @@ def _punch_curve(t, start, out, hold, back):
         return 1.0
     t -= hold
     u = max(0.0, min(1.0, t / back))
-    return 1.0 - (0.5 * smoother(u) + 0.5 * (1.0 - (1.0 - u) ** 2))
+    # quick but eased return: the old curve left the hold at full speed in one frame (QC: a visible snap, hand jerk of
+    # ~3-4 cm on the male coach)
+    return 1.0 - smooth(u) ** 0.75
 
 
 def stance(r, st):
@@ -1240,7 +1253,7 @@ def glute_bridge(r, st):
             res = {}
             for s, sg in SIDES:
                 S = pts["S_" + s]
-                wz = 0.035 * k
+                wz = 0.085 * k                                   # (QC: at 0.035 the forearms sank 3 cm into the floor)
                 dx = sg * 0.11 * k
                 dy = -math.sqrt(max((0.985 * r.la) ** 2 - dx * dx - (S.z - wz) ** 2, 1e-6))
                 res[s] = {"w": V(S.x + dx, S.y + dy, wz), "pole": V(sg * 0.4, 0, -1.0), "fingers": V(sg * 0.1, -1, 0), "palm": V(0, 0, -1)}
@@ -1256,7 +1269,7 @@ def plank_hold(r, st):
     k = r.k
     T = 4.0
     n = frames(T)
-    elbow_z = 0.045 * k
+    elbow_z = 0.07 * k                                           # (QC: at 0.045 the forearms sank 1.4 cm into the floor)
     yB = 0.70 * k
 
     def body(phi):
@@ -1388,7 +1401,9 @@ def side_lunge(r, st):
 
 
 def high_knee_march(r, st):
-    return march(r, st, step_s=0.95, lift_m=0.46, fwd_m=0.24, swing=1.25)   # thigh up to about level
+    # thigh up to about level. QC: with the warm-up march's timing the knee shot up at ~3.8 m/s and dropped straight
+    # back (jerky); now a longer, evenly paced lift
+    return march(r, st, step_s=1.10, lift_m=0.46, fwd_m=0.24, swing=1.25, win=(0.05, 0.90), soft=True)
 
 
 def arm_circles(r, st):
@@ -1439,7 +1454,7 @@ def _quadruped_base(r, st, knee_y=0.20, spine=0.0, chest=0.0, head=0.0, pel_extr
         feet[s] = r.foot_toward(s, A, V(0, 1.0, -0.25))
     mid_h = (Hs["L"] + Hs["R"]) / 2
     mid_j = (r.hj["L"] + r.hj["R"]) / 2
-    wrist_h = 0.050 * k
+    wrist_h = 0.058 * k                                          # (QC: at 0.050 the palms sank ~0.8 cm into the floor)
 
     def spec(pitch):
         sp = torso_spec(V(0, 0, 0), pitch=pitch + pel_extra, spine=spine, chest=chest, head_pitch=pitch - 14.0 + head)
@@ -1524,8 +1539,9 @@ def bird_dog(r, st):
             A = A0.lerp(A_ext, e) + V(0, 0, 0.10 * k * math.sin(math.pi * e) * (1 - e))
             feet[leg] = r.foot_toward(leg, A, V(0, 1.0, -0.25).lerp(V(0, 0.2, -1.0), smooth(e)))
             sp["feet"] = feet
-            sp["kpole"] = {leg: V(0, -0.2, -1).lerp(V(0, 0, -1), e), arm_side if False else ("L" if leg == "R" else "R"): V(0, -0.3, -1)}
-            sp["kpole"] = {s: (V(0, 0.2, -1) if s == leg else V(0, -0.3, -1)) for s, _ in SIDES}
+            # the reaching leg's pole blends in with the reach (switching it at the change of side twisted the kneeling
+            # leg in one frame -- QC)
+            sp["kpole"] = {s: (V(0, -0.3, -1).lerp(V(0, 0.2, -1), smooth(e / 0.15)) if s == leg else V(0, -0.3, -1)) for s, _ in SIDES}
 
             def arms(pts, e=e):
                 res = _hands_on_floor(wrists)
@@ -1607,7 +1623,7 @@ def mountain_climber_slow(r, st):
     k = r.k
     geo = _pushup_geometry(r, st)
     body, phi_top, phi_bot, wrist, blades = geo
-    segs = [(0.3, 0, 0), (0.8 * st["tempo"], 0, 1), (0.3, 1, 1), (0.7 * st["tempo"], 1, 0), (0.2, 0, 0)]
+    segs = [(0.3, 0, 0), (1.0 * st["tempo"], 0, 1), (0.3, 1, 1), (0.9 * st["tempo"], 1, 0), (0.2, 0, 0)]
     T1 = sum(d for d, _, _ in segs)
     n = frames(T1)
     out = []
@@ -1620,7 +1636,7 @@ def mountain_climber_slow(r, st):
             sp = _pushup_pose(r, st, geo, 0.0, t)
             # the body pivots about the shoulders (hands stay planted) and the hips rise a little while the knee passes
             # under them, so the knee never brushes the floor
-            dl = 15.0 * max(0.0, math.sin(math.pi * min(1.0, e))) ** 0.6
+            dl = st.get("mc_lift", 24.0) * max(0.0, math.sin(math.pi * min(1.0, e))) ** 0.6     # (QC: at 15 deg the knee brushed the floor)
             _, pts0 = r.torso(sp)
             Sm = (pts0["S_L"] + pts0["S_R"]) / 2
             Rd = Rx(dl)
@@ -1628,18 +1644,38 @@ def mountain_climber_slow(r, st):
                 sp[key_] = Rd @ sp[key_]
             sp["pos"] = Sm + Rd @ (sp["pos"] - Sm)
             feet, _ = body(phi_top)
+            other = "L" if side == "R" else "R"
+            ob, oy, op = feet[other]
+            feet[other] = (ob, oy, op + 1.2 * dl)            # the support heel rises as the hips do (no over-reach)
             ball, yaw, pitch = feet[side]
             Hj = sp["pos"] + sp["pel"] @ r.hj[side]
             K_in = Hj + V(0, -0.36 * k, -0.05 * k)           # knee drives up toward the chest
             A_in = K_in + (V(0, 0.9, -0.30).normalized()) * r.l2[side]      # the foot hovers under the hips, off the floor
             A0 = r.ankle(side, feet[side])
-            # the foot lifts first, travels under the body, and lands back on the ball
-            A = A0.lerp(A_in, smooth(e)) + V(0, 0, 0.12 * k * math.sin(math.pi * min(1.0, e * 1.15)))
+            # The leg is driven by its joint angles: the thigh swings forward from the plank line to the chest while the
+            # knee folds early, so the knee travels forward well above the floor and the foot stays tucked up behind it.
+            # (QC: moving the ankle on a straight line made the knee drop onto the floor halfway, shin vertical.)
+            def _ang(v):                                     # angle of a direction in the body's side plane
+                return math.atan2(-v.y, -v.z)
+            th0, th1 = _ang((A0 - Hj).normalized()), _ang((K_in - Hj).normalized())
+            fl_in = _ang((A_in - K_in).normalized()) - th1   # knee flexion at the top (shin relative to thigh)
+            es = smooth(e)
+            th = lerp(th0, th1, es)
+            fl = fl_in * smooth(min(1.0, e / 0.70))          # the knee folds early (over 0.55 it snapped shut, QC)
+            thigh = V(0, -math.sin(th), -math.cos(th))
+            shin = V(0, -math.sin(th + fl), -math.cos(th + fl))
+            Kp = Hj + thigh * (r.l1[side] * 0.999)
+            A = Kp + shin * (r.l2[side] * 0.999)
+            A.x = lerp(A0.x, A_in.x, es)
+            A.z = max(A.z, lerp(A0.z, 0.11 * k, smooth(min(1.0, e / 0.25))))     # the foot never brushes the floor
             d0 = (r.foot_q(side, yaw, pitch) @ r.fv[side]).normalized()
             feet[side] = r.foot_toward(side, A, d0.lerp(V(0, 0.5, -1.0).normalized(), smooth(e)), yaw=yaw)
             sp["feet"] = feet
             sg_ = 1.0 if side == "L" else -1.0                    # the knee travels a little outside the elbow line
-            sp["kpole"] = {s: V(sg_ * 0.12 * smooth(e), -1, 0.05) if s == side else V(0, -0.2, -1) for s, _ in SIDES}
+            # The driving knee's pole turns with the thigh (the kneecap faces the floor in the plank and comes round to
+            # the front as the thigh swings forward). Switching between two fixed poles twisted the near-straight leg
+            # about its own axis in a few frames (QC: the shin spun ~45 deg per frame).
+            sp["kpole"] = {s: V(sg_ * 0.12 * es, -math.cos(th), math.sin(th)) if s == side else V(0, -0.2, -1) for s, _ in SIDES}
             out.append(sp)
     return out
 
@@ -1974,6 +2010,7 @@ def incline_pushup(r, st):
     """Push-up with the hands on a sturdy bench: same straight line from head to heels, easier angle."""
     st2 = dict(st)
     st2["wrist_h"] = (INCLINE_BENCH_H + 0.035) / r.k
+    st2["bottom_h"] = 0.25                                       # (QC: lower, the chest lay on the bench at the bottom)
     return pushup(r, st2)
 
 
@@ -2309,7 +2346,9 @@ def oblique_crunch(r, st):
         sp["nek"] = Ry(bend * 0.8) @ sp["nek"]
         sp["hed"] = Ry(bend * 0.6) @ sp["hed"]
         sp["feet"] = feet
-        sp["kpole"] = {s: (V(sg * 0.65, -0.55, 0.55) if s == up_side else V(sg * 0.10, -1, 0)) for s, sg in SIDES}
+        # the lifted knee's pole blends in with the lift: switching it while the leg is straight twisted the whole
+        # leg about its axis in one frame (glitch at the change of side)
+        sp["kpole"] = {s: V(sg * 0.10, -1, 0).lerp(V(sg * 0.65, -0.55, 0.55), gs if s == up_side else 0.0) for s, sg in SIDES}
         stand = "R" if up_side == "L" else "L"
         z_stand = r.fit_z(sp, 0.996, sides=(stand,))
         z_other = r.fit_z(sp, 0.996, sides=(up_side,))
@@ -2436,7 +2475,8 @@ PROPS_BY_CLIP = {
 STYLE = {
     # the two coaches perform the same technique; only build-related details differ
     "coach_f": {"stance": 1.0, "sway": 1.0, "arm_out": 0.085, "tempo": 1.0, "swing": 1.0, "wrist_h": 0.050},
-    "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050, "kb_lean": 64.0},
+    "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050, "kb_lean": 64.0,
+                "mc_lift": 17.0},   # longer arms: the hips sit higher in the plank, less lift needed (24 over-reached 5.7 cm)
 }
 
 

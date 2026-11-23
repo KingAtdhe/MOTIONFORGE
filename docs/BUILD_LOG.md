@@ -1018,3 +1018,30 @@ lengths from the front (0.2 needed), so `LevelChangeRepCounter` counts the level
 visible ankles, travel 0.10; dips ~0.17): 3/3 front and 3/4; stance, combos, idle and marching 0. The lesson says
 the punch itself is not checked. Pull back: not counted (like the roll) — leaning back from the front is mostly
 toward the camera.
+
+## 2026-11-23 (night) — Every clip checked: glitches and wrong movements fixed
+Checked all 58 lessons on both coaches: a numeric audit of every clip (new `tools/qc/`: per-frame joint kinks, bone
+rotation jumps, loop seams, skin below the floor, knees bending backwards, app joins) plus 8-frame contact sheets of
+every lesson from 3/4 and side, and close-ups where something looked wrong. Found and fixed:
+- **Mountain climber** (the worst): the knee dropped onto the floor halfway through every drive and the shin flicked
+  up behind (the ankle was moved on a straight line); the knee pole switched at the start of each drive and twisted the
+  straight leg (knee speed ~4.5 m/s). Now the leg is driven by joint angles (thigh swings forward, knee folds early),
+  the hips rise 24° (male 17°) so the knee clears the floor, the support heel rises with them (no over-reach), the
+  knee's pole turns with the thigh, slower timing.
+- **Standing oblique crunch**: at each change of side the whole leg twisted ~45° in one frame (pole switch) — the pole
+  now blends in with the lift.
+- **Incline push-up**: the chest lay on the bench at the bottom (the bench reached 10 cm under the body) and the
+  forearms flipped up to 69° in one frame. Bench moved so the hands are at its near edge; bottom raised.
+- **Forearm twist** (all clips): read from the palm axis alone it was ill-conditioned with the wrist bent back (push-ups,
+  planks, all fours) — now read from both hand axes. Push-ups: forearm jumps 18° → 6°.
+- **Planted hands** (bird dog, climbers, push-ups): a lifting hand was held on the floor for its first 4 cm and then
+  caught up in a few frames (a pop each time); hands re-planted 1.7 cm away so the loop jumped. Now a smooth release
+  and the same spot each time; the plank/push-up arms keep soft elbows (0.985 reach) and the body's floor correction
+  is smoothed in hand-planted clips (the male's elbows were whipping 5–8 cm a frame).
+- **Floor**: glute bridge forearms 3 cm and plank forearms 1.4 cm in the floor, all-fours palms 0.8 cm, the male's back
+  4 cm into the floor in the dead bug — all on the floor now.
+- **Toes**: snapped 35–50° in a frame when a foot pitched through level near the floor — eased in and low-passed.
+- **High-knee march / knee crunch**: knee shot up at ~3.8 m/s and straight back down — evenly paced lift, gentler warp.
+- **Punches**: the return left the hold at full speed in one frame (hand jerk 3–4 cm) — eased start; the fist turns
+  over across more of the extension.
+Remaining by design: punches are fast (the fist still turns ~30° a frame at the snap of a jab/cross).

@@ -161,11 +161,15 @@ def transfer(src_arm, dst_arm, act, scene, name):
                     # toes stay flat on the floor while the heel is raised (they bend at the ball instead of pointing down)
                     fb = src_arm.data.bones[src]
                     ball_z = (ps[src].translation + Vector(ps[src].col[1][:3]).normalized() * fb.length).z
-                    w = max(0.0, min(1.0, 1.0 - (ball_z - fb.tail_local.z) / 0.035))
+                    u_ = max(0.0, min(1.0, (ball_z - fb.tail_local.z) / 0.035))
+                    w = 1.0 - u_ * u_ * (3.0 - 2.0 * u_)
                     D = delta(src)
                     fw_ = D @ Vector((0, -1, 0))
                     flat = Matrix.Rotation(math.atan2(fw_.x, -fw_.y), 3, "Z")
-                    if fw_.z < 0 and w > 0:
+                    # eased in as the foot tips toes-down (a hard switch at level snapped the toes ~50 deg in one frame
+                    # whenever a foot pitched through level near the floor -- mountain climber, bird dog)
+                    w *= max(0.0, min(1.0, -fw_.z / 0.25))
+                    if w > 0:
                         qd, qf_ = D.to_quaternion(), flat.to_quaternion()
                         if qd.dot(qf_) < 0:
                             qf_ = -qf_
@@ -494,6 +498,21 @@ def floor_contact(arm, mesh, scene, names):
             m2.vertices.foreach_get("co", co)
             ev.to_mesh_clear()
             dzs.append(ground - float(co.reshape(-1, 3)[feet, 2].min()))
+        if CONTACTS.get(n, ("",))[0] == "hands" and len(dzs) > 8:
+            # hands on the floor: the body is moved smoothly (the lowest shoe point hops between ball, toe and the other
+            # foot as a leg drives; following it frame by frame jerked the shoulders, and the pinned arms whipped the
+            # elbows -- QC: forearm jitter up to 6 cm a frame in the mountain climber)
+            ker = (1, 2, 3, 4, 3, 2, 1)
+            h_ = len(ker) // 2
+            sm = []
+            for i in range(len(dzs)):
+                acc = wsum = 0.0
+                for j, kw in enumerate(ker):
+                    ii = min(len(dzs) - 1, max(0, i + j - h_))
+                    acc += kw * dzs[ii]; wsum += kw
+                sm.append(acc / wsum)
+            sm[0], sm[-1] = dzs[0], dzs[-1]
+            dzs = sm
         for f, dz in zip(range(a, b + 1), dzs):
             scene.frame_set(f)
             hips.location = hips.location + rest_inv @ Vector((0, 0, dz))
@@ -683,7 +702,29 @@ def settle_contacts(arm, mesh, scene, names):
         arm.animation_data.action = act
         a, b = [int(x) for x in act.frame_range]
         lock = {"L": None, "R": None}
+        home = {"L": None, "R": None}       # where each hand first planted: it plants there again (loops close exactly)
         worst = 0.0
+        # the hands' authored resting height (after the whole-body drop below): the planted weight fades out from just
+        # above it. Fading over 4-9 cm instead held a lifting hand on the floor for its first 4 cm and then let it
+        # catch up in a few frames -- a visible pop every time a hand left or reached the floor (bird dog, climbers).
+        rest = {"L": 9.0, "R": 9.0}
+        # lying on the back: the whole clip moves by one constant so the back rests on the floor (QC: the male coach's
+        # thicker back sank 4 cm into it; a per-frame shift would jitter as the limbs move)
+        back_shift = 0.0
+        if mode == "back":
+            lows = []
+            for f in range(a, b + 1):
+                scene.frame_set(f)
+                lows.append(_skin_z(mesh)[R["torso"], 2].min())
+            back_shift = -min(lows)
+        if mode in ("kneel", "hands"):
+            for f in range(a, b + 1):
+                scene.frame_set(f)
+                z = _skin_z(mesh)
+                ref = {"kneel": ("shin", "thigh")}.get(mode)
+                drop = min(z[R[k], 2].min() for k in ref) if ref else 0.0
+                for s in ("L", "R"):
+                    rest[s] = min(rest[s], z[R["hand" + s], 2].min() - drop)
         for f in range(a, b + 1):
             scene.frame_set(f)
             z = _skin_z(mesh)
@@ -720,14 +761,19 @@ def settle_contacts(arm, mesh, scene, names):
                 for s in ("L", "R"):
                     hz = z[R["hand" + s], 2].min()
                     hd = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Hand"]
-                    # planted weight: full on the floor, fading out as the hand lifts (no pop when a hand leaves or lands)
-                    wgt = max(0.0, min(1.0, (0.09 - hz) / 0.05))
+                    # planted weight: full on the floor, fading out smoothly as the hand lifts (no pop when it leaves or lands)
+                    u_ = max(0.0, min(1.0, (hz - rest[s] - 0.02) / 0.05))
+                    wgt = 1.0 - u_ * u_ * (3.0 - 2.0 * u_)
                     if wgt <= 0.0:
                         lock[s] = None
                         continue
                     W = _world(arm, hd).translation.copy()
-                    if lock[s] is None and hz < 0.015:                # pinned from the moment it really touches down
-                        lock[s] = W.copy()
+                    if lock[s] is None:                               # anchored as soon as the planted weight starts to
+                        lock[s] = W.copy()                            # rise (it rises smoothly, so the pin eases in)
+                        if home[s] is not None and (Vector((home[s].x, home[s].y)) - Vector((W.x, W.y))).length < 0.05:
+                            lock[s] = home[s].copy()
+                        elif home[s] is None:
+                            home[s] = W.copy()
                     for _ in range(3):
                         anchor = lock[s] if lock[s] is not None else W
                         full = Vector((anchor.x, anchor.y, W.z - hz))
@@ -753,6 +799,10 @@ def settle_contacts(arm, mesh, scene, names):
                         fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
                         A = _world(arm, fb).translation.copy()
                         _two_bone(arm, s, A - Vector((0, 0, fz)), limb="leg")
+                z = _skin_z(mesh)
+            if mode == "back" and abs(back_shift) > 0.002:
+                _set_world(arm, hips, Matrix.Translation(Vector((0, 0, back_shift))) @ _world(arm, hips))
+                _key(hips, loc=True)
                 z = _skin_z(mesh)
             # the back of the head never sinks into the floor
             if mode in ("back", "prone", "bridge"):
@@ -785,3 +835,48 @@ def settle_contacts(arm, mesh, scene, names):
                     _key(hips, loc=True)
         print(f"  contacts {n}: {mode}, worst remaining {worst * 100:.1f} cm", flush=True)
     arm.animation_data.action = None
+
+
+def _find_fcurve(act, path, index):
+    """F-curve lookup for both legacy and layered (Blender 4.4+) actions."""
+    if hasattr(act, "fcurves"):
+        return act.fcurves.find(path, index=index)
+    for layer in act.layers:
+        for strip in layer.strips:
+            for cb in strip.channelbags:
+                fc = cb.fcurves.find(path, index=index)
+                if fc is not None:
+                    return fc
+    return None
+
+
+def smooth_toes(arm, passes=3):
+    """Low-pass the toe bones' keys in every clip ([1 2 1] / 4, a few passes; first and last keys kept so loops and
+    down/up pairs still join). The toes flatten and lift with the ball's height above the floor, which can change a lot
+    between two frames when a foot lands or leaves (QC: toes snapping 35-50 deg in one frame -- mountain climber, bird
+    dog). Planted toes are constant, so they stay exactly where they are."""
+    from mathutils import Quaternion
+    for act in bpy.data.actions:
+        for pb in arm.pose.bones:
+            if not pb.name.endswith("ToeBase"):
+                continue
+            path = f'pose.bones["{pb.name}"].rotation_quaternion'
+            fcs = [_find_fcurve(act, path, i) for i in range(4)]
+            if not fcs or any(fc is None for fc in fcs):
+                continue
+            n = len(fcs[0].keyframe_points)
+            if n < 5 or any(len(fc.keyframe_points) != n for fc in fcs):
+                continue
+            Q = [Quaternion([fcs[i].keyframe_points[j].co[1] for i in range(4)]) for j in range(n)]
+            for j in range(1, n):
+                if Q[j].dot(Q[j - 1]) < 0:
+                    Q[j] = -Q[j]
+            for _ in range(passes):
+                Q = [Q[0]] + [Quaternion([(Q[j - 1][i] + 2 * Q[j][i] + Q[j + 1][i]) / 4 for i in range(4)]).normalized() for j in range(1, n - 1)] + [Q[-1]]
+            for j in range(n):
+                for i in range(4):
+                    fcs[i].keyframe_points[j].co[1] = Q[j][i]
+                    fcs[i].keyframe_points[j].handle_left[1] = Q[j][i]
+                    fcs[i].keyframe_points[j].handle_right[1] = Q[j][i]
+            for fc in fcs:
+                fc.update()

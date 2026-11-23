@@ -293,7 +293,9 @@ def add_props(arm, k):
     HL = _pose_world(arm, clip, int(bpy.data.actions[clip].frame_range[0]), HAND["L"])
     HR = _pose_world(arm, clip, int(bpy.data.actions[clip].frame_range[0]), HAND["R"])
     hy = (HL.translation.y + HR.translation.y) / 2
-    Mb = Matrix.Translation((0.0, hy - 0.06 * k, ac.INCLINE_BENCH_H))
+    # the hands rest at the near edge (first QC: the bench reached 10 cm under the body and the chest sank into it
+    # at the bottom of the rep)
+    Mb = Matrix.Translation((0.0, hy - 0.135 * k, ac.INCLINE_BENCH_H))
     _new_bone(arm, "bench", Mb, None)
     bm = bench_mesh(k)
     ob = _skinned_object(arm, "prop_bench", bm, Mb, {"bench": 1.0}, [pad, frame_m])

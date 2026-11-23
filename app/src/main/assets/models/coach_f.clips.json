@@ -50,12 +50,12 @@
     },
     {
       "name": "boxing_jab_jab_cross",
-      "durationSeconds": 2.433,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lead_hook",
-      "durationSeconds": 1.533,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -95,7 +95,7 @@
     },
     {
       "name": "boxing_slip",
-      "durationSeconds": 2.333,
+      "durationSeconds": 2.367,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -215,7 +215,7 @@
     },
     {
       "name": "high_knee_march",
-      "durationSeconds": 3.8,
+      "durationSeconds": 4.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -235,7 +235,7 @@
     },
     {
       "name": "incline_pushup_down",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -255,7 +255,7 @@
     },
     {
       "name": "knee_crunch",
-      "durationSeconds": 4.7,
+      "durationSeconds": 6.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -270,12 +270,12 @@
     },
     {
       "name": "mountain_climber_slow",
-      "durationSeconds": 3.133,
+      "durationSeconds": 4.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "oblique_crunch",
-      "durationSeconds": 5.067,
+      "durationSeconds": 6.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
