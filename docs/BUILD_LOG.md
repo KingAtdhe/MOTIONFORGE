@@ -960,3 +960,21 @@ forward lunge 2/2 (hip drop); hammer curl and front raise 3/3 (wrist height); co
 elbow lifting can't be told from the next punch. Side lunge gets its own counter on the working knee (front: 174° →
 125°; the wide stance drops the hips too little for the hip-height rule): 4/4 front and 3/4.
 Plans: Boxing basics day B uses the one-two; Dumbbell strength day B adds the hammer curl.
+
+## 2026-11-23 (midday) — Batch 4: knee crunch, reverse fly, overhead triceps, jab-jab-cross; knee lifts counted
+Clips (authored_clips.py, batch 4): standing knee crunch, dumbbell reverse fly, dumbbell overhead triceps extension
+(bottom: elbows up, forearms behind the head), jab-jab-cross. Both coaches rebuilt; QC sheets, close-ups and
+clip_audit clean (no foot slide, floor contact steady). Lessons: 50 total; motion studies for both coaches.
+**Counting** (verified on rendered videos through the app's pose model, 3 views each + negatives, all exact):
+- `KneeLiftRepCounter` (knee crunch, high-knee march — the march is now counted): each knee lift; 8/8 front, side,
+  3/4, and a dim-room front. Both knees high toward the hips reads as a squat and is ignored (a squat video counted
+  3 "knee lifts" before that rule).
+- `OverheadDropRepCounter` (triceps extension): the hands drop behind the head and press back up; 3/3 front, side,
+  3/4. Read only with the hands above the shoulders (a curl video counted 2 before that rule).
+- Reverse fly uses the row counter. The first rep after hinging over was 0.67 s past the threshold and was dropped
+  by the 0.7 s minimum; the row counter's minimum is now 0.5 s (existing row fixtures unchanged: 3/3, hinge 0).
+- `ComboRepCounter` (jab-jab-cross): one rep per combination, counted when the elbows have been back near the guard
+  for 0.4 s. The plain punch counter gave 2 for 3 combinations (the jab's return and the second jab overlap).
+  3/3 front, 3/4, and a southpaw (mirrored) video.
+Fixture checks: +22 lines in pose_fixtures/expected.txt. `tools/pose_tests/landmarks.py`: the model path line was
+broken (quoted expression), fixed.

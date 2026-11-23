@@ -36,7 +36,7 @@ class ArmLift(Exc):
         v=[(L[a][1]*h-L[c][1]*h)/T[2] for a,b,c in ((LS,LE,LW),(RS,RE,RW)) if vis(L,a,c)]
         return sum(v)/len(v) if v else None
 class Row(Exc):
-    def __init__(s,tr=0.22,mt=20): super().__init__(1,tr); s.mt=mt; s.st=0
+    def __init__(s,tr=0.22,mt=20): super().__init__(1,tr,minrep=500); s.mt=mt; s.st=0
     def sig(s,L,w,h):
         T=torso(L,w,h)
         if not T: return None
@@ -121,3 +121,43 @@ class Slip:
         return x
 KINDS["punch"]=Punch; KINDS["slip"]=Slip
 
+class Overhead(Exc):
+    def __init__(s,tr=0.30): super().__init__(-1,tr)
+    def sig(s,L,w,h):
+        T=torso(L,w,h)
+        if not T or tilt(T[0],T[1])>30: return None
+        v=[(L[a][1]*h-L[c][1]*h)/T[2] for a,b,c in ((LS,LE,LW),(RS,RE,RW)) if vis(L,a,c)]
+        if not v: return None
+        v=sum(v)/len(v); return None if v<0.0 else v
+class KneeLift(Exc):
+    def __init__(s,tr=0.45): super().__init__(1,tr,minrep=150)
+    def sig(s,L,w,h):
+        T=torso(L,w,h)
+        if not T or tilt(T[0],T[1])>40: return None
+        v=[(T[1][1]-L[k][1]*h)/T[2] for k in (LK,RK) if L[k][3]>=0.4]
+        if not v or (len(v)==2 and min(v)>-0.6): return None
+        return max(v)
+KINDS["overhead"]=Overhead; KINDS["knee"]=KneeLift
+
+class Combo:
+    """Per-combination punch counting (jab-jab-cross): punch signal as Punch; a combination is counted once the elbows
+    are back near the guard for >= hold ms (the guard between punches inside a combo lasts only ~0.1-0.2 s)."""
+    def __init__(s,tr=0.20,near=0.35,hold=400):
+        s.tr,s.near,s.hold=tr,near,hold; s.count=0; s.ph="U"; s.w=[]; s.lg=-1; s.events=[]; s.p=Punch(tr)
+    def update(s,t,w,h,L,ok):
+        raw=s.p.sig(L,w,h) if ok and L else None
+        if raw is None:
+            if s.lg>=0 and t-s.lg<=500: return None
+            s.ph="U"; s.w=[]; s.lg=-1; return None
+        s.lg=t; s.w.append(raw); s.w=s.w[-3:]; x=sum(s.w)/len(s.w)
+        if s.ph=="U": s.ph="T"; s.rest=x
+        elif s.ph=="T":
+            s.rest=min(s.rest,x)
+            if x>s.rest+s.tr: s.ph="B"; s.q=None
+        else:
+            if x<s.rest+s.near*s.tr:
+                if s.q is None: s.q=t
+                if t-s.q>=s.hold: s.count+=1; s.events.append(t); s.ph="T"; s.rest=x
+            else: s.q=None
+        return x
+KINDS["combo"]=Combo

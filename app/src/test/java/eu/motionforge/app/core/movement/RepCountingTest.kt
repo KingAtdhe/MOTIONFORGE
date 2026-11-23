@@ -20,6 +20,11 @@ class RepCountingTest {
         assertTrue(CountedMove.counterFor("bodyweight_squat") is SquatRepCounter)
         assertTrue(CountedMove.counterFor("knee_push_up") is PushUpRepCounter)
         assertTrue(CountedMove.counterFor("split_squat") is LungeRepCounter)
+        assertTrue(CountedMove.counterFor("boxing_jab_jab_cross") is ComboRepCounter)
+        assertTrue(CountedMove.counterFor("standing_knee_crunch") is KneeLiftRepCounter)
+        assertTrue(CountedMove.counterFor("high_knee_march") is KneeLiftRepCounter)
+        assertTrue(CountedMove.counterFor("dumbbell_overhead_triceps_extension") is OverheadDropRepCounter)
+        assertTrue(CountedMove.counterFor("dumbbell_reverse_fly") is RowRepCounter)
     }
 
     /** Standing person bending and straightening both elbows (a curl): must never count as push-ups. */

@@ -137,14 +137,18 @@ class ArmLiftRepCounter(travel: Double, private val maxTilt: Double = 40.0, minR
  * Overhead triceps extension: the arms start straight overhead and the hands drop behind the head. Signal: wrist
  * height above the shoulders, in torso lengths (as [ArmLiftRepCounter]), counted downward — one rep is the hands
  * dropping by [travel] and pressing back up. Raising the weights from the sides into the start position is a rise,
- * not a drop, so it never counts.
+ * not a drop, so it never counts; with the hands below the shoulders nothing is read at all.
  */
 class OverheadDropRepCounter(travel: Double = 0.30, private val maxTilt: Double = 30.0) : ExcursionRepCounter(-1, travel) {
     override fun signal(f: PoseFrame): Double? {
         val (s, h, len) = f.torso() ?: return null
         if (tilt(s, h) > maxTilt) return null
         val lifts = ARMS.filter { (sh, _, wr) -> f.seen(sh, wr) }.map { (sh, _, wr) -> (f.px(sh).second - f.px(wr).second) / len }
-        return if (lifts.isEmpty()) null else lifts.average()
+        if (lifts.isEmpty()) return null
+        val v = lifts.average()
+        // Only with the hands above the shoulders (the bottom of a rep is still ~0.17 above): a curl or a lowered
+        // arm never reads as a triceps rep.
+        return if (v < 0.0) null else v
     }
 }
 
@@ -162,7 +166,10 @@ class KneeLiftRepCounter(travel: Double = 0.45, private val kneeVisibility: Floa
         if (tilt(s, h) > 40.0) return null
         val knees = listOf(BodyLandmark.LEFT_KNEE, BodyLandmark.RIGHT_KNEE).filter { f[it].visibility >= kneeVisibility }
             .map { (h.second - f.px(it).second) / len }
-        return knees.maxOrNull()
+        if (knees.isEmpty()) return null
+        // Both knees high toward the hips is a squat, not a knee lift (a lift keeps the standing knee ~0.9 below).
+        if (knees.size == 2 && knees.min() > -0.6) return null
+        return knees.max()
     }
 }
 
@@ -170,7 +177,7 @@ class KneeLiftRepCounter(travel: Double = 0.45, private val kneeVisibility: Floa
  * Bent-over row: the wrists rise toward the hips/ribs while the body stays hinged. Signal: wrist height above the
  * hips, in torso lengths. Only while the torso is clearly tilted (a standing curl is not a row).
  */
-class RowRepCounter(travel: Double = 0.22, private val minTilt: Double = 20.0) : ExcursionRepCounter(+1, travel) {
+class RowRepCounter(travel: Double = 0.22, private val minTilt: Double = 20.0) : ExcursionRepCounter(+1, travel, minRepMs = 500) {
     private var standingTorso = 0.0
     override fun reset() { super.reset(); standingTorso = 0.0 }
     override fun signal(f: PoseFrame): Double? {
@@ -258,6 +265,64 @@ class PunchRepCounter(travel: Double = 0.20) : ExcursionRepCounter(+1, travel, m
         if (tilt(s, h) > 40.0) return null
         val lifts = ARMS.filter { (sh, el, _) -> f.seen(sh, el) }.map { (sh, el, _) -> (f.px(sh).second - f.px(el).second) / len }
         return lifts.maxOrNull()
+    }
+
+    /** The punch signal for [ComboRepCounter]: the higher visible elbow above the shoulders, in torso lengths. */
+    internal fun elbowLift(f: PoseFrame): Double? = signal(f)
+}
+
+/**
+ * Three-punch combinations (jab-jab-cross), counted once per combination. Same signal as [PunchRepCounter], but a
+ * combination ends only when the elbows have been back near the guard (within [near] × [travel] of it) for
+ * [holdMs]: between punches inside a combination the guard lasts ~0.1–0.2 s, after it ~1 s. Counting each punch
+ * was tried and dropped — in the retimed clips the jab's return and the next punch overlap at the elbows.
+ */
+class ComboRepCounter(
+    private val travel: Double = 0.20,
+    private val near: Double = 0.35,
+    private val holdMs: Long = 400,
+) : RepCounter {
+    private var count = 0
+    private var phase = RepPhase.UNKNOWN
+    private var rest = 0.0
+    private var quietSinceMs = -1L
+    private var lastGoodMs = -1L
+    private val window = ArrayDeque<Double>()
+    private val punch = PunchRepCounter(travel)
+    override val repetitions: Int get() = count
+
+    override fun reset() { count = 0; lose() }
+    private fun lose() { phase = RepPhase.UNKNOWN; window.clear(); lastGoodMs = -1L; quietSinceMs = -1L }
+
+    override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
+        val raw = if (tracking) punch.elbowLift(frame) else null
+        if (raw == null) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, phase, null)
+            lose(); return RepUpdate(count, phase, null)
+        }
+        lastGoodMs = frame.timestampMs
+        window.addLast(raw)
+        while (window.size > 3) window.removeFirst()
+        val x = window.average()
+        val t = frame.timestampMs
+        var event: RepEvent? = null
+        when (phase) {
+            RepPhase.UNKNOWN -> { phase = RepPhase.TOP; rest = x }
+            RepPhase.TOP -> {
+                rest = minOf(rest, x)
+                if (x > rest + travel) { phase = RepPhase.BOTTOM; quietSinceMs = -1L }
+            }
+            RepPhase.DESCENDING, RepPhase.BOTTOM -> {
+                if (x < rest + near * travel) {
+                    if (quietSinceMs < 0) quietSinceMs = t
+                    if (t - quietSinceMs >= holdMs) {
+                        count++; event = RepEvent.RepCompleted(count, emptySet())
+                        phase = RepPhase.TOP; rest = x
+                    }
+                } else quietSinceMs = -1L
+            }
+        }
+        return RepUpdate(count, phase, x, event)
     }
 }
 

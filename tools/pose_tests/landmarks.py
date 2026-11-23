@@ -6,7 +6,7 @@ from mediapipe.tasks import python as mpt
 from mediapipe.tasks.python import vision
 src, out = sys.argv[1], sys.argv[2]
 fps = int(dict(l.strip().split("=", 1) for l in open(os.path.join(src, "meta.txt")) if "=" in l)["fps"])
-opts = vision.PoseLandmarkerOptions(base_options=mpt.BaseOptions(model_asset_path="os.environ.get("POSE_MODEL", "app/src/main/assets/models/pose_landmarker_lite.task")"),
+opts = vision.PoseLandmarkerOptions(base_options=mpt.BaseOptions(model_asset_path=os.environ.get("POSE_MODEL", "app/src/main/assets/models/pose_landmarker_lite.task")),
                                     running_mode=vision.RunningMode.VIDEO, num_poses=1,
                                     min_pose_detection_confidence=0.5, min_pose_presence_confidence=0.5, min_tracking_confidence=0.5)
 lm = vision.PoseLandmarker.create_from_options(opts)
