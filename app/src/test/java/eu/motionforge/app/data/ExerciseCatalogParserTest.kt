@@ -127,6 +127,7 @@ class ExerciseCatalogParserTest {
             setOf(
                 "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "dumbbell_bent_over_row",
                 "dumbbell_romanian_deadlift", "kettlebell_deadlift", "band_pull_apart", "incline_push_up",
+                "dumbbell_hammer_curl", "dumbbell_front_raise",
             ),
             needs,
         )
