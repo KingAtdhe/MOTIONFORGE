@@ -29,6 +29,7 @@ object SessionNarrator {
 
     const val STANCE_PRAISE = "Good stance. Hands up, feet balanced."
     const val GOOD_JAB = "Good jab."
+    const val TARGET_REACHED = "Target reached. Well done."
     const val GOOD_CROSS = "Good cross."
     const val SHALLOW = "Not counted. Go a little lower if it's comfortable."
 
@@ -69,7 +70,8 @@ object SessionNarrator {
                 camera && step.formDrill != null -> " I'll watch your guard."
                 else -> ""
             }
-            CoachLine("${step.name}. ${step.durationSeconds} seconds.$extra", CuePriority.ANNOUNCE)
+            val what = if (step.targetReps != null && camera && step.countsReps) "${step.targetReps} reps." else "${step.durationSeconds} seconds."
+            CoachLine("${step.name}. $what$extra", CuePriority.ANNOUNCE)
         }
         is SessionStep.Rest -> CoachLine("Rest. Next up: ${step.nextName}.", CuePriority.ANNOUNCE)
     }

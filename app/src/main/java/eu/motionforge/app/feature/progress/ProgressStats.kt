@@ -32,8 +32,30 @@ data class ProgressSummary(
     val trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
 )
 
+/**
+ * Camera-counted reps of one exercise over time. [recent] oldest first (at most [ProgressStats.RECENT] sets);
+ * [best] over all saved sets; [newBest] = the latest set is the best so far and beat an earlier one.
+ */
+data class RepTrend(val exerciseId: String, val name: String, val recent: List<Int>, val best: Int, val lastAtMillis: Long) {
+    val last: Int get() = recent.last()
+    val newBest: Boolean get() = recent.size > 1 && last == best && recent.dropLast(1).all { it < last }
+}
+
 /** Simple consistency numbers. No streaks, no pressure mechanics. */
 object ProgressStats {
+    const val RECENT = 8
+
+    /** One trend per exercise the camera has counted, most recently trained first. */
+    fun repTrends(records: List<SessionRecord>): List<RepTrend> {
+        val sets = records.sortedBy { it.startedAtMillis }.flatMap { s ->
+            s.exercises.filter { it.repetitions != null }.map { Triple(it, it.repetitions!!, s.startedAtMillis) }
+        }
+        return sets.groupBy { it.first.exerciseId }.map { (id, list) ->
+            val reps = list.map { it.second }
+            RepTrend(id, list.last().first.name, reps.takeLast(RECENT), reps.max(), list.last().third)
+        }.sortedByDescending { it.lastAtMillis }
+    }
+
     fun summarize(records: List<SessionRecord>, today: LocalDate, zone: ZoneId, weeks: Int = 4): ProgressSummary {
         require(weeks >= 1)
         val thisWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))

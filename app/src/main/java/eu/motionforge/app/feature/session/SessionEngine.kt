@@ -16,6 +16,9 @@ sealed interface SessionStep {
         val countsReps: Boolean,
         /** Rule-based boxing form cues for this step (camera only), or null. */
         val formDrill: BoxingDrill? = null,
+        /** Training-plan rep target: with the camera counting, the step ends when it is reached ([durationSeconds]
+         *  is then the time cap). Without the camera it is shown as guidance. */
+        val targetReps: Int? = null,
     ) : SessionStep
 
     data class Rest(override val durationSeconds: Int, val nextName: String) : SessionStep
@@ -41,9 +44,10 @@ object SessionPlanner {
     const val JAB_ID = "boxing_jab"
     const val CROSS_ID = "boxing_cross"
 
+    fun drillFor(id: String): BoxingDrill? = when (id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; CROSS_ID -> BoxingDrill.CROSS; else -> null }
+
     private fun work(e: Exercise) = SessionStep.Work(
-        e.id, e.name, e.durationSeconds, countsReps = CountedMove.forExercise(e.id) != null,
-        formDrill = when (e.id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; CROSS_ID -> BoxingDrill.CROSS; else -> null },
+        e.id, e.name, e.durationSeconds, countsReps = CountedMove.forExercise(e.id) != null, formDrill = drillFor(e.id),
     )
 
     fun single(exercise: Exercise) = SessionPlan(exercise.name, exercise.category, listOf(work(exercise)))
@@ -90,6 +94,8 @@ data class StepResult(
     /** Null whenever the count is not trustworthy (no rule, no camera, or tracking mostly unavailable). */
     val repetitions: Int?,
     val trackingQuality: TrackingQuality,
+    /** The plan's rep target for this step, if any. */
+    val targetReps: Int? = null,
 )
 
 data class SessionState(
@@ -138,7 +144,11 @@ object SessionEngine {
         SessionEvent.Resume -> if (s.phase == SessionPhase.PAUSED) s.copy(phase = SessionPhase.RUNNING) else s
         SessionEvent.RepCounted -> {
             val step = s.currentStep
-            if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps) s.copy(stepReps = s.stepReps + 1) else s
+            if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps) {
+                val counted = s.copy(stepReps = s.stepReps + 1)
+                // target reached: the set is done, move on (the time cap no longer matters)
+                if (step.targetReps != null && counted.stepReps >= step.targetReps) advance(counted) else counted
+            } else s
         }
         is SessionEvent.Tick -> if (s.phase != SessionPhase.RUNNING) s else {
             val ticked = s.copy(
@@ -164,7 +174,7 @@ object SessionEngine {
         if (step !is SessionStep.Work || s.stepElapsed <= 0) return s
         val quality = TrackingQuality.of(s.cameraUsed, s.stepTracked, s.stepElapsed)
         val reps = if (step.countsReps && (quality == TrackingQuality.GOOD || quality == TrackingQuality.PARTIAL)) s.stepReps else null
-        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality))
+        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality, step.targetReps))
     }
 
     private fun advance(s: SessionState): SessionState {

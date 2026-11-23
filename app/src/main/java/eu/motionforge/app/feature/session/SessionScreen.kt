@@ -433,7 +433,8 @@ private fun RunningStage(
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.padding(bottom = 16.dp)) {
                     if (countsReps) {
-                        Text("reps", style = MaterialTheme.typography.headlineSmall)
+                        val target = (step as? SessionStep.Work)?.targetReps
+                        Text(if (target != null) "of $target" else "reps", style = MaterialTheme.typography.headlineSmall)
                         Text(formatClock(state.remainingInStep) + " left", style = MfType.NumeralSmall, color = MfColors.OnNightMuted)
                     } else {
                         Text(if (paused) "paused" else if (step is SessionStep.Rest) "rest" else "left", style = MaterialTheme.typography.headlineSmall)
@@ -638,7 +639,10 @@ private fun SummaryStage(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 eu.motionforge.app.core.design.SectionHeader("What you did")
                 state.results.forEach { r ->
-                    val repText = r.repetitions?.let { ", $it reps (experimental count)" }.orEmpty()
+                    val repText = r.repetitions?.let { n ->
+                        val goal = r.targetReps?.let { t -> if (n >= t) " — target $t reached" else " of a $t target" }.orEmpty()
+                        ", $n reps$goal (experimental count)"
+                    }.orEmpty()
                     Text("${r.name}, ${formatClock(r.elapsedSeconds)}$repText", style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
                         Text("Tracking was mostly unavailable, so nothing was counted.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

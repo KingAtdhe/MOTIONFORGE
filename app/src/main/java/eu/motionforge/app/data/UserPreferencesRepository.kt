@@ -28,6 +28,10 @@ data class UserPreferences(
     val coach: Coach = Coach.DEFAULT,
     /** Spoken coaching cues during sessions (on-device text-to-speech). */
     val voiceCues: Boolean = true,
+    /** The training plan being followed (TrainingPlans id), or null. */
+    val activePlanId: String? = null,
+    /** Plan sessions finished so far: the next one is this index. */
+    val planSessionsDone: Int = 0,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -46,6 +50,8 @@ class UserPreferencesRepository(context: Context) {
                 lastViewedExerciseId = p[LAST_VIEWED],
                 coach = Coach.fromName(p[COACH]),
                 voiceCues = p[VOICE_CUES] ?: true,
+                activePlanId = p[ACTIVE_PLAN],
+                planSessionsDone = p[PLAN_DONE] ?: 0,
             )
         }
 
@@ -69,6 +75,22 @@ class UserPreferencesRepository(context: Context) {
         store.edit { it[VOICE_CUES] = on }
     }
 
+    /** Start (or restart) a training plan from its first session. */
+    suspend fun startPlan(planId: String) {
+        store.edit { it[ACTIVE_PLAN] = planId; it[PLAN_DONE] = 0 }
+    }
+
+    suspend fun leavePlan() {
+        store.edit { it.remove(ACTIVE_PLAN); it.remove(PLAN_DONE) }
+    }
+
+    /** Plan session [index] was saved: the plan moves on (never backwards, never past a session twice). */
+    suspend fun markPlanSessionDone(planId: String, index: Int) {
+        store.edit {
+            if (it[ACTIVE_PLAN] == planId) it[PLAN_DONE] = maxOf(it[PLAN_DONE] ?: 0, index + 1)
+        }
+    }
+
     /** Local data reset: removes every stored preference and returns the app to onboarding. */
     suspend fun clearAll() {
         store.edit { it.clear() }
@@ -81,5 +103,7 @@ class UserPreferencesRepository(context: Context) {
         val LAST_VIEWED = stringPreferencesKey("last_viewed_exercise")
         val COACH = stringPreferencesKey("coach")
         val VOICE_CUES = booleanPreferencesKey("voice_cues")
+        val ACTIVE_PLAN = stringPreferencesKey("active_plan")
+        val PLAN_DONE = androidx.datastore.preferences.core.intPreferencesKey("plan_sessions_done")
     }
 }

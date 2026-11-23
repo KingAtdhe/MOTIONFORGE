@@ -95,10 +95,23 @@ fun HomeScreen(
     onResumeUnfinished: (SessionSnapshot) -> Unit = {},
     onDiscardUnfinished: () -> Unit = {},
     trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
+    /** The plan being followed and its next session (with today's targets), or nulls. */
+    activePlan: eu.motionforge.app.feature.plan.TrainingPlan? = null,
+    planSession: SessionPlan? = null,
+    onStartPlanSession: () -> Unit = {},
+    onChoosePlan: (String) -> Unit = {},
+    onLeavePlan: () -> Unit = {},
 ) {
     val coach = preferences.coach
     val side = Modifier.padding(horizontal = 16.dp)
-    val quick = (catalog as? CatalogUiState.Ready)?.let { SessionPlanner.quick(it.exercises, preferences.focus) }
+    val quickSession = (catalog as? CatalogUiState.Ready)?.let { SessionPlanner.quick(it.exercises, preferences.focus) }
+    // with a plan, today's session is the plan's next one
+    val quick = planSession ?: quickSession
+    val start = if (planSession != null) onStartPlanSession else onStartQuickSession
+    val planLabel = activePlan?.takeIf { planSession != null }?.let { p ->
+        val i = preferences.planSessionsDone
+        "${p.name} · week ${p.weekOf(i) + 1}"
+    }
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -141,8 +154,9 @@ fun HomeScreen(
                         if (!reduce) LaunchedEffect(quick) {
                             while (true) { kotlinx.coroutines.delay(4200); active = (active + 1) % moveCount }
                         }
-                        TodayPlate(quick, coach, active, onStartQuickSession, side)
+                        TodayPlate(quick, coach, active, start, side, eyebrow = planLabel ?: "Today")
                         Filmstrip(quick, coach, active, side)
+                        PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -210,7 +224,7 @@ fun HomeScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                PrimaryButton("Start session", onClick = onStartQuickSession, trailing = formatClock(quick.totalSeconds))
+                PrimaryButton(if (planSession != null) "Start plan session" else "Start session", onClick = start, trailing = formatClock(quick.totalSeconds))
             }
         }
     }
@@ -218,7 +232,7 @@ fun HomeScreen(
 
 /** Today's session: each move's exposures playing in turn on a black plate, the session's name and length under it. */
 @Composable
-private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: () -> Unit, modifier: Modifier) {
+private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: () -> Unit, modifier: Modifier, eyebrow: String = "Today") {
     val minutes = (plan.totalSeconds + 30) / 60
     val moves = plan.steps.filterIsInstance<SessionStep.Work>()
     val shown = moves[active.coerceIn(0, moves.lastIndex)]
@@ -236,7 +250,7 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: ()
                 coach.framesArt(shown.exerciseId), coach.studyArt(shown.exerciseId), Modifier.fillMaxWidth().height(380.dp),
             )
             Text(
-                "Today",
+                eyebrow,
                 style = MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.padding(14.dp),
@@ -272,7 +286,11 @@ private fun Filmstrip(plan: SessionPlan, coach: Coach, active: Int, modifier: Mo
                 MotionStudy(coach.studyArt(step.exerciseId), Modifier.fillMaxWidth().height(96.dp), crop = true)
                 Box(Modifier.fillMaxWidth().height(3.dp).background(if (i == active) MfColors.Yellow else Color.Transparent))
                 Text("${i + 1}  ${step.name}", style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(formatClock(step.durationSeconds), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    step.targetReps?.let { "$it reps" } ?: formatClock(step.durationSeconds),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (step.targetReps != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -308,6 +326,82 @@ private fun UnfinishedCard(snap: SessionSnapshot, onResume: (SessionSnapshot) ->
                     border = BorderStroke(1.dp, Color.Black),
                     colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
                 ) { Text("Discard") }
+            }
+        }
+    }
+}
+
+/**
+ * The training plan: with one running, where you are in it (a tick per session, a row per week) and a way out;
+ * without one, the plans to choose from.
+ */
+@Composable
+private fun PlanSection(
+    plan: eu.motionforge.app.feature.plan.TrainingPlan?,
+    done: Int,
+    onChoose: (String) -> Unit,
+    onLeave: () -> Unit,
+    modifier: Modifier,
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (plan != null) {
+            val finished = done >= plan.totalSessions
+            SectionHeader(
+                "Your plan",
+                trailing = if (finished) "Complete" else "Session ${done + 1} of ${plan.totalSessions}",
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(plan.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                androidx.compose.material3.TextButton(onClick = onLeave) { Text(if (finished) "Choose another" else "Leave plan") }
+            }
+            // one row per week, one tick per session: done = ink, next = yellow, later = outline
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                (0 until plan.weeks).forEach { w ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("W${w + 1}", style = MaterialTheme.typography.labelSmall, modifier = Modifier.width(28.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        (0 until plan.sessionsPerWeek).forEach { d ->
+                            val i = w * plan.sessionsPerWeek + d
+                            val fill = when {
+                                i < done -> MfColors.Ink
+                                i == done -> MfColors.Yellow
+                                else -> Color.Transparent
+                            }
+                            Box(
+                                Modifier
+                                    .weight(1f)
+                                    .height(10.dp)
+                                    .background(fill, RoundedCornerShape(2.dp))
+                                    .then(if (i > done) Modifier.border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(2.dp)) else Modifier)
+                                    .semantics { contentDescription = "Week ${w + 1} session ${d + 1}: " + when {
+                                        i < done -> "done"; i == done -> "next"; else -> "to come" } },
+                            )
+                        }
+                    }
+                }
+            }
+            if (!finished) Text(
+                "Rep targets follow what the camera counts: one more than last time, never below the plan's number.",
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            SectionHeader("Training plans", trailing = "4 weeks")
+            eu.motionforge.app.feature.plan.TrainingPlans.ALL.forEach { p ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { onChoose(p.id) }
+                        .padding(vertical = 8.dp)
+                        .semantics(mergeDescendants = true) { role = Role.Button; contentDescription = "Start plan ${p.name}. ${p.summary}" },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(p.name + if (p.needsEquipment) "  · dumbbells" else "", style = MaterialTheme.typography.titleMedium)
+                        Text(p.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text("Start", style = MaterialTheme.typography.labelLarge)
+                }
             }
         }
     }

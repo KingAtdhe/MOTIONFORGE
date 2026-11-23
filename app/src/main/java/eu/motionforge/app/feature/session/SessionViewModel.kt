@@ -44,6 +44,8 @@ class SessionViewModel(
     restored: SessionSnapshot? = null,
     private val tips: Map<String, List<String>> = emptyMap(),
     private val clock: () -> Long = { android.os.SystemClock.elapsedRealtime() },
+    /** Called once the session is saved (a plan session then counts as done). */
+    private val onSaved: suspend () -> Unit = {},
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -193,7 +195,11 @@ class SessionViewModel(
                 lastRepEvent = ev
                 say(SessionNarrator.repLine(ev))
             }
-            if (counter.repetitions > before) onEvent(SessionEvent.RepCounted)
+            if (counter.repetitions > before) {
+                val target = step.targetReps
+                if (target != null && counter.repetitions >= target) say(CoachLine(SessionNarrator.TARGET_REACHED, eu.motionforge.app.core.coaching.CuePriority.ANNOUNCE))
+                onEvent(SessionEvent.RepCounted)
+            }
         }
         val monitor = formMonitor
         if (monitor != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.formDrill != null) {
@@ -255,6 +261,7 @@ class SessionViewModel(
             _save.value = runCatching {
                 repository.save(s, startedAtMillis, System.currentTimeMillis(), perceivedEffort)
             }.fold({
+                runCatching { onSaved() }
                 toPersist.value = Disk.Forget
                 withContext(Dispatchers.IO) { store.clear() }
                 SaveState.SAVED

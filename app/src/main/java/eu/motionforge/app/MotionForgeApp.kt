@@ -103,6 +103,7 @@ fun MotionForgeApp(
     val scope = rememberCoroutineScope()
     val filter by catalogViewModel.filter.collectAsStateWithLifecycle()
 
+    val activePlan = eu.motionforge.app.feature.plan.TrainingPlans.byId(preferences.activePlanId)
     val history by container.sessions.history.collectAsStateWithLifecycle(initialValue = null)
     val weekSummary = history?.let { ProgressStats.summarize(it, LocalDate.now(), ZoneId.systemDefault()) }
     val sessionsThisWeek = weekSummary?.sessionsThisWeek
@@ -174,6 +175,20 @@ fun MotionForgeApp(
                     sessionsThisWeek = sessionsThisWeek,
                     trainedDaysThisWeek = weekSummary?.trainedDaysThisWeek.orEmpty(),
                     onRetry = catalogViewModel::load,
+                    activePlan = activePlan,
+                    planSession = activePlan?.takeIf { preferences.planSessionsDone < it.totalSessions }?.let { p ->
+                        (catalog as? CatalogUiState.Ready)?.let { c ->
+                            eu.motionforge.app.feature.plan.PlanSessions.build(p, preferences.planSessionsDone, c.exercises, history.orEmpty())
+                        }
+                    },
+                    onStartPlanSession = {
+                        activePlan?.let { p ->
+                            container.activeSession.clear()
+                            navController.navigate(Routes.session(eu.motionforge.app.feature.plan.TrainingPlans.key(p, preferences.planSessionsDone)))
+                        }
+                    },
+                    onChoosePlan = { id -> scope.launch { container.preferences.startPlan(id) } },
+                    onLeavePlan = { scope.launch { container.preferences.leavePlan() } },
                 )
             }
             composable(Routes.TRAIN) {
@@ -228,9 +243,14 @@ fun MotionForgeApp(
             ) { entry ->
                 val planArg = entry.arguments?.getString("plan").orEmpty()
                 val ready = catalog as? CatalogUiState.Ready
+                val planned = eu.motionforge.app.feature.plan.TrainingPlans.parseKey(planArg)
+                // targets are fixed when the session opens: saving it must not change the steps under the screen
+                val planHistory = remember(planArg) { history.orEmpty() }
                 val plan = ready?.let { c ->
                     if (planArg == "quick") {
                         SessionPlanner.quick(c.exercises, preferences.focus)
+                    } else if (planned != null) {
+                        eu.motionforge.app.feature.plan.PlanSessions.build(planned.first, planned.second, c.exercises, planHistory)
                     } else {
                         c.exercises.firstOrNull { it.id == planArg.removePrefix("lesson-") }?.let(SessionPlanner::single)
                     }
@@ -246,6 +266,9 @@ fun MotionForgeApp(
                         SessionViewModel(
                             plan, container.sessions, container.activeSession, planArg, restored,
                             tips = ready.exercises.associate { it.id to it.commonCues },
+                            onSaved = {
+                                planned?.let { (p, i) -> container.preferences.markPlanSessionDone(p.id, i) }
+                            },
                         )
                     }
                     SessionScreen(

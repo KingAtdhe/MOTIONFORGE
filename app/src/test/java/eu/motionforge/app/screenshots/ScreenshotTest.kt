@@ -88,6 +88,20 @@ class ScreenshotTest {
         HomeScreen(prefs, catalog, {}, {}, {}, sessionsThisWeek = 2, onRetry = {}, trainedDaysThisWeek = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY))
     }
 
+    @Test fun homeWithPlan() = shot("12_home_plan") {
+        val p = eu.motionforge.app.feature.plan.TrainingPlans.FOUNDATIONS
+        val history = listOf(
+            SessionRecord(1, "Foundations", TrainingCategory.FITNESS, System.currentTimeMillis() - 86_400_000, 600, 6, true,
+                listOf(ExerciseRecord("sumo_squat", "Sumo Squat", 50, 11, "good"))),
+        )
+        HomeScreen(
+            prefs.copy(activePlanId = p.id, planSessionsDone = 4), catalog, {}, {}, {}, sessionsThisWeek = 2, onRetry = {},
+            trainedDaysThisWeek = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            activePlan = p,
+            planSession = eu.motionforge.app.feature.plan.PlanSessions.build(p, 4, (catalog as eu.motionforge.app.feature.catalog.CatalogUiState.Ready).exercises, history),
+        )
+    }
+
     @Test fun train() = shot("02_train") {
         TrainScreen(catalog, Coach.DEFAULT, CatalogFilter(), {}, {}, {}, {}, {}, {})
     }
@@ -106,7 +120,10 @@ class ScreenshotTest {
                 SessionRecord(
                     i.toLong(), "Short fitness session", if (i % 2 == 0) TrainingCategory.FITNESS else TrainingCategory.FIGHTING_FUNDAMENTALS,
                     now - i * 2 * day, 420 + 60 * i, 6, true,
-                    listOf(ExerciseRecord("bodyweight_squat", "Bodyweight Squat", 60, 12, "good")),
+                    listOf(
+                        ExerciseRecord("bodyweight_squat", "Bodyweight Squat", 60, 12 - i, "good"),
+                        ExerciseRecord("knee_push_up", "Knee Push-up", 45, 9 - (i % 2), "good"),
+                    ),
                 )
             },
             Coach.DEFAULT,

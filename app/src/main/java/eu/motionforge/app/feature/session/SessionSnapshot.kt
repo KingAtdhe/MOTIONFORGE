@@ -60,6 +60,7 @@ data class SessionSnapshot(
                                 put("seconds", step.durationSeconds)
                                 put("countsReps", step.countsReps)
                                 step.formDrill?.let { put("formDrill", it.name) }
+                                step.targetReps?.let { put("targetReps", it) }
                             }
                             is SessionStep.Rest -> buildJsonObject {
                                 put("kind", "rest")
@@ -88,6 +89,7 @@ data class SessionSnapshot(
                         put("seconds", r.elapsedSeconds)
                         r.repetitions?.let { put("reps", it) }
                         put("quality", r.trackingQuality.wireName)
+                        r.targetReps?.let { put("targetReps", it) }
                     })
                 }
             })
@@ -107,6 +109,7 @@ data class SessionSnapshot(
                         durationSeconds = so.int("seconds"),
                         countsReps = so.getValue("countsReps").jsonPrimitive.boolean,
                         formDrill = so["formDrill"]?.jsonPrimitive?.content?.let { BoxingDrill.valueOf(it) },
+                        targetReps = so["targetReps"]?.jsonPrimitive?.intOrNull,
                     )
                     "rest" -> SessionStep.Rest(so.int("seconds"), so.str("nextName"))
                     else -> error("unknown step")
@@ -126,6 +129,7 @@ data class SessionSnapshot(
                     elapsedSeconds = r.int("seconds"),
                     repetitions = r["reps"]?.jsonPrimitive?.intOrNull,
                     trackingQuality = TrackingQuality.entries.first { it.wireName == r.str("quality") },
+                    targetReps = r["targetReps"]?.jsonPrimitive?.intOrNull,
                 )
             }
             val state = SessionState(

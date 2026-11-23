@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -112,6 +113,17 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
             Text("${summary.totalSessions} sessions saved in total", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
+        val trends = remember(history) { ProgressStats.repTrends(history) }
+        if (trends.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                eu.motionforge.app.core.design.SectionHeader("Reps", trailing = "counted by the camera")
+                trends.forEachIndexed { i, t ->
+                    if (i > 0) eu.motionforge.app.core.design.ThinRule()
+                    RepTrendRow(t)
+                }
+            }
+        }
+
         eu.motionforge.app.core.design.SectionHeader("History")
         val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm") }
         Column {
@@ -140,3 +152,45 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
     }
 }
 
+
+/** One exercise: its last sets as bars (the latest in ink, a new best in yellow), last and best counts. */
+@Composable
+private fun RepTrendRow(t: RepTrend) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${t.name}: last ${t.last} reps, best ${t.best}" + if (t.newBest) ", a new best" else ""
+            },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(t.name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                if (t.newBest) "New best" else "Best ${t.best}",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (t.newBest) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Row(Modifier.height(40.dp).width(96.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
+            t.recent.forEachIndexed { i, r ->
+                val latest = i == t.recent.lastIndex
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height((6 + 34 * r / t.best.coerceAtLeast(1)).dp)
+                        .background(
+                            when {
+                                latest && t.newBest -> MfColors.Yellow
+                                latest -> MfColors.Ink
+                                else -> MfColors.Rule
+                            },
+                        ),
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Text("${t.last}", style = eu.motionforge.app.core.design.MfType.NumeralSmall)
+    }
+}
