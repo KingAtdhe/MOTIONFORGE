@@ -999,3 +999,22 @@ dumbbell reverse lunge (B).
 (`SIDE_KNEE_LIFT`, travel 0.38: the knee goes out, so it rises less — 6/8 with the knee crunch's 0.45; 0.38 keeps
 every squat video at 0). **Known limit:** side-on, the far knee is hidden when it lifts away from the camera, so only
 the near leg counts (4 of 8) — the lesson says to face the phone.
+
+## 2026-11-23 (evening) — Batch 6, fighting: jab to the body, cross-hook, pull back, step jab
+Clips (authored_clips.py, batch 6; `_stance_pose` gains `jab_dz` = jab target height and `pull` = lean back):
+- `boxing_body_jab`: the knees bend first (level change, no bending at the waist), the jab lands at chest height,
+  hand home, legs back up.
+- `boxing_cross_hook`: cross, then the lead hook as the hips turn back (kinetic chain as the single punches).
+- `boxing_pull_back`: weight onto the rear leg, hips 9.5 cm back over it, trunk from 5° forward to 14° back, chin
+  tucked, hands up; twice per clip. First render: the lean was lost in the stance's forward lean (chest −13°) —
+  now −24° at the chest.
+- `boxing_step_jab`: the jab lands as the lead foot lands from the push-step, rear foot follows; push-step back out.
+  The feet skim the floor as in the validated footwork clips (audit "slide" 5–6 cm = the step itself, as footwork).
+Audit both coaches: no planted-foot slide on the stationary clips; peak hand accelerations at the single punches' level.
+Lessons: 58. Plan: Boxing basics day B adds the cross-hook.
+**Counting** (rendered videos, exact): cross-hook 3/3 front, 3/4, southpaw (`ComboRepCounter`); step jab 3/3 front
+and 3/4 (punch counter). Body jab: the punch is thrown straight at the phone and the elbow rises only 0.12 torso
+lengths from the front (0.2 needed), so `LevelChangeRepCounter` counts the level change instead (shoulders toward the
+visible ankles, travel 0.10; dips ~0.17): 3/3 front and 3/4; stance, combos, idle and marching 0. The lesson says
+the punch itself is not checked. Pull back: not counted (like the roll) — leaning back from the front is mostly
+toward the camera.

@@ -272,6 +272,25 @@ class PunchRepCounter(travel: Double = 0.20) : ExcursionRepCounter(+1, travel, m
 }
 
 /**
+ * Body jab: counted from the level change — the shoulders lowering toward the feet by [travel] (in the largest torso
+ * length seen) and coming back up. A jab thrown straight at the phone barely moves in the picture (the elbow rises
+ * ~0.12 torso lengths from the front, against 0.2 needed), so the punch itself is not what is counted; the bend of the
+ * knees is (~0.17 from the front and 3/4). Ankles from 0.5 visible (the far ankle is often hidden in 3/4).
+ */
+class LevelChangeRepCounter(travel: Double = 0.10) : ExcursionRepCounter(-1, travel, minRepMs = 300) {
+    private var standingTorso = 0.0
+    override fun reset() { super.reset(); standingTorso = 0.0 }
+    override fun signal(f: PoseFrame): Double? {
+        val (s, h, len) = f.torso() ?: return null
+        if (tilt(s, h) > 40.0) return null
+        val ankles = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE).filter { f[it].visibility >= 0.5f }
+        if (ankles.isEmpty()) return null
+        standingTorso = maxOf(standingTorso, len)
+        return (ankles.map { f.px(it).second }.average() - s.second) / standingTorso
+    }
+}
+
+/**
  * Three-punch combinations (jab-jab-cross), counted once per combination. Same signal as [PunchRepCounter], but a
  * combination ends only when the elbows have been back near the guard (within [near] × [travel] of it) for
  * [holdMs]: between punches inside a combination the guard lasts ~0.1–0.2 s, after it ~1 s. Counting each punch

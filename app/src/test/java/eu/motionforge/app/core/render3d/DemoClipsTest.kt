@@ -32,6 +32,7 @@ class DemoClipsTest {
         "forward_lunge", "db_hammer_curl", "db_front_raise", "boxing_one_two", "boxing_one_two_hook",
         "knee_crunch", "db_reverse_fly", "db_overhead_triceps", "boxing_jab_jab_cross",
         "db_squat", "db_reverse_lunge", "oblique_crunch", "boxing_double_jab",
+        "boxing_body_jab", "boxing_cross_hook", "boxing_pull_back", "boxing_step_jab",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */

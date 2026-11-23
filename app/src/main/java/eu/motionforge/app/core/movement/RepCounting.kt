@@ -70,6 +70,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     COMBO("Combination check", "Face the phone with your upper body and both arms in view — turned away, the far arm is hidden.",
         "Each combination is counted when your hands are back in guard.",
         "That one didn't come up fully."),
+    LEVEL("Level check", "Face the phone with your whole body in view, feet included.",
+        "Each body jab is counted when you come back up to your stance.",
+        "That one was shallow. Bend the knees a little more if it's comfortable."),
     SLIP("Slip check", "Face the phone with your head and upper body in view.",
         "Each slip is counted when your head comes back to the middle.",
         "That one was small. Move your head a little further off the line if it's comfortable."),
@@ -102,8 +105,9 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
             "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
-            "boxing_one_two", "boxing_one_two_hook" -> PUNCH
-            "boxing_jab_jab_cross", "boxing_double_jab" -> COMBO
+            "boxing_one_two", "boxing_one_two_hook", "boxing_step_jab" -> PUNCH
+            "boxing_body_jab" -> LEVEL
+            "boxing_jab_jab_cross", "boxing_double_jab", "boxing_cross_hook" -> COMBO
             "high_knee_march", "standing_knee_crunch" -> KNEE_LIFT
             "standing_oblique_crunch" -> SIDE_KNEE_LIFT
             "boxing_slip" -> SLIP
@@ -128,6 +132,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             CALF_RAISE -> CalfRaiseRepCounter()
             PUNCH -> PunchRepCounter()
             COMBO -> ComboRepCounter()
+            LEVEL -> LevelChangeRepCounter()
             SLIP -> SlipRepCounter()
             KNEE_LIFT -> KneeLiftRepCounter()
             // the knee goes out to the side, so it rises less (peaks ~0.47 above standing, against ~0.6 in front)

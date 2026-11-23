@@ -19,8 +19,18 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_body_jab",
+      "durationSeconds": 1.867,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_cross",
       "durationSeconds": 1.6,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_cross_hook",
+      "durationSeconds": 1.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -64,6 +74,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_pull_back",
+      "durationSeconds": 2.233,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_rear_hook",
       "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
@@ -86,6 +101,11 @@
     {
       "name": "boxing_stance",
       "durationSeconds": 3.2,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_step_jab",
+      "durationSeconds": 2.067,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

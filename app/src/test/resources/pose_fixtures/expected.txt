@@ -148,3 +148,18 @@ dbsquat_f_front|standing_oblique_crunch|0
 stance_m_front|boxing_double_jab|0
 stance_m_front|dumbbell_squat|0
 march_f_front|dumbbell_reverse_lunge|0
+# batch 6 — fighting (2026-11-23): cross-hook (per combination), body jab (level change), step jab (per jab)
+ch_f_front|boxing_cross_hook|3
+ch_m_q45|boxing_cross_hook|3
+ch_f_front_south|boxing_cross_hook|3
+bj_f_front|boxing_body_jab|3
+bj_m_q45|boxing_body_jab|3
+sj_m_front|boxing_step_jab|3
+sj_f_q45|boxing_step_jab|3
+stance_m_front|boxing_body_jab|0
+stance_m_front|boxing_cross_hook|0
+stance_m_front|boxing_step_jab|0
+ch_f_front|boxing_body_jab|0
+jjc_f_front|boxing_body_jab|0
+neg_idle_knee_m_front|boxing_body_jab|0
+march_f_front|boxing_body_jab|0

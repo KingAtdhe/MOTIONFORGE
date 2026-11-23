@@ -161,3 +161,16 @@ class Combo:
             else: s.q=None
         return x
 KINDS["combo"]=Combo
+
+class Level(Exc):
+    """Body jab: the level change. Shoulder-mid height above the visible ankles, in (largest seen) torso lengths;
+    one rep = the body lowering by travel and coming back up."""
+    def __init__(s,tr=0.10): super().__init__(-1,tr,minrep=300); s.st=0
+    def sig(s,L,w,h):
+        T=torso(L,w,h)
+        if not T or tilt(T[0],T[1])>40: return None
+        a=[L[i][1]*h for i in (LA,RA) if L[i][3]>=0.5]
+        if not a: return None
+        s.st=max(s.st,T[2])
+        return (sum(a)/len(a)-T[0][1])/s.st
+KINDS["level"]=Level

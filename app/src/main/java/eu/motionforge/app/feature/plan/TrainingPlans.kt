@@ -74,6 +74,7 @@ object TrainingPlans {
             PlanDay("B", listOf(
                 PlanItem("boxing_stance", 45),
                 PlanItem("boxing_one_two", 60, r(6, 8, 10, 12)),
+                PlanItem("boxing_cross_hook", 60, r(6, 8, 10, 12)),
                 PlanItem("boxing_lead_uppercut", 60, r(6, 8, 10, 12)),
                 PlanItem("boxing_rear_hook", 60, r(6, 8, 10, 12)),
             )),

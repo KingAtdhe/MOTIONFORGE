@@ -2098,5 +2098,153 @@
     ],
     "limitations": "The camera counts each double jab as one; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_body_jab",
+    "name": "Jab to the Body",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_body_jab",
+    "purpose": "Practise changing level with your legs and jabbing to body height, then coming back up into your stance.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing. Bend your knees to lower yourself; stop if you feel pain in your knees or back.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Bend your knees to lower your body a little; keep your back straight, don't bend at the waist.",
+      "Jab straight out at chest height of an imaginary opponent, rear hand on your chin.",
+      "Bring the hand back to your face and stand back up into your stance."
+    ],
+    "commonCues": [
+      "Legs take you down, not your back.",
+      "Chin down, rear hand home.",
+      "Back up to your stance after every punch."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Bending forward at the waist",
+        "adjustment": "Lower yourself with the knees and keep your chest up."
+      },
+      {
+        "mistake": "Dropping the rear hand as you go down",
+        "adjustment": "Keep the rear glove touching your chin."
+      }
+    ],
+    "limitations": "The camera counts each time you lower and come back up; a jab thrown straight at the phone is hard to see, so the punch itself is not checked. Keep your whole body, feet included, in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_cross_hook",
+    "name": "Cross-Hook (2-3)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_cross_hook",
+    "purpose": "Practise the cross followed by the lead hook, turning the hips one way and then the other.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw the cross, turning your rear hip and pivoting on the rear foot.",
+      "As the cross comes back, turn the hips the other way and throw the lead hook, elbow up at shoulder height.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Turn, then turn back.",
+      "Hook elbow level with the fist.",
+      "Hands home after the hook."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the hook wide with a straight arm",
+        "adjustment": "Keep the elbow bent about 90 degrees and turn your body to bring it round."
+      },
+      {
+        "mistake": "Leaving the cross out while the hook starts",
+        "adjustment": "Bring the cross back to your chin first."
+      }
+    ],
+    "limitations": "The camera counts each cross-hook as one combination; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_pull_back",
+    "name": "Pull Back",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_pull_back",
+    "purpose": "Practise leaning back just out of reach of a straight punch while keeping your hands up and eyes forward.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing. Lean back only a little; stop if you feel pain in your lower back.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Shift your weight onto your rear leg and lean your upper body back a little.",
+      "Keep your chin down and your eyes forward, hands by your face.",
+      "Come forward again into your stance."
+    ],
+    "commonCues": [
+      "Weight to the back foot.",
+      "Small lean, eyes forward.",
+      "Hands stay up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back too far and losing balance",
+        "adjustment": "Lean only until your shoulders are just behind your hips."
+      },
+      {
+        "mistake": "Lifting the chin and looking at the ceiling",
+        "adjustment": "Keep the chin tucked and look at your target."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_step_jab",
+    "name": "Step Jab",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_step_jab",
+    "purpose": "Practise jabbing as you take a small step forward, then stepping back out.",
+    "space": "Clear space in front of you of at least two steps plus an arm's length. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Push off the rear foot and step the lead foot forward a short distance.",
+      "Land the jab as the lead foot lands; the rear foot follows to keep your stance width.",
+      "Step back the same way, rear foot first, hands in guard."
+    ],
+    "commonCues": [
+      "Jab lands with the front foot.",
+      "Small step, same stance.",
+      "Step back out after the jab."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Throwing the jab after the step has finished",
+        "adjustment": "Start the jab as the lead foot leaves the floor."
+      },
+      {
+        "mistake": "Feet coming together or crossing",
+        "adjustment": "Keep the same distance between your feet before and after the step."
+      }
+    ],
+    "limitations": "The camera counts each jab from your elbow rising; it does not judge the step, power or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

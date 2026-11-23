@@ -69,6 +69,10 @@ SHOTS = {
     "dumbbell_reverse_lunge": ("db_reverse_lunge", ("far", "hips"), 55),
     "standing_oblique_crunch": ("oblique_crunch", "knee", 20),
     "boxing_double_jab": ("boxing_double_jab", "punch", -35),
+    "boxing_body_jab": ("boxing_body_jab", "punch", -40),
+    "boxing_cross_hook": ("boxing_cross_hook", ("far", "hand_L"), -35),
+    "boxing_pull_back": ("boxing_pull_back", ("far", "head"), 70),
+    "boxing_step_jab": ("boxing_step_jab", "punch", -60),
     "hero": ("idle_neutral", 0.0, 18),
 }
 

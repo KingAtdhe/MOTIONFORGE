@@ -732,13 +732,15 @@ def pushup(r, st):
 
 # =============================================================================================== boxing
 def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0, loop=3.2,
-                 e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0, hip=None):
+                 e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0, hip=None, jab_dz=0.0, pull=0.0):
     """Orthodox stance (left foot leads, target straight ahead at -Y).
     e_jab / e_cross / e_hook: 0 guard .. 1 full extension. travel: forward shift of the whole stance (m).
     lead_step / rear_step: 0..1 bell while that foot is in the air during a push-step.
     slip: -1 (head to the left) .. +1 (head to the right, outside a jab). travel_x: sideways shift (m, + = left).
     hip: optional e_* values for the hips and feet, sampled a little ahead of the arm's, so the turn starts in the hips
-    and the fist follows (kinetic chain)."""
+    and the fist follows (kinetic chain).
+    jab_dz: the jab's target height relative to the shoulder (m, negative = to the body).
+    pull: 0..1 pull-back: the weight goes onto the rear leg and the upper body leans back out of range, head level."""
     k = r.k
     # a living stance: an uneven bounce on the balls of the feet (two harmonics that close on the loop), a slow sway
     n1 = max(1, round(loop / 0.85))
@@ -768,7 +770,7 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     yaw_c = lerp(-42.0, 30.0, ca) - 12.0 * e_jab - 30.0 * e_hook - 18.0 * e_lup
     # weight moves onto the lead leg with each straight punch; a slow side-to-side sway when idle
     pos = V(0.012 * k * c + travel_x - 0.06 * k * slip + 0.006 * k * sway * bob_amp,
-            0.012 * k - 0.045 * k * hv["e_jab"] - 0.075 * k * c - travel, 0)
+            0.012 * k - 0.045 * k * hv["e_jab"] - 0.075 * k * c - travel + 0.10 * k * pull, 0)
     sp = torso_spec(pos, yaw=yaw_p, pitch=2.5 + 2.0 * c + 1.5 * hv["e_jab"], spine=2.0, chest=5.0 + 2.5 * e_any, chest_yaw=yaw_c - yaw_p,
                     head_pitch=13.0 + 2.0 * max(e_jab, ca), head_yaw=lerp(-4.0, 3.0, ca) + 1.5 * math.sin(ph + 1.9) * bob_amp,
                     br=b * 0.5 * (1.0 - 0.6 * e_any))
@@ -787,6 +789,15 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     eu = max(hv["e_rup"], hv["e_lup"])
     up_dip = 0.035 * math.sin(math.pi * eu) ** 2 * (1.0 - eu)          # smooth: down early in the punch, back up as it lands
     sp["pos"].z = z - (0.044 + 0.007 * bob * bob_amp + 0.012 * c + 0.028 * abs(slip) + 0.10 * dip + up_dip) * k
+    if pull:
+        # lean back from the hips over the rear leg; the neck tucks the chin so the eyes stay on the target
+        # (first render: 13 deg at the chest was lost in the stance's forward lean -- now the shoulders end behind the hips)
+        sp["pel"] = Rx(-7.0 * pull) @ sp["pel"]
+        sp["spi"] = Rx(-16.0 * pull) @ sp["spi"]
+        sp["che"] = Rx(-24.0 * pull) @ sp["che"]
+        sp["nek"] = Rx(-10.0 * pull) @ sp["nek"]
+        sp["hed"] = Rx(4.0 * pull) @ sp["hed"]
+        sp["pos"].z -= 0.022 * k * pull
     if dip:
         sp["pel"] = Rx(6.0 * dip) @ sp["pel"]
         sp["spi"] = Rx(8.0 * dip) @ sp["spi"]
@@ -818,7 +829,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             return out
         if e_jab > 0:
             S = pts["S_L"]
-            tgt = V(0.03 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.03 * k) ** 2 - (0.08 * k) ** 2, 1e-6)), S.z + 0.08 * k)
+            dz = 0.08 * k + jab_dz
+            tgt = V(0.03 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.03 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
             res["L"] = straight(gl, e_jab, tgt, 1.0)
         if e_cross > 0:
             S = pts["S_R"]
@@ -2329,6 +2341,84 @@ def double_jab(r, st):
     return out
 
 
+# =============================================================================================== batch 6 — fighting (2026-11-23)
+def body_jab(r, st):
+    """Jab to the body: the knees bend to change level first (no bending at the waist), the jab lands at the
+    opponent's chest height, then the hand comes home and the legs straighten back to the stance."""
+    T = 2.8
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        lv = _punch_curve(t, 0.25, 0.40, 0.75, 0.55)               # level change starts before the punch, ends after it
+        e = _punch_curve(t, 0.45, 0.40, 0.15, 0.45)
+        eh = _punch_curve(t + 0.05, 0.45, 0.40, 0.15, 0.45)
+        out.append(_stance_pose(r, st, t, e_jab=e, dip=0.85 * lv, jab_dz=-0.20 * r.k, loop=T, hip={"e_jab": eh}))
+    return out
+
+
+def cross_hook(r, st):
+    """Cross then lead hook (2-3): the hips turn through for the cross and turn back for the hook."""
+    T = 2.8
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        c = _punch_curve(t, 0.30, 0.40, 0.10, 0.42)
+        ch = _punch_curve(t + 0.08, 0.30, 0.40, 0.10, 0.42)
+        h = _punch_curve(t, 0.95, 0.40, 0.15, 0.50)
+        hh = _punch_curve(t + 0.07, 0.95, 0.40, 0.15, 0.50)
+        out.append(_stance_pose(r, st, t, e_cross=c, e_hook=h, loop=T, hip={"e_cross": ch, "e_hook": hh}))
+    return out
+
+
+def pull_back(r, st):
+    """Pull back: from the stance the weight shifts onto the rear leg and the upper body leans back just out of reach,
+    hands up, eyes on the target; then back to the stance. Done twice per clip."""
+    T = 3.6
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        p = _punch_curve(t, 0.35, 0.40, 0.30, 0.50) + _punch_curve(t, 2.00, 0.40, 0.30, 0.50)
+        out.append(_stance_pose(r, st, t, pull=min(1.0, p), bob_amp=0.4, loop=T))
+    return out
+
+
+def step_jab(r, st):
+    """Step-jab: the jab lands as the lead foot lands from a push-step forward, the rear foot follows; then a push-step
+    back to where it started, hands in guard."""
+    step = 0.20 * r.k
+    T = 1.7
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        first = smooth((t - 0.20) / 0.30)
+        second = smooth((t - 0.48) / 0.30)
+        body = smoother((t - 0.18) / 0.60)
+        g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
+        e = _punch_curve(t, 0.18, 0.34, 0.12, 0.45)
+        sp = _stance_pose(r, st, t, e_jab=e, travel=step * body, lead_step=g1, rear_step=g2, bob_amp=0.0, loop=2 * T,
+                          hip={"e_jab": _punch_curve(t + 0.05, 0.18, 0.34, 0.12, 0.45)})
+        for s_, prog in (("L", first), ("R", second)):
+            ball, yaw, pitch = sp["feet"][s_]
+            sp["feet"][s_] = (ball + V(0, -step * (prog - body), 0), yaw, pitch)
+        out.append(sp)
+    for i in range(1, n):
+        t = T * i / (n - 1)
+        first = smooth((t - 0.20) / 0.30)
+        second = smooth((t - 0.46) / 0.30)
+        body = smoother((t - 0.18) / 0.60)
+        g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
+        sp = _stance_pose(r, st, T + t, travel=step * (1 - body), lead_step=g2, rear_step=g1, bob_amp=0.0, loop=2 * T)
+        for s_, prog in (("R", first), ("L", second)):
+            ball, yaw, pitch = sp["feet"][s_]
+            sp["feet"][s_] = (ball + V(0, step * (prog - body), 0), yaw, pitch)
+        out.append(sp)
+    return out
+
+
 # which clips show which prop (tools/blender/coach_props.py adds the meshes and keys their visibility)
 PROPS_BY_CLIP = {
     "db_curl": ("dumbbell_L", "dumbbell_R"), "db_shoulder_press": ("dumbbell_L", "dumbbell_R"),
@@ -2412,6 +2502,10 @@ def build_all(arm, height, name):
     # batch 5 (2026-11-23)
     for name, fn in (("db_squat", db_squat), ("db_reverse_lunge", db_reverse_lunge), ("oblique_crunch", oblique_crunch),
                      ("boxing_double_jab", double_jab)):
+        r.write(name, fn(r, st))
+    # batch 6 — fighting (2026-11-23)
+    for name, fn in (("boxing_body_jab", body_jab), ("boxing_cross_hook", cross_hook), ("boxing_pull_back", pull_back),
+                     ("boxing_step_jab", step_jab)):
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]
