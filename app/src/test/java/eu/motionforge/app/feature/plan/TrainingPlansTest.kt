@@ -78,7 +78,7 @@ class TrainingPlansTest {
         val p = TrainingPlans.FOUNDATIONS
         assertEquals(0, p.weekOf(2)); assertEquals(1, p.weekOf(3)); assertEquals(3, p.weekOf(11))
         assertEquals("A", p.dayOf(0).label); assertEquals("B", p.dayOf(1).label); assertEquals("A", p.dayOf(2).label)
-        val s = PlanSessions.build(p, 4, catalog, emptyList())!!
+        val s = PlanSessions.build(p, 3, catalog, emptyList())!!   // week 2, day B (days alternate A, B, A, B…)
         assertTrue(s.title, s.title.contains("week 2"))
         val squat = s.steps.filterIsInstance<SessionStep.Work>().first { it.exerciseId == "sumo_squat" }
         assertEquals(10, squat.targetReps)
