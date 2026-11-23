@@ -73,6 +73,12 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     CALF_RAISE("Calf raise check", "Keep your whole body, feet included, in view.",
         "Each rep is counted when your heels come back down.",
         "That one didn't go the full way."),
+    KNEE_LIFT("Knee check", "Keep your whole body in view, facing the phone or side-on.",
+        "Each knee lift is counted when the foot comes back down.",
+        "That one was low. Lift the knee a little higher if it's comfortable."),
+    OVERHEAD("Triceps check", "Keep your upper body and arms in view, hands visible above your head.",
+        "Each rep is counted when your arms are straight overhead again.",
+        "That one didn't go the full way."),
     ;
 
     companion object {
@@ -83,13 +89,15 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "reverse_lunge", "split_squat", "forward_lunge", "side_lunge" -> LUNGE
             "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack",
             "dumbbell_hammer_curl", "dumbbell_front_raise" -> ARM_LIFT
-            "dumbbell_bent_over_row" -> ROW
+            "dumbbell_overhead_triceps_extension" -> OVERHEAD
+            "dumbbell_bent_over_row", "dumbbell_reverse_fly" -> ROW
             "band_pull_apart" -> BAND
             // the bodyweight hip hinge stays instructional only (spec); the loaded hinges are counted, never judged
             "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
             "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
-            "boxing_one_two", "boxing_one_two_hook" -> PUNCH
+            "boxing_one_two", "boxing_one_two_hook", "boxing_jab_jab_cross" -> PUNCH
+            "high_knee_march", "standing_knee_crunch" -> KNEE_LIFT
             "boxing_slip" -> SLIP
             else -> null
         }
@@ -112,6 +120,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             CALF_RAISE -> CalfRaiseRepCounter()
             PUNCH -> PunchRepCounter()
             SLIP -> SlipRepCounter()
+            KNEE_LIFT -> KneeLiftRepCounter()
+            OVERHEAD -> OverheadDropRepCounter()
             null -> null
         }
     }

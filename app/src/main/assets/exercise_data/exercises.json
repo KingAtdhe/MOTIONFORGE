@@ -722,8 +722,8 @@
     "category": "fitness",
     "level": "beginner",
     "durationSeconds": 45,
-    "recommendedView": "full_body",
-    "analysisMode": "guided_not_scored",
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "high_knee_march",
     "purpose": "A brisk march lifting the knees toward hip height to raise the heart rate without jumping.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -748,7 +748,46 @@
         "adjustment": "Lift a little lower and keep your chest over your hips."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera counts each knee lift from how high your knee rises; it does not judge technique. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "standing_knee_crunch",
+    "name": "Standing Knee Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "knee_crunch",
+    "purpose": "Lift one knee at a time while gently curling the upper body toward it, for core control without lying down.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Move slowly and keep your balance; stand near a wall if you feel unsteady. Do not pull on your head or neck. Stop if you feel pain in your back or hips.",
+    "instructions": [
+      "Stand tall with your fingertips lightly at the sides of your head, elbows wide.",
+      "Lift one knee toward hip height while you curl your chest a little toward it.",
+      "Lower the foot softly and stand tall again.",
+      "Switch sides and keep a steady rhythm."
+    ],
+    "commonCues": [
+      "Curl, don't yank the neck.",
+      "Knee up, chest down.",
+      "Stand tall between reps."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling the head forward with the hands",
+        "adjustment": "Keep the fingertips light; the movement comes from your middle."
+      },
+      {
+        "mistake": "Leaning back to lift the knee",
+        "adjustment": "Lift the knee a little lower and keep your chest over your hips."
+      }
+    ],
+    "limitations": "The camera counts each knee lift from how high your knee rises; it does not judge technique. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1015,6 +1054,45 @@
     "reviewStatus": "draft_pending_coach_review"
   },
   {
+    "id": "dumbbell_overhead_triceps_extension",
+    "name": "Dumbbell Overhead Triceps Extension",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_overhead_triceps",
+    "purpose": "Practise bending and straightening the elbows overhead to work the back of the arms.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor. Clear space above your head.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Use a very light weight and move slowly so the weights never touch your head. Stop if you feel pain in your elbows, shoulders or back.",
+    "instructions": [
+      "Stand tall and press light dumbbells straight overhead.",
+      "Keep your upper arms beside your ears.",
+      "Bend the elbows slowly to lower the weights behind your head.",
+      "Straighten the arms to press back up."
+    ],
+    "commonCues": [
+      "Elbows point up.",
+      "Ribs down, no arching.",
+      "Slow behind the head."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Elbows flaring out wide",
+        "adjustment": "Keep the upper arms close to your head."
+      },
+      {
+        "mistake": "Arching the lower back",
+        "adjustment": "Brace your middle and use a lighter weight."
+      }
+    ],
+    "limitations": "The camera counts repetitions from how far your hands drop and rise; it does not judge technique. Keep your upper body and arms in view, with your hands visible overhead. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
     "id": "dumbbell_bent_over_row",
     "name": "Dumbbell Bent-over Row",
     "category": "fitness",
@@ -1168,6 +1246,45 @@
       }
     ],
     "limitations": "The camera counts repetitions from how far your hands move apart. Face the phone with your upper body and arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_reverse_fly",
+    "name": "Dumbbell Reverse Fly",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_reverse_fly",
+    "purpose": "Practise opening the arms out to the sides from a hip hinge to work the upper back and rear shoulders.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Learn the hip hinge first. Use a very light weight and keep your back flat. Stop if you feel pain in your back or shoulders.",
+    "instructions": [
+      "Hold light dumbbells and hinge forward at the hips with a flat back and soft knees.",
+      "Let the weights hang under your shoulders, elbows softly bent.",
+      "Open your arms out to the sides until they are about level with your back.",
+      "Lower slowly under control."
+    ],
+    "commonCues": [
+      "Flat back, chest proud.",
+      "Squeeze the shoulder blades.",
+      "Slow on the way down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the weights up",
+        "adjustment": "Use a lighter weight and pause at the top."
+      },
+      {
+        "mistake": "Rounding the back",
+        "adjustment": "Hinge a little less and keep your chest proud."
+      }
+    ],
+    "limitations": "The camera counts repetitions from how far your hands travel; it does not judge technique. Keep your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1403,6 +1520,43 @@
       }
     ],
     "limitations": "The camera counts each jab-cross-hook combination; it does not judge power, speed or accuracy. Throw the three punches as one flowing combination, facing the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_jab_jab_cross",
+    "name": "Jab-Jab-Cross (1-1-2)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_jab_jab_cross",
+    "purpose": "Practise the double jab followed by the cross.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw a jab, bring it back, and throw a second jab.",
+      "As the second jab returns, throw the cross, turning the rear hip and heel.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Two snaps, then turn.",
+      "Rear hand stays on the chin during the jabs.",
+      "Hands home to guard."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the lead hand after the jabs",
+        "adjustment": "Bring each jab all the way back to your face."
+      },
+      {
+        "mistake": "Pushing the second jab out slowly",
+        "adjustment": "Keep both jabs short and snappy."
+      }
+    ],
+    "limitations": "The camera counts each 1-1-2 combination; it does not judge power, speed or accuracy. Throw the three punches as one flowing combination, facing the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

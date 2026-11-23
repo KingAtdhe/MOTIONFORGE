@@ -2111,6 +2111,134 @@ def one_two_hook(r, st):
     return out
 
 
+# =============================================================================================== batch 4 (2026-11-23)
+def knee_crunch(r, st):
+    """Standing knee crunch: hands by the ears, elbows wide; one knee drives up to hip height while the chest curls a
+    little toward it and turns so the opposite elbow comes toward the knee; down with control; then the other side.
+    The stepping is the march's (validated: planted foot, pelvis height from the standing leg, blended changeover)."""
+    Ts = 1.7 * st["tempo"]
+    steps = 4
+    T = Ts * steps
+    n = frames(T)
+    w = 0.092 * r.k
+    lift, fwd = 0.50 * r.k, 0.26 * r.k
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        step = int(t / Ts) % steps
+        u = (t / Ts) % 1.0
+        feet = {}
+        gs = 0.0
+        up_side = "L" if step % 2 == 0 else "R"
+        for s, sg in SIDES:
+            g = 0.0
+            if s == up_side:
+                a = smoother((u - 0.12) / 0.76)
+                g = math.sin(math.pi * a)
+                gs = g
+            f = r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0, pitch=30.0 * g)
+            ball = f[0] + V(0, -fwd * g * g, lift * g)
+            feet[s] = (ball, f[1], f[2])
+        usg = 1.0 if up_side == "L" else -1.0
+        crunch = gs ** 1.2
+        b = breath(t, T / 2, 0.3)
+        sp = torso_spec(V(0.020 * r.k * usg * -gs, r.P0.y + 0.006 * r.k, 0), yaw=0.0, roll=-2.0 * usg * gs, pitch=3.5 + 6.0 * crunch,
+                        spine=1.0 + 9.0 * crunch, chest=-1.0 + 6.0 * crunch, chest_yaw=11.0 * usg * crunch,
+                        head_pitch=1.5 + 6.0 * crunch, br=b * 0.6)
+        sp["feet"] = feet
+        sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
+        stand = "R" if up_side == "L" else "L"
+        other = up_side
+        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
+        z_other = r.fit_z(sp, 0.996, sides=(other,))
+        ws = 0.5 + 0.5 * math.sin(math.pi * u)
+        sp["pos"].z = min(z_stand, lerp(z_other, z_stand, ws)) - 0.005 * r.k
+
+        def arms(pts):
+            res = {}
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                # fingertips by the ears: wrists just above and behind the shoulders, elbows out to the sides
+                wpos = S + V(-sg * 0.045 * r.k, 0.035 * r.k, 0.205 * r.k)
+                res[s] = {"w": wpos, "pole": V(sg * 1.0, -0.15, 0.25), "fingers": V(-sg * 0.3, 0.2, 1.0).normalized(), "palm": V(-sg * 0.2, -1.0, 0.0)}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def db_reverse_fly(r, st):
+    """Hinged ~45 deg with a flat back, arms hanging; raise the arms out to the sides with a soft elbow, squeezing the
+    shoulder blades; lower slowly."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.1, 0.4, 1.7, 0.3)
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _hinge_pose(r, st, 0.70, t)
+
+        def arms(pts, e=e):
+            res = {}
+            a = math.radians(lerp(6.0, 70.0, e))
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                d = V(sg * math.sin(a), -0.10 * math.cos(a), -math.cos(a)).normalized()
+                palm = V(-sg * (1.0 - e), 0.0, -e)
+                palm = (palm - d * palm.dot(d)).normalized() if palm.length > 1e-6 else V(0, 0, -1)
+                res[s] = {"w": S + d * (0.95 * r.la), "pole": V(sg * 0.2, 1.0, 0.3), "fingers": d, "palm": palm}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def db_overhead_triceps(r, st):
+    """Dumbbells overhead, palms in, upper arms by the head; bend the elbows to lower the weights behind the head, keep
+    the elbows pointing up; straighten."""
+    k = r.k
+    segs, T = _rep_segments(st, 0.4, 1.6, 0.3, 1.2, 0.4)        # lowering slow, pressing up a little quicker
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        e = _phases(t, segs)
+        sp = _stand(r, st, t, T=T, pitch=0.0)
+
+        def arms(pts, e=e):
+            res = {}
+            th = math.radians(lerp(6.0, 128.0, e))               # elbow bend: forearms end pointing down behind the head
+            for s, sg in SIDES:
+                S = pts["S_" + s]
+                # upper arm near vertical beside the ear, the elbow pointing up; the forearm drops behind the head, a
+                # little out to the side so the weights pass beside the head, not into it (first render: elbows too
+                # wide and forearms level -- the weights stuck out beside the head)
+                E = S + V(sg * 0.06 * k, 0.045 * k, r.a1[s] * 0.97)
+                fd = V(sg * 0.16, math.sin(th), math.cos(th)).normalized()
+                res[s] = {"w": E + fd * r.a2[s] * 0.97, "pole": V(sg * 0.3, -0.4, 1.0), "fingers": fd,
+                          "palm": (V(-sg, 0, 0) - fd * V(-sg, 0, 0).dot(fd)).normalized()}
+            return res
+        sp["arms"] = arms
+        out.append(sp)
+    return out
+
+
+def jab_jab_cross(r, st):
+    """Double jab then cross (1-1-2): the second jab starts as the first comes back; the cross follows the second."""
+    T = 3.4
+    n = frames(T)
+    out = []
+    for i in range(n):
+        t = T * i / (n - 1)
+        j = max(_punch_curve(t, 0.30, 0.38, 0.08, 0.36), _punch_curve(t, 0.95, 0.38, 0.10, 0.40))
+        jh = max(_punch_curve(t + 0.05, 0.30, 0.38, 0.08, 0.36), _punch_curve(t + 0.05, 0.95, 0.38, 0.10, 0.40))
+        c = _punch_curve(t, 1.62, 0.42, 0.12, 0.50)
+        out.append(_stance_pose(r, st, t, e_jab=j, e_cross=c, loop=T,
+                                hip={"e_jab": jh, "e_cross": _punch_curve(t + 0.08, 1.62, 0.42, 0.12, 0.50)}))
+    return out
+
+
 # which clips show which prop (tools/blender/coach_props.py adds the meshes and keys their visibility)
 PROPS_BY_CLIP = {
     "db_curl": ("dumbbell_L", "dumbbell_R"), "db_shoulder_press": ("dumbbell_L", "dumbbell_R"),
@@ -2119,6 +2247,7 @@ PROPS_BY_CLIP = {
     "kb_deadlift_down": ("kettlebell",), "kb_deadlift_up": ("kettlebell",),
     "band_pull_apart": ("band",),
     "db_hammer_curl": ("dumbbell_L", "dumbbell_R"), "db_front_raise": ("dumbbell_L", "dumbbell_R"),
+    "db_reverse_fly": ("dumbbell_L", "dumbbell_R"), "db_overhead_triceps": ("dumbbell_L", "dumbbell_R"),
     "incline_pushup_down": ("bench",), "incline_pushup_up": ("bench",),
 }
 
@@ -2184,6 +2313,10 @@ def build_all(arm, height, name):
     # batch 3 (2026-11-23)
     for name, fn in (("forward_lunge", forward_lunge), ("db_hammer_curl", db_hammer_curl), ("db_front_raise", db_front_raise),
                      ("boxing_one_two", one_two), ("boxing_one_two_hook", one_two_hook)):
+        r.write(name, fn(r, st))
+    # batch 4 (2026-11-23)
+    for name, fn in (("knee_crunch", knee_crunch), ("db_reverse_fly", db_reverse_fly), ("db_overhead_triceps", db_overhead_triceps),
+                     ("boxing_jab_jab_cross", jab_jab_cross)):
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

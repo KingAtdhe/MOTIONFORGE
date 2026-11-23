@@ -134,6 +134,39 @@ class ArmLiftRepCounter(travel: Double, private val maxTilt: Double = 40.0, minR
 }
 
 /**
+ * Overhead triceps extension: the arms start straight overhead and the hands drop behind the head. Signal: wrist
+ * height above the shoulders, in torso lengths (as [ArmLiftRepCounter]), counted downward — one rep is the hands
+ * dropping by [travel] and pressing back up. Raising the weights from the sides into the start position is a rise,
+ * not a drop, so it never counts.
+ */
+class OverheadDropRepCounter(travel: Double = 0.30, private val maxTilt: Double = 30.0) : ExcursionRepCounter(-1, travel) {
+    override fun signal(f: PoseFrame): Double? {
+        val (s, h, len) = f.torso() ?: return null
+        if (tilt(s, h) > maxTilt) return null
+        val lifts = ARMS.filter { (sh, _, wr) -> f.seen(sh, wr) }.map { (sh, _, wr) -> (f.px(sh).second - f.px(wr).second) / len }
+        return if (lifts.isEmpty()) null else lifts.average()
+    }
+}
+
+/**
+ * Knee lifts (high-knee march, standing knee crunch): how high the higher knee comes toward the hips, in torso
+ * lengths (about −0.9 standing, about 0 with the thigh level). Each lift of either knee is one rep. Measured against
+ * the hips, so a small forward curl of the chest (knee crunch) doesn't change it. Lifts are quick (the thigh is above
+ * the half-way mark for only ~0.2–0.3 s), hence the short minimum; side-on the far knee is tracked but rated only
+ * ~0.5 visible, so knees are accepted from [kneeVisibility] (the travel, ~half a torso, is far above landmark noise).
+ */
+class KneeLiftRepCounter(travel: Double = 0.45, private val kneeVisibility: Float = 0.4f) :
+    ExcursionRepCounter(+1, travel, minRepMs = 150) {
+    override fun signal(f: PoseFrame): Double? {
+        val (s, h, len) = f.torso() ?: return null
+        if (tilt(s, h) > 40.0) return null
+        val knees = listOf(BodyLandmark.LEFT_KNEE, BodyLandmark.RIGHT_KNEE).filter { f[it].visibility >= kneeVisibility }
+            .map { (h.second - f.px(it).second) / len }
+        return knees.maxOrNull()
+    }
+}
+
+/**
  * Bent-over row: the wrists rise toward the hips/ribs while the body stays hinged. Signal: wrist height above the
  * hips, in torso lengths. Only while the torso is clearly tilted (a standing curl is not a row).
  */

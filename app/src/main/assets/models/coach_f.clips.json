@@ -34,6 +34,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_jab_jab_cross",
+      "durationSeconds": 2.433,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_lead_hook",
       "durationSeconds": 1.533,
       "reviewStatus": "draft_pending_coach_review"
@@ -114,6 +119,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "db_overhead_triceps",
+      "durationSeconds": 2.633,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "db_rdl_down",
       "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
@@ -121,6 +131,11 @@
     {
       "name": "db_rdl_up",
       "durationSeconds": 1.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "db_reverse_fly",
+      "durationSeconds": 2.633,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -201,6 +216,11 @@
     {
       "name": "kb_deadlift_up",
       "durationSeconds": 1.233,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "knee_crunch",
+      "durationSeconds": 4.7,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
