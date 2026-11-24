@@ -1,6 +1,10 @@
 package eu.motionforge.app.feature.catalog
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +49,7 @@ import eu.motionforge.app.core.design.LessonRow
 import eu.motionforge.app.core.design.MfColors
 import eu.motionforge.app.core.design.Panel
 import eu.motionforge.app.core.design.PrimaryButton
-import eu.motionforge.app.core.design.ScreenColumn
+import eu.motionforge.app.core.design.ScreenHeader
 import eu.motionforge.app.core.design.SecondaryButton
 import eu.motionforge.app.core.design.SectionHeader
 import eu.motionforge.app.core.design.SegmentedPill
@@ -75,59 +79,82 @@ fun TrainScreen(
     onQuery: (String) -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf(false) }
-    ScreenColumn(title = "Moves") {
-        SearchBar(filter.query, onQuery)
-        val categories = listOf<TrainingCategory?>(null) + TrainingCategory.entries
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SegmentedPill(
-                options = categories.map { it?.let { c -> if (c == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else c.displayName } ?: "All" },
-                selectedIndex = categories.indexOf(filter.category),
-                onSelect = { onCategory(categories[it]) },
-                modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
-            )
-            Spacer(Modifier.width(8.dp))
-            val extra = listOfNotNull(
-                filter.duration.takeIf { it != DurationFilter.ANY },
-                filter.equipment.takeIf { it != EquipmentFilter.ANY },
-            ).size
-            TextButton(onClick = { sheet = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(if (extra > 0) "Filters ($extra)" else "Filters", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
+    // A lazy list: only the rows on screen are built and their motion strips decoded (118 strips decode to ~60 MB;
+    // a plain scrolling column built and held all of them at once).
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+    ) {
+        item(key = "header") { ScreenHeader("Moves", null) }
+        item(key = "search") { Column { Spacer(Modifier.height(18.dp)); SearchBar(filter.query, onQuery) } }
+        item(key = "kinds") {
+            Column {
+                Spacer(Modifier.height(18.dp))
+                val categories = listOf<TrainingCategory?>(null) + TrainingCategory.entries
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SegmentedPill(
+                        options = categories.map { it?.let { c -> if (c == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else c.displayName } ?: "All" },
+                        selectedIndex = categories.indexOf(filter.category),
+                        onSelect = { onCategory(categories[it]) },
+                        modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    val extra = listOfNotNull(
+                        filter.duration.takeIf { it != DurationFilter.ANY },
+                        filter.equipment.takeIf { it != EquipmentFilter.ANY },
+                    ).size
+                    TextButton(onClick = { sheet = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(if (extra > 0) "Filters ($extra)" else "Filters", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
+                    }
+                }
+                Spacer(Modifier.height(18.dp))
             }
         }
 
         when (catalog) {
-            CatalogUiState.Loading -> Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(strokeWidth = 2.dp, color = MfColors.Ink)
-                Spacer(Modifier.width(12.dp))
-                Text("Loading lessons…")
+            CatalogUiState.Loading -> item(key = "loading") {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(strokeWidth = 2.dp, color = MfColors.Ink)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Loading lessons…")
+                }
             }
-            is CatalogUiState.Error -> Panel {
-                Eyebrow("Lessons unavailable", color = MfColors.Halt)
-                Text(catalog.message, style = MaterialTheme.typography.bodyMedium)
-                OutlinedButton(onClick = onRetry) { Text("Try again") }
+            is CatalogUiState.Error -> item(key = "error") {
+                Panel {
+                    Eyebrow("Lessons unavailable", color = MfColors.Halt)
+                    Text(catalog.message, style = MaterialTheme.typography.bodyMedium)
+                    OutlinedButton(onClick = onRetry) { Text("Try again") }
+                }
             }
             is CatalogUiState.Ready -> {
                 val visible = filter.apply(catalog.exercises)
                 when {
-                    catalog.exercises.isEmpty() -> Panel { Text("No lessons are available in this build.") }
-                    visible.isEmpty() && filter.query.isNotBlank() -> Panel {
-                        Text("No lessons match \u201c${filter.query.trim()}\u201d${if (filter.copy(query = "").isActive) " with these filters" else ""}.", style = MaterialTheme.typography.titleMedium)
-                        Text("Try a shorter word, a body part (legs, arms, abs) or a move (jab, squat).", style = MaterialTheme.typography.bodyMedium, color = MfColors.Graphite)
-                        OutlinedButton(onClick = onClearFilters, modifier = Modifier.heightIn(min = 48.dp)) { Text("Clear search and filters") }
+                    catalog.exercises.isEmpty() -> item(key = "none") { Panel { Text("No lessons are available in this build.") } }
+                    visible.isEmpty() && filter.query.isNotBlank() -> item(key = "nomatch") {
+                        Panel {
+                            Text("No lessons match \u201c${filter.query.trim()}\u201d${if (filter.copy(query = "").isActive) " with these filters" else ""}.", style = MaterialTheme.typography.titleMedium)
+                            Text("Try a shorter word, a body part (legs, arms, abs) or a move (jab, squat).", style = MaterialTheme.typography.bodyMedium, color = MfColors.Graphite)
+                            OutlinedButton(onClick = onClearFilters, modifier = Modifier.heightIn(min = 48.dp)) { Text("Clear search and filters") }
+                        }
                     }
-                    visible.isEmpty() -> Panel {
-                        Text("No lessons match these filters.", style = MaterialTheme.typography.titleMedium)
-                        OutlinedButton(onClick = onClearFilters) { Text("Clear filters") }
+                    visible.isEmpty() -> item(key = "nofilter") {
+                        Panel {
+                            Text("No lessons match these filters.", style = MaterialTheme.typography.titleMedium)
+                            OutlinedButton(onClick = onClearFilters) { Text("Clear filters") }
+                        }
                     }
                     else -> visible.groupBy { it.category }.forEach { (category, lessons) ->
-                        Column {
+                        item(key = "h_" + category.name) {
                             SectionHeader(
                                 if (category == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else category.displayName,
                                 trailing = "${lessons.size} lesson${if (lessons.size == 1) "" else "s"}",
                             )
-                            lessons.forEachIndexed { i, ex ->
+                        }
+                        itemsIndexed(lessons, key = { _, ex -> ex.id }) { i, ex ->
+                            Column {
                                 if (i > 0) ThinRule()
                                 LessonLine(ex, coach, onOpenLesson)
+                                if (i == lessons.lastIndex) Spacer(Modifier.height(18.dp))
                             }
                         }
                     }
