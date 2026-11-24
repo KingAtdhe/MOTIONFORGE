@@ -201,8 +201,12 @@ class AppFlowTest {
         }
         waitFor("summary") { exists("Session complete") || exists("Session ended") }
         click("Save session")
-        waitFor("saved (failed: ${'$'}{exists("Saving failed. Please try again.")}, too short: ${'$'}{exists("This session was too short to save.")})", 15000) {
-            exists("Saved to your progress on this phone.")
+        var waited = 0
+        while (!exists("Saved to your progress on this phone.")) {
+            val failed = exists("Saving failed. Please try again.")
+            val tooShort = exists("This session was too short to save.")
+            if (waited > 15000) fail("not saved; failed=" + failed + ", tooShort=" + tooShort)
+            pump(200, 40); waited += 200
         }
         assertEquals(1, sessionCount())
     }
