@@ -7,9 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToString
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -103,13 +101,11 @@ class AppFlowTest {
         waitForText(text, substring)
         val node = compose.onAllNodesWithText(text, substring = substring)[0]
         if (runCatching { node.performScrollTo() }.isFailure) {
-            // bring it into view by swiping the screen up (bounded: never loops forever)
-            repeat(6) {
-                val shown = runCatching { node.assertIsDisplayed() }.isSuccess
-                if (!shown) {
-                    compose.onAllNodes(androidx.compose.ui.test.isRoot())[0].performTouchInput { swipeUp() }
-                    pump(300)
-                }
+            // scroll the page's own scroll container by a fixed amount (synchronous semantics action; no gestures,
+            // which would wait on the hand-driven clock)
+            runCatching {
+                compose.onAllNodes(androidx.compose.ui.test.hasScrollAction())[0]
+                    .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.ScrollBy) { it(0f, 4000f) }
             }
         }
         pump(100)
