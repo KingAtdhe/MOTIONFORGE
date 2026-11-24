@@ -11,7 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -25,6 +34,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.LessonRow
@@ -58,9 +72,11 @@ fun TrainScreen(
     onClearFilters: () -> Unit,
     onOpenLesson: (String) -> Unit,
     onRetry: () -> Unit,
+    onQuery: (String) -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf(false) }
     ScreenColumn(title = "Moves") {
+        SearchBar(filter.query, onQuery)
         val categories = listOf<TrainingCategory?>(null) + TrainingCategory.entries
         Row(verticalAlignment = Alignment.CenterVertically) {
             SegmentedPill(
@@ -94,6 +110,11 @@ fun TrainScreen(
                 val visible = filter.apply(catalog.exercises)
                 when {
                     catalog.exercises.isEmpty() -> Panel { Text("No lessons are available in this build.") }
+                    visible.isEmpty() && filter.query.isNotBlank() -> Panel {
+                        Text("No lessons match \u201c${filter.query.trim()}\u201d${if (filter.copy(query = "").isActive) " with these filters" else ""}.", style = MaterialTheme.typography.titleMedium)
+                        Text("Try a shorter word, a body part (legs, arms, abs) or a move (jab, squat).", style = MaterialTheme.typography.bodyMedium, color = MfColors.Graphite)
+                        OutlinedButton(onClick = onClearFilters, modifier = Modifier.heightIn(min = 48.dp)) { Text("Clear search and filters") }
+                    }
                     visible.isEmpty() -> Panel {
                         Text("No lessons match these filters.", style = MaterialTheme.typography.titleMedium)
                         OutlinedButton(onClick = onClearFilters) { Text("Clear filters") }
@@ -141,6 +162,35 @@ fun TrainScreen(
             }
         }
     }
+}
+
+/** Search the lessons by name, body part, move or equipment. Results update while typing. */
+@Composable
+private fun SearchBar(query: String, onQuery: (String) -> Unit) {
+    val focus = LocalFocusManager.current
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQuery,
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Search lessons" },
+        placeholder = { Text("Search moves, e.g. squat, abs, jab", color = MfColors.Graphite) },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQuery(""); focus.clearFocus() }) {
+                    Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { focus.clearFocus() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            cursorColor = MaterialTheme.colorScheme.onBackground,
+        ),
+    )
 }
 
 @Composable

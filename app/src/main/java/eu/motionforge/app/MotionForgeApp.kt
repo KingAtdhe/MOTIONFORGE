@@ -200,6 +200,7 @@ fun MotionForgeApp(
                     onDuration = catalogViewModel::setDuration,
                     onEquipment = catalogViewModel::setEquipment,
                     onClearFilters = catalogViewModel::clearFilters,
+                    onQuery = catalogViewModel::setQuery,
                     onOpenLesson = { navController.navigate(Routes.lesson(it)) },
                     onRetry = catalogViewModel::load,
                 )

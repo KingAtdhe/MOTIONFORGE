@@ -26,10 +26,12 @@ data class CatalogFilter(
     val category: TrainingCategory? = null,
     val duration: DurationFilter = DurationFilter.ANY,
     val equipment: EquipmentFilter = EquipmentFilter.ANY,
+    /** Text typed in the search bar; blank = no search. */
+    val query: String = "",
 ) {
-    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY || equipment != EquipmentFilter.ANY
+    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY || equipment != EquipmentFilter.ANY || query.isNotBlank()
 
-    fun apply(exercises: List<Exercise>): List<Exercise> = exercises.filter { e ->
+    fun apply(exercises: List<Exercise>): List<Exercise> = CatalogSearch.search(exercises, query).filter { e ->
         (category == null || e.category == category) &&
             (duration.maxSeconds == null || e.durationSeconds <= duration.maxSeconds) &&
             when (equipment) {

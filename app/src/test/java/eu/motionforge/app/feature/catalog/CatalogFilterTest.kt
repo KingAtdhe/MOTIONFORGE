@@ -75,4 +75,64 @@ class CatalogFilterTest {
     fun emptyCatalogGivesNoSuggestion() {
         assertEquals(null, LessonSuggestions.suggest(emptyList(), null, null, null))
     }
+
+    // ------------------------------------------------------------------ search
+    private fun names(q: String, f: CatalogFilter = CatalogFilter()) = f.copy(query = q).apply(catalog).map { it.id }
+
+    @Test
+    fun blankSearchChangesNothing() {
+        assertEquals(catalog, CatalogFilter(query = "   ").apply(catalog))
+        assertFalse(CatalogFilter(query = " ").isActive)
+        assertTrue(CatalogFilter(query = "jab").isActive)
+    }
+
+    @Test
+    fun searchFindsByNameAnyCaseAndPlural() {
+        assertEquals(names("squat"), names("SQUATS"))
+        assertTrue("bodyweight_squat" in names("squat"))
+        assertTrue(names("squat").all { "squat" in it })
+        assertEquals("best match first", "boxing_jab", names("jab").first())
+    }
+
+    @Test
+    fun searchJoinsWordsTypedApart() {
+        val push = names("push up")
+        assertEquals(names("pushup"), push)
+        assertTrue("push_up" in push && "knee_push_up" in push)
+        assertTrue(push.all { "push_up" in it })
+        assertEquals(listOf("knee_push_up"), names("knee push up"))
+    }
+
+    @Test
+    fun everydayWordsFindTheRightMoves() {
+        assertTrue(names("abs").containsAll(listOf("forearm_plank", "dead_bug")))
+        assertTrue(names("abs").none { it.startsWith("boxing_") })
+        assertTrue(names("punch").containsAll(listOf("boxing_jab", "boxing_cross", "boxing_lead_hook", "boxing_rear_uppercut")))
+        assertTrue(names("punch").none { it == "bodyweight_squat" })
+        assertTrue(names("defence").containsAll(listOf("boxing_slip", "boxing_roll")))
+        assertTrue(names("defence").none { it.contains("squat") || it.contains("push") })
+        assertTrue("dumbbell_biceps_curl" in names("biceps"))
+        assertTrue("kettlebell_deadlift" in names("weights"))
+    }
+
+    @Test
+    fun wordStartsOnlyAndAllWordsMustMatch() {
+        assertEquals("'arm' must rank Arm Circles first, not the warm-up", "arm_circles", names("arm").first())
+        assertEquals(listOf("dumbbell_biceps_curl", "dumbbell_hammer_curl"), names("dumbbell curl"))
+        assertTrue(names("xyzzy").isEmpty())
+    }
+
+    @Test
+    fun searchCombinesWithFilters() {
+        val fighting = names("jab", CatalogFilter(category = TrainingCategory.FIGHTING_FUNDAMENTALS))
+        assertEquals(names("jab"), fighting)
+        assertTrue(names("jab", CatalogFilter(category = TrainingCategory.FITNESS)).isEmpty())
+        assertTrue(names("dumbbell", CatalogFilter(equipment = EquipmentFilter.NONE)).isEmpty())
+    }
+
+    @Test
+    fun accentsAndDashesAreIgnored() {
+        assertEquals(names("cat-cow"), names("cat cow"))
+        assertEquals(names("squat"), names("squât"))
+    }
 }

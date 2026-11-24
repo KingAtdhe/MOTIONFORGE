@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToString
 import androidx.navigation.NavHostController
@@ -255,6 +257,37 @@ class AppFlowTest {
         compose.activityRule.scenario.recreate()
         pump(400, 200)
         assertEquals(1, sessionCount())
+    }
+
+    @Test
+    fun search_bar_finds_lessons_and_clears() {
+        onboard()
+        click("Moves")
+        waitFor("search bar") { existsDesc("Search lessons") }
+        val bar = compose.onAllNodesWithContentDescription("Search lessons")[0]
+        bar.performTextInput("jab")
+        pump(400)
+        assertTrue(exists("Double Jab"))
+        assertTrue("non-matching lessons are hidden", !exists("Bodyweight Squat"))
+        bar.performTextClearance()
+        bar.performTextInput("zzqx")
+        pump(400)
+        assertTrue(exists("No lessons match", substring = true))
+        click("Clear search and filters")
+        pump(400)
+        assertTrue("clearing brings everything back", exists("Bodyweight Squat") && exists("Double Jab"))
+        bar.performTextInput("squat")
+        pump(400)
+        clickDesc("Clear search")
+        assertTrue(exists("Double Jab"))
+        // the search survives opening a lesson and coming back
+        bar.performTextInput("hook")
+        pump(400)
+        click("Lead Hook")
+        waitForText("Start practice", substring = true)
+        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        pump(600)
+        assertTrue(exists("Lead Hook") && !exists("Bodyweight Squat"))
     }
 
     @Test
