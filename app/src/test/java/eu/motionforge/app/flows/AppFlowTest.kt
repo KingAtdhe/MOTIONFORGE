@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.printToString
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -99,7 +100,14 @@ class AppFlowTest {
     private fun click(text: String, substring: Boolean = false) {
         waitForText(text, substring)
         val node = compose.onAllNodesWithText(text, substring = substring)[0]
-        runCatching { node.performScrollTo() }
+        if (runCatching { node.performScrollTo() }.isFailure) {
+            // the summary column scrolls by itself: bring the node into view through its scrollable container
+            runCatching {
+                compose.onAllNodes(androidx.compose.ui.test.hasScrollAction())[0]
+                    .performScrollToNode(androidx.compose.ui.test.hasText(text, substring = substring))
+            }
+        }
+        pump(100)
         node.performClick()
         pump()
     }
