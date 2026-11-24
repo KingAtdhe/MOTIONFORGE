@@ -135,6 +135,26 @@ def bench_mesh(k):
     return bm
 
 
+def wall_mesh():
+    """A plain wall panel 1.8 m wide, 2.3 m tall, 0.10 m thick: front face at y = 0 (facing +Y), floor at z = 0."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation((0, -0.05, 1.15)) @ Matrix.Diagonal((1.8, 0.10, 2.3, 1.0)))
+    return bm
+
+
+def _skin_world(mesh, frame):
+    """Evaluated vertex positions (armature space = world here) of the coach mesh at `frame`."""
+    import numpy as np
+    bpy.context.scene.frame_set(frame)
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = mesh.evaluated_get(dg)
+    m2 = ev.to_mesh()
+    co = np.empty(len(m2.vertices) * 3, np.float32)
+    m2.vertices.foreach_get("co", co)
+    ev.to_mesh_clear()
+    return co.reshape(-1, 3)
+
+
 # ---------------------------------------------------------------------------------------------------------------- build
 def _new_bone(arm, name, matrix, parent):
     bpy.context.view_layer.objects.active = arm
@@ -304,8 +324,70 @@ def add_props(arm, k):
         poly.material_index = 0 if c.z > ac.INCLINE_BENCH_H - 0.075 else 1
     objs.append(ob)
 
+    # ---- batch 7 (2026-11-24)
+    import numpy as np
+    coach = next(o for o in bpy.data.objects if o.type == "MESH" and o.parent == arm and not o.name.startswith("prop_"))
+    gi = {g.index: g.name for g in coach.vertex_groups}
+    hand_v = np.array([v.index for v in coach.data.vertices if sum(g.weight for g in v.groups if "Hand" in gi[g.group]) > 0.6])
+
+    def first(clip):
+        return int(bpy.data.actions[clip].frame_range[0])
+
+    def act(clip):
+        arm.animation_data.action = bpy.data.actions[clip]
+
+    # goblet dumbbell: upright between the cupped hands, the top end under the palms (parented to the right hand)
+    clip = "db_goblet_squat"
+    HL = _pose_world(arm, clip, first(clip), HAND["L"])
+    HR = _pose_world(arm, clip, first(clip), HAND["R"])
+    mid = (HL.translation + HR.translation) / 2 + Vector((0, -0.010 * k, -0.095 * k))
+    Pg = Matrix.Translation(mid) @ Matrix((Vector((0, 0, 1)), Vector((0, 1, 0)), Vector((-1, 0, 0)))).transposed().to_4x4()
+    Mg = rest[HAND["R"]] @ (HR.inverted() @ Pg)
+    _new_bone(arm, "dumbbell_goblet", Mg, HAND["R"])
+    bm, _ = dumbbell_mesh(k)
+    ob = _skinned_object(arm, "prop_dumbbell_goblet", bm, Mg, {"dumbbell_goblet": 1.0}, [metal, rubber])
+    for poly in ob.data.polygons:
+        c = sum((ob.data.vertices[i].co for i in poly.vertices), Vector()) / len(poly.vertices)
+        poly.material_index = 1 if (Mg.inverted() @ c).x.__abs__() > 0.077 * k else 0
+    objs.append(ob)
+
+    # dip bench: behind the body, the hands on its near (front) edge
+    clip = "bench_dip"
+    HL = _pose_world(arm, clip, first(clip), HAND["L"])
+    HR = _pose_world(arm, clip, first(clip), HAND["R"])
+    hy = (HL.translation.y + HR.translation.y) / 2
+    import clips_fit2 as cfit
+    Md = Matrix.Translation((0.0, hy + 0.125 * k, cfit.DIP_BENCH_H))
+    _new_bone(arm, "bench_dip", Md, None)
+    ob = _skinned_object(arm, "prop_bench_dip", bench_mesh(k), Md, {"bench_dip": 1.0}, [pad, frame_m])
+    for poly in ob.data.polygons:
+        c = sum((ob.data.vertices[i].co for i in poly.vertices), Vector()) / len(poly.vertices)
+        poly.material_index = 0 if c.z > cfit.DIP_BENCH_H - 0.075 else 1
+    objs.append(ob)
+
+    wall_m = _material("prop_wall", (0.80, 0.80, 0.78), 0.9)
+    # wall in front (wall push-up): its face where the palms touch it
+    act("wall_pushup")
+    co = _skin_world(coach, first("wall_pushup"))
+    yf = float(co[hand_v, 1].min())
+    Mw = Matrix.Translation((0.0, yf, 0.0))
+    _new_bone(arm, "wall_front", Mw, None)
+    objs.append(_skinned_object(arm, "prop_wall_front", wall_mesh(), Mw, {"wall_front": 1.0}, [wall_m]))
+    # wall behind (wall sit): its face where the back of the pelvis / shoulder blades touch it, at the bottom of the sit
+    act("wall_sit")
+    fa, fb = [int(x) for x in bpy.data.actions["wall_sit"].frame_range]
+    yb = -1.0
+    for fr in (fa, (fa + fb) // 2):
+        co = _skin_world(coach, fr)
+        sel = co[:, 2] > 0.30
+        yb = max(yb, float(co[sel, 1].max()))
+    Mw = Matrix.Translation((0.0, yb, 0.0)) @ Matrix.Rotation(math.pi, 4, "Z")
+    _new_bone(arm, "wall_back", Mw, None)
+    objs.append(_skinned_object(arm, "prop_wall_back", wall_mesh(), Mw, {"wall_back": 1.0}, [wall_m]))
+    arm.animation_data.action = None
+
     # visibility: key every prop bone in every clip
-    bones = ["dumbbell_L", "dumbbell_R", "kettlebell", "band", "bench"]
+    bones = ["dumbbell_L", "dumbbell_R", "kettlebell", "band", "bench", "dumbbell_goblet", "bench_dip", "wall_front", "wall_back"]
     group = {b: b for b in bones}
     for act in bpy.data.actions:
         arm.animation_data.action = act

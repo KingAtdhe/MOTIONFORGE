@@ -33,6 +33,19 @@ class DemoClipsTest {
         "knee_crunch", "db_reverse_fly", "db_overhead_triceps", "boxing_jab_jab_cross",
         "db_squat", "db_reverse_lunge", "oblique_crunch", "boxing_double_jab",
         "boxing_body_jab", "boxing_cross_hook", "boxing_pull_back", "boxing_step_jab",
+        // batch 7 (2026-11-24)
+        "boxing_body_cross", "boxing_body_hook", "boxing_rear_body_hook", "boxing_jab_body_cross", "boxing_body_head_jab",
+        "boxing_parry", "boxing_catch", "boxing_high_block", "boxing_body_block", "boxing_duck",
+        "boxing_block_cross", "boxing_jab_slip", "boxing_slip_cross", "boxing_roll_hook", "boxing_pull_counter",
+        "boxing_jab_uppercut", "boxing_uppercut_hook", "boxing_hook_cross", "boxing_cross_hook_cross", "boxing_one_two_uppercut",
+        "boxing_uppercuts", "boxing_stance_bounce", "boxing_fist_rolls", "footwork_circle_left", "footwork_circle_right",
+        "footwork_angle_step", "footwork_shuffle", "boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot",
+        "good_morning", "curtsy_lunge", "squat_calf_raise", "single_leg_balance", "single_leg_rdl",
+        "side_leg_raise", "glute_kickback", "butt_kicks", "torso_twist", "side_bend",
+        "skater_step", "wall_pushup", "wall_sit", "db_goblet_squat", "db_floor_press",
+        "db_shrug", "db_calf_raise", "kb_swing", "bench_dip", "crunch",
+        "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps",
+        "single_leg_bridge", "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */

@@ -599,11 +599,16 @@ def key_fingers(arm, scene, grip_for):
 #   prone  — lying face down: belly / thighs rest on the floor, head clear
 # clips in which a hand leaves the floor on purpose (the pin lets go smoothly); in every other contact clip the hands
 # stay planted the whole time
-LIFTING_HANDS = ("bird_dog",)
+LIFTING_HANDS = ("bird_dog", "shoulder_taps")
 CONTACTS = {
     "cat_cow": ("kneel",), "bird_dog": ("kneel",), "knee_pushup_down": ("kneel",), "knee_pushup_up": ("kneel",),
     "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
     "glute_bridge": ("bridge",), "dead_bug": ("back",), "superman": ("prone",),
+    # batch 7 (clips_fit2.py)
+    "crunch": ("bridge",), "heel_taps": ("bridge",), "db_floor_press": ("bridge",), "single_leg_bridge": ("bridge",),
+    "reverse_crunch": ("back",), "toe_taps": ("back",),
+    "high_plank": ("hands",), "shoulder_taps": ("hands",), "bear_hold": ("hands",),
+    "donkey_kick": ("kneel",), "fire_hydrant": ("kneel",), "childs_pose": ("kneel",),
 }
 
 
@@ -861,7 +866,8 @@ def settle_contacts(arm, mesh, scene, names):
                     z = _skin_z(mesh)
                 for s in ("L", "R"):
                     fz = z[R["foot" + s], 2].min()
-                    if abs(fz) > 0.002:
+                    # (a foot lifted on purpose -- single-leg bridge -- is far above the floor and left alone)
+                    if fz < -0.002 or 0.002 < fz < 0.03:
                         fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
                         A = _world(arm, fb).translation.copy()
                         _two_bone(arm, s, A - Vector((0, 0, fz)), limb="leg")

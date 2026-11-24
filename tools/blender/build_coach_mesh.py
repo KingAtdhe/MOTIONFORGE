@@ -569,7 +569,9 @@ if LEGACY_MOCAP:
     exec(compile(open(os.path.join(HERE, "legacy_mocap_clips.py")).read(), "legacy_mocap_clips.py", "exec"), globals())
 
 
-GRIP = {"boxing_": 0.95, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5, "plank_": 0.6, "glute_": 0.1,
+GRIP = {"boxing_catch": 0.25, "boxing_parry": 0.45, "boxing_": 0.95, "db_goblet": 0.45, "wall_": 0.0, "high_plank": 0.0,
+        "shoulder_taps": 0.0, "bear_hold": 0.0, "childs_pose": 0.0, "donkey_kick": 0.0, "fire_hydrant": 0.0, "bench_dip": 0.45,
+        "crunch": 0.3, "heel_taps": 0.15, "reverse_crunch": 0.1, "toe_taps": 0.1, "single_leg_bridge": 0.1, "skater": 0.35, "footwork_": 0.95, "pushup_": 0.0, "warmup_": 0.5, "plank_": 0.6, "glute_": 0.1,
         "db_": 0.95, "kb_": 0.95, "band_": 0.9, "incline_": 0.0, "knee_pushup": 0.0, "mountain_": 0.0, "cat_": 0.0, "bird_": 0.0,
         "dead_bug": 0.3, "superman": 0.2, "sumo_": 0.3, "side_lunge": 0.3, "high_knee": 0.5}  # everything else: relaxed hands (below)
 

@@ -71,7 +71,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
         "Each combination is counted when your hands are back in guard.",
         "That one didn't come up fully."),
     LEVEL("Level check", "Face the phone with your whole body in view, feet included.",
-        "Each body jab is counted when you come back up to your stance.",
+        "Each body shot is counted when you come back up to your stance.",
         "That one was shallow. Bend the knees a little more if it's comfortable."),
     SLIP("Slip check", "Face the phone with your head and upper body in view.",
         "Each slip is counted when your head comes back to the middle.",
@@ -93,9 +93,10 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     companion object {
         /** Which counter a lesson uses, or null when the camera does not count that lesson. */
         fun forExercise(id: String): CountedMove? = when (id) {
-            "bodyweight_squat", "sumo_squat", "dumbbell_squat" -> SQUAT
+            "bodyweight_squat", "sumo_squat", "dumbbell_squat", "dumbbell_goblet_squat" -> SQUAT
             "push_up", "knee_push_up", "incline_push_up" -> PUSH_UP
-            "reverse_lunge", "split_squat", "forward_lunge", "side_lunge", "dumbbell_reverse_lunge" -> LUNGE
+            "reverse_lunge", "split_squat", "forward_lunge", "side_lunge", "dumbbell_reverse_lunge",
+            "curtsy_lunge" -> LUNGE
             "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "step_jack",
             "dumbbell_hammer_curl", "dumbbell_front_raise" -> ARM_LIFT
             "dumbbell_overhead_triceps_extension" -> OVERHEAD
@@ -105,12 +106,15 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
             "glute_bridge" -> BRIDGE
             "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
-            "boxing_one_two", "boxing_one_two_hook", "boxing_step_jab" -> PUNCH
-            "boxing_body_jab" -> LEVEL
-            "boxing_jab_jab_cross", "boxing_double_jab", "boxing_cross_hook" -> COMBO
+            "boxing_one_two", "boxing_one_two_hook", "boxing_step_jab",
+            "boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot" -> PUNCH
+            "boxing_body_jab", "boxing_body_cross", "boxing_body_hook", "boxing_rear_body_hook" -> LEVEL
+            "boxing_jab_jab_cross", "boxing_double_jab", "boxing_cross_hook",
+            "boxing_jab_body_cross", "boxing_jab_uppercut", "boxing_uppercut_hook", "boxing_hook_cross",
+            "boxing_cross_hook_cross", "boxing_one_two_uppercut", "boxing_uppercuts" -> COMBO
             "high_knee_march", "standing_knee_crunch" -> KNEE_LIFT
             "standing_oblique_crunch" -> SIDE_KNEE_LIFT
-            "boxing_slip" -> SLIP
+            "boxing_slip", "boxing_jab_slip" -> SLIP
             else -> null
         }
 

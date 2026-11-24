@@ -183,3 +183,20 @@ n_lunge_m_side|reverse_lunge|4
 n_stance_f_front|boxing_slip|0
 n_stance_f_front|boxing_lead_hook|0
 n_stance_f_front|boxing_jab_jab_cross|0
+# batch 7 (2026-11-24): one rendered video per newly counted lesson
+b7_goblet_f_side|dumbbell_goblet_squat|3
+b7_curtsy_m_front|curtsy_lunge|4
+b7_bodycross_f_front|boxing_body_cross|3
+b7_bodyhook_m_front|boxing_body_hook|3
+b7_rbodyhook_f_q45|boxing_rear_body_hook|3
+b7_jabbody_m_front|boxing_jab_body_cross|3
+b7_jabslip_f_front|boxing_jab_slip|3
+b7_jabup_m_front|boxing_jab_uppercut|3
+b7_uphook_f_front|boxing_uppercut_hook|3
+b7_hookcross_m_q45|boxing_hook_cross|3
+b7_chc_f_front|boxing_cross_hook_cross|3
+b7_otu_m_front|boxing_one_two_uppercut|3
+b7_upps_f_front|boxing_uppercuts|3
+b7_backjab_m_front|boxing_back_jab|3
+b7_latjab_f_front|boxing_lateral_jab|3
+b7_jabpivot_m_front|boxing_jab_pivot|3

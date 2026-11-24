@@ -746,7 +746,8 @@ def pushup(r, st):
 
 # =============================================================================================== boxing
 def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0, loop=3.2,
-                 e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0, hip=None, jab_dz=0.0, pull=0.0):
+                 e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0, hip=None, jab_dz=0.0, pull=0.0,
+                 cross_dz=0.0, hook_dz=0.0, rhook_dz=0.0, e_parry=0.0, e_catch=0.0, e_cover=0.0, e_bblock=0.0, bounce=0.0):
     """Orthodox stance (left foot leads, target straight ahead at -Y).
     e_jab / e_cross / e_hook: 0 guard .. 1 full extension. travel: forward shift of the whole stance (m).
     lead_step / rear_step: 0..1 bell while that foot is in the air during a push-step.
@@ -754,7 +755,12 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     hip: optional e_* values for the hips and feet, sampled a little ahead of the arm's, so the turn starts in the hips
     and the fist follows (kinetic chain).
     jab_dz: the jab's target height relative to the shoulder (m, negative = to the body).
-    pull: 0..1 pull-back: the weight goes onto the rear leg and the upper body leans back out of range, head level."""
+    pull: 0..1 pull-back: the weight goes onto the rear leg and the upper body leans back out of range, head level.
+    cross_dz / hook_dz / rhook_dz: target height of the cross / lead hook / rear hook (m, negative = to the body).
+    e_parry: rear hand taps the incoming jab aside, across in front of the face. e_catch: rear palm opens a little in
+    front of the face to catch a jab. e_cover: both gloves up tight to the temples, elbows in (high block). e_bblock:
+    the lead elbow drops onto the ribs with a small crunch to that side (body block). bounce: 0..1 the light bounce on
+    the balls of the feet."""
     k = r.k
     # a living stance: an uneven bounce on the balls of the feet (two harmonics that close on the loop), a slow sway
     n1 = max(1, round(loop / 0.85))
@@ -798,11 +804,25 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         sp["nek"] = Ry(-11.0 * slip) @ sp["nek"]
         sp["hed"] = Ry(-3.0 * slip) @ sp["hed"]
         sp["kpole"]["L"] = sp["kpole"]["L"] + V(-0.3 * slip, 0, 0)
+    if e_bblock:
+        # the lead side shortens: chest bends a little toward the lead hip and turns in, head stays over the feet
+        sp["spi"] = Ry(5.0 * e_bblock) @ sp["spi"]
+        sp["che"] = Ry(9.0 * e_bblock) @ Rz(-6.0 * e_bblock) @ sp["che"]
+        sp["nek"] = Ry(-6.0 * e_bblock) @ sp["nek"]
+    if e_cover:
+        sp["che"] = Rx(4.0 * e_cover) @ sp["che"]                 # shoulders round a little behind the gloves, chin down
+        sp["hed"] = Rx(6.0 * e_cover) @ sp["hed"]
+    if bounce:
+        # on the balls of both feet: the lead heel lifts too
+        ball, yaw, pitch = sp["feet"]["L"]
+        sp["feet"]["L"] = (ball, yaw, pitch + 10.0 * bounce)
+        ball, yaw, pitch = sp["feet"]["R"]
+        sp["feet"]["R"] = (ball, yaw, pitch + 6.0 * bounce)
     z = r.fit_z(sp, 0.992)
     # uppercuts: the knees dip first and drive up with the punch
     eu = max(hv["e_rup"], hv["e_lup"])
     up_dip = 0.035 * math.sin(math.pi * eu) ** 2 * (1.0 - eu)          # smooth: down early in the punch, back up as it lands
-    sp["pos"].z = z - (0.044 + 0.007 * bob * bob_amp + 0.012 * c + 0.028 * abs(slip) + 0.10 * dip + up_dip) * k
+    sp["pos"].z = z - (0.044 + 0.007 * bob * bob_amp + 0.012 * c + 0.028 * abs(slip) + 0.10 * dip + up_dip + 0.03 * e_cover + 0.02 * e_bblock) * k
     if pull:
         # lean back from the hips over the rear leg; the neck tucks the chin so the eyes stay on the target
         # (first render: 13 deg at the chest was lost in the stance's forward lean -- now the shoulders end behind the hips)
@@ -824,8 +844,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         Hc = pts["head"]
         # guard: small independent drifts so the hands never look welded in place; the resting hand tucks in to the chin
         # while the other one punches
-        tuck_r = max(e_jab, e_hook, e_lup)
-        tuck_l = ca
+        tuck_r = max(e_jab, e_hook, e_lup, e_bblock)
+        tuck_l = max(ca, e_parry, e_catch)
         gl = {"w": Hc + V(0.10 * k - 0.02 * k * tuck_l, -0.25 * k + 0.03 * k * tuck_l, -0.19 * k + 0.02 * k * tuck_l + 0.006 * k * drift["L"] * bob_amp),
               "pole": V(0.30, 0.25, -1), "fingers": V(-0.10, -0.30, 1.0), "palm": V(-1.0, 0.45, 0.0)}
         gr = {"w": Hc + V(-0.09 * k + 0.015 * k * tuck_r, -0.13 * k + 0.01 * k * tuck_r, -0.205 * k + 0.015 * k * tuck_r + 0.006 * k * drift["R"] * bob_amp),
@@ -848,13 +868,38 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             res["L"] = straight(gl, e_jab, tgt, 1.0)
         if e_cross > 0:
             S = pts["S_R"]
-            tgt = V(0.01 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.01 * k) ** 2 - (0.08 * k) ** 2, 1e-6)), S.z + 0.08 * k)
+            dz = 0.08 * k + cross_dz
+            tgt = V(0.01 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.01 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
             res["R"] = straight(gr, e_cross, tgt, -1.0)
+        if e_parry > 0:
+            # a small tap across: the rear palm meets the jab in front of the lead shoulder and pushes it aside
+            pa = {"w": gr["w"] + V(0.13 * k, -0.11 * k, 0.01 * k), "pole": V(-0.6, 0.3, -1.0), "fingers": V(0.25, -0.30, 1.0),
+                  "palm": V(1.0, -0.6, 0.0)}
+            res["R"] = mix_arm(gr, pa, smooth(e_parry))
+        if e_catch > 0:
+            # the rear palm opens toward the jab a hand's width in front of the face (it does not reach out for it)
+            ca_ = {"w": gr["w"] + V(0.035 * k, -0.08 * k, 0.03 * k), "pole": V(-0.4, 0.3, -1.0), "fingers": V(0.05, -0.15, 1.0),
+                   "palm": V(0.15, -1.0, 0.1)}
+            res["R"] = mix_arm(gr, ca_, smooth(e_catch))
+        if e_cover > 0:
+            # high block: the gloves come up to the temples, forearms close in front of the face, elbows down and in
+            for side, sg in (("L", 1.0), ("R", -1.0)):
+                g = res[side]
+                cv = {"w": Hc + V(sg * 0.075 * k, -0.105 * k, -0.055 * k), "pole": V(sg * 0.15, -0.35, -1.0), "fingers": V(-sg * 0.05, 0.10, 1.0),
+                      "palm": V(-sg * 0.6, -0.8, 0.0)}
+                res[side] = mix_arm(g, cv, smooth(e_cover))
+        if e_bblock > 0:
+            # body block: the lead elbow drops onto the ribs, the glove stays by the cheek
+            bb = {"w": Hc + V(0.085 * k, -0.135 * k, -0.135 * k), "pole": V(0.15, 0.05, -1.0), "fingers": V(-0.15, -0.10, 1.0),
+                  "palm": V(-1.0, 0.2, 0.0)}
+            res["L"] = mix_arm(res["L"], bb, smooth(e_bblock))
         if e_rhook > 0:
             # rear hook: mirror of the lead hook, turned through by the rear foot and hips
             S = pts["S_R"]
-            tgt = V(Hc.x + 0.02 * k, S.y - 0.34 * k, S.z + 0.015 * k)
-            hk = {"w": tgt, "pole": V(-1.0, 0.25, 0.15), "fingers": V(1.0, -0.35, 0.0), "palm": V(0.0, 0.1, -1.0)}
+            low = min(1.0, max(0.0, -rhook_dz / (0.25 * k)))       # to the body: elbow lower, fist turns palm-in / up
+            tgt = V(Hc.x + 0.02 * k + 0.04 * k * low, S.y - 0.34 * k + 0.04 * k * low, S.z + 0.015 * k + rhook_dz)
+            hk = {"w": tgt, "pole": V(-1.0, 0.25, 0.15).lerp(V(-0.7, 0.35, -0.6), low), "fingers": V(1.0, -0.35, 0.0),
+                  "palm": V(0.0, 0.1, -1.0).lerp(V(0.0, 0.3, 1.0), 0.6 * low)}
             res["R"] = mix_arm(gr, hk, smooth(e_rhook))
             res["R"]["w"] = gr["w"].lerp(tgt, e_rhook) + V(-0.10 * k * math.sin(math.pi * e_rhook), 0, 0.02 * k * math.sin(math.pi * e_rhook))
         for side, e, sgn in (("R", e_rup, -1.0), ("L", e_lup, 1.0)):
@@ -871,8 +916,10 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             # lead hook: elbow rises to shoulder height, forearm level, the fist swings round to just in front of the chin
             hh = e_hook
             S = pts["S_L"]
-            tgt = V(Hc.x - 0.02 * k, S.y - 0.34 * k, S.z + 0.015 * k)
-            hk = {"w": tgt, "pole": V(1.0, 0.25, 0.15), "fingers": V(-1.0, -0.35, 0.0), "palm": V(0.0, 0.1, -1.0)}
+            low = min(1.0, max(0.0, -hook_dz / (0.25 * k)))
+            tgt = V(Hc.x - 0.02 * k - 0.04 * k * low, S.y - 0.34 * k + 0.04 * k * low, S.z + 0.015 * k + hook_dz)
+            hk = {"w": tgt, "pole": V(1.0, 0.25, 0.15).lerp(V(0.7, 0.35, -0.6), low), "fingers": V(-1.0, -0.35, 0.0),
+                  "palm": V(0.0, 0.1, -1.0).lerp(V(0.0, 0.3, 1.0), 0.6 * low)}
             res["L"] = mix_arm(gl, hk, smooth(hh))
             res["L"]["w"] = gl["w"].lerp(tgt, hh) + V(0.10 * k * math.sin(math.pi * hh), 0, 0.02 * k * math.sin(math.pi * hh))   # swings out and round
         return res
@@ -2548,7 +2595,8 @@ def _effort(sp, e):
 # images). Clips that start and end at rest only; never in down/up pairs (the join would break) or planted hands.
 DESYNC = {"db_curl": 2, "db_hammer_curl": 2, "db_shoulder_press": 2, "db_lateral_raise": 2, "db_front_raise": 2,
           "db_overhead_triceps": 2, "db_reverse_fly": 2, "db_bent_over_row": 2, "arm_circles": 1, "step_jack": 1,
-          "db_squat": 1, "db_reverse_lunge": 1, "reverse_lunge": 1, "calf_raise": 1}
+          "db_squat": 1, "db_reverse_lunge": 1, "reverse_lunge": 1, "calf_raise": 1,
+          "db_shrug": 2, "db_calf_raise": 1, "good_morning": 1, "squat_calf_raise": 1}
 DESYNC_BONES = ("shoulder_L", "upper_arm_L", "forearm_L", "hand_L")
 
 
@@ -2599,7 +2647,15 @@ STYLE = {
 
 
 # clips in which no shoe rests on the floor: the build must not pull the shoes down to it
-NO_FLOOR_CONTACT = {"dead_bug", "superman"}
+NO_FLOOR_CONTACT = {"dead_bug", "superman", "reverse_crunch", "toe_taps"}
+# batch 7 (clips_fit2.py): props per clip, floor clips breathe only
+PROPS_BY_CLIP.update({
+    "db_goblet_squat": ("dumbbell_goblet",), "db_floor_press": ("dumbbell_L", "dumbbell_R"), "db_shrug": ("dumbbell_L", "dumbbell_R"),
+    "db_calf_raise": ("dumbbell_L", "dumbbell_R"), "kb_swing": ("kettlebell",), "bench_dip": ("bench_dip",),
+    "wall_pushup": ("wall_front",), "wall_sit": ("wall_back",),
+})
+LIFE_FLOOR = LIFE_FLOOR + ("crunch", "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps", "single_leg_bridge",
+                           "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold", "db_floor_press", "bench_dip", "wall_pushup")
 
 
 def build_all(arm, height, name):
@@ -2664,6 +2720,16 @@ def build_all(arm, height, name):
     # batch 6 — fighting (2026-11-23)
     for name, fn in (("boxing_body_jab", body_jab), ("boxing_cross_hook", cross_hook), ("boxing_pull_back", pull_back),
                      ("boxing_step_jab", step_jab)):
+        r.write(name, fn(r, st))
+    # batch 7 — 30 fighting fundamentals (2026-11-24)
+    import clips_fight2 as cf2
+    RETIME.update(cf2.RETIME)
+    for name, fn in cf2.CLIPS:
+        r.write(name, fn(r, st))
+    # batch 7 — 30 fitness lessons (2026-11-24)
+    import clips_fit2 as cfit
+    RETIME.update(cfit.RETIME)
+    for name, fn in cfit.CLIPS:
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

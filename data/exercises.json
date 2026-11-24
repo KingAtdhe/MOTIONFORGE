@@ -2246,5 +2246,2292 @@
     ],
     "limitations": "The camera counts each jab from your elbow rising; it does not judge the step, power or accuracy. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "good_morning",
+    "name": "Good Morning (Bodyweight)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "good_morning",
+    "purpose": "Practise the hip hinge with the arms folded: the hips go back while the back stays long.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Keep the movement small and slow. Stop if you feel pain in your lower back or hamstrings.",
+    "instructions": [
+      "Stand with feet hip-width apart, knees soft, arms folded across your chest.",
+      "Push your hips back and let your chest tip forward with a long, flat back.",
+      "Stop when you feel a stretch behind the thighs, about halfway down.",
+      "Drive the hips forward to stand tall."
+    ],
+    "commonCues": [
+      "Hips back, not down.",
+      "Long back.",
+      "Stand tall at the top."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rounding the upper back",
+        "adjustment": "Keep the chest open and stop the hinge a little higher."
+      },
+      {
+        "mistake": "Bending the knees into a squat",
+        "adjustment": "Keep the knees only slightly bent and send the hips back."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "curtsy_lunge",
+    "name": "Curtsy Lunge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "curtsy_lunge",
+    "purpose": "Lunge with the back leg crossing behind, for the legs, hips and balance.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Use a small step at first and keep the front knee over the toes. Stop if you feel pain in your knees or hips.",
+    "instructions": [
+      "Stand tall, hands together in front of your chest.",
+      "Step one foot back and across behind the other, landing on the ball of the foot.",
+      "Bend both knees and lower with control, front knee over the toes.",
+      "Push through the front foot to stand and bring the feet together. Switch sides."
+    ],
+    "commonCues": [
+      "Step back and across.",
+      "Front knee over the toes.",
+      "Chest tall."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "The front knee caving inward",
+        "adjustment": "Take a smaller step across and keep the knee in line with the toes."
+      },
+      {
+        "mistake": "Twisting the hips a long way",
+        "adjustment": "Keep the hips mostly facing forward."
+      }
+    ],
+    "limitations": "The camera counts each lunge from your hip height when you stand tall; it does not judge technique. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "squat_calf_raise",
+    "name": "Squat to Calf Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "squat_calf_raise",
+    "purpose": "A squat followed by a rise onto the toes, for the legs and ankles.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Rise onto the toes only once you are standing still. Stop if you feel pain in your knees or ankles.",
+    "instructions": [
+      "Stand with feet about shoulder-width apart, hands together at the chest.",
+      "Squat down with control, chest tall, knees over the toes.",
+      "Stand up fully.",
+      "Rise onto the balls of the feet, pause, and lower the heels slowly."
+    ],
+    "commonCues": [
+      "Squat, stand, rise.",
+      "Heels down slowly.",
+      "Stay tall on the toes."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rising onto the toes while still in the squat",
+        "adjustment": "Stand up fully first, then rise."
+      },
+      {
+        "mistake": "Rolling onto the outside of the feet",
+        "adjustment": "Press through the big toes as you rise."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "single_leg_balance",
+    "name": "Single-Leg Balance",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "single_leg_balance",
+    "purpose": "Balance on one leg with the other knee lifted, for ankle and hip control.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Stand next to a wall or chair you can touch. Stop if you feel unsteady or feel pain.",
+    "instructions": [
+      "Stand tall with your arms relaxed slightly away from your sides.",
+      "Shift your weight onto one foot.",
+      "Lift the other knee in front of you and hold, breathing steadily.",
+      "Lower the foot with control and switch sides."
+    ],
+    "commonCues": [
+      "Weight over the standing foot.",
+      "Tall through the head.",
+      "Breathe steadily."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning the trunk to one side",
+        "adjustment": "Keep the shoulders level over the hips."
+      },
+      {
+        "mistake": "Locking the standing knee",
+        "adjustment": "Keep a tiny bend in the standing knee."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "single_leg_rdl",
+    "name": "Single-Leg Romanian Deadlift",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "single_leg_rdl",
+    "purpose": "A one-leg hip hinge without weights, for balance and the back of the legs.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Go only as far as you can keep your balance and a long back. Stop if you feel pain in your back or hamstrings.",
+    "instructions": [
+      "Stand on one leg with the knee soft.",
+      "Hinge forward from the hip while the other leg reaches back in line with your body.",
+      "Let the arms hang toward the floor; keep the hips level.",
+      "Return to standing with control. Switch sides."
+    ],
+    "commonCues": [
+      "Body and back leg move as one.",
+      "Hips level.",
+      "Soft standing knee."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Turning the hips open",
+        "adjustment": "Point the toes of the back leg toward the floor."
+      },
+      {
+        "mistake": "Rounding the back to reach lower",
+        "adjustment": "Stop higher, with the back long."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "side_leg_raise",
+    "name": "Standing Side Leg Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_leg_raise",
+    "purpose": "Lift the leg out to the side, for the outer hips and balance.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Hold a chair or wall if you need to. Stop if you feel pain in your hips or lower back.",
+    "instructions": [
+      "Stand tall with your weight on one leg.",
+      "Lift the other leg out to the side, toes facing forward.",
+      "Raise it only as high as you can keep the trunk upright.",
+      "Lower with control. Switch sides."
+    ],
+    "commonCues": [
+      "Toes forward.",
+      "Trunk upright.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning far over to lift higher",
+        "adjustment": "Lift lower and keep the trunk tall."
+      },
+      {
+        "mistake": "Turning the toes up to the ceiling",
+        "adjustment": "Keep the toes pointing forward."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "glute_kickback",
+    "name": "Standing Glute Kickback",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "glute_kickback",
+    "purpose": "Sweep the straight leg back from the hip, for the glutes.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Keep the movement small and the lower back still. Stop if you feel pain in your lower back.",
+    "instructions": [
+      "Stand tall, leaning a little forward, with your weight on one leg.",
+      "Sweep the other leg straight back from the hip.",
+      "Stop before your lower back arches.",
+      "Bring the leg back with control. Switch sides."
+    ],
+    "commonCues": [
+      "Squeeze the glute.",
+      "Back stays still.",
+      "Small range."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Arching the lower back to kick higher",
+        "adjustment": "Make the movement smaller."
+      },
+      {
+        "mistake": "Swinging the leg with momentum",
+        "adjustment": "Move slowly and pause at the back."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "butt_kicks",
+    "name": "Low-Impact Butt Kicks",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "butt_kicks",
+    "purpose": "Walk on the spot bringing each heel toward the seat, to warm up.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Keep it low-impact: one foot stays on the floor. Stop if you feel pain in your knees.",
+    "instructions": [
+      "Stand tall with the arms bent at your sides.",
+      "Lift one heel behind you toward your seat, the knee pointing down.",
+      "Put it down and lift the other heel.",
+      "Keep a steady rhythm and swing the arms."
+    ],
+    "commonCues": [
+      "Heel toward the seat.",
+      "Knees point down.",
+      "Steady rhythm."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning forward",
+        "adjustment": "Stay tall through the chest."
+      },
+      {
+        "mistake": "Bringing the knee forward",
+        "adjustment": "Keep the thigh pointing down; only the heel lifts."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "standing_torso_twist",
+    "name": "Standing Torso Twist",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "torso_twist",
+    "purpose": "A gentle turning warm-up for the upper back.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Turn only as far as is comfortable, slowly. Stop if you feel pain in your back.",
+    "instructions": [
+      "Stand with feet hip-width apart, arms bent in front of your chest.",
+      "Turn your chest and head to one side while the hips stay mostly facing forward.",
+      "Come back through the middle and turn to the other side.",
+      "Keep the movement smooth."
+    ],
+    "commonCues": [
+      "Turn from the ribs.",
+      "Hips stay forward.",
+      "Smooth, not fast."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging fast",
+        "adjustment": "Slow down and control the turn."
+      },
+      {
+        "mistake": "Turning the whole body",
+        "adjustment": "Let the hips stay mostly still."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "standing_side_bend",
+    "name": "Standing Side Bend",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_bend",
+    "purpose": "Reach up and over, to stretch the sides of the body.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Bend only as far as is comfortable. Stop if you feel pain in your back or neck.",
+    "instructions": [
+      "Stand tall with feet hip-width apart.",
+      "Reach one arm up and over toward the other side.",
+      "Let the other hand slide down the outside of the thigh.",
+      "Come back up slowly and switch sides."
+    ],
+    "commonCues": [
+      "Long, not low.",
+      "Bend straight to the side.",
+      "Breathe out as you reach."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning forward",
+        "adjustment": "Keep the chest facing forward and bend sideways."
+      },
+      {
+        "mistake": "Collapsing into the bend",
+        "adjustment": "Reach up and over rather than down."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "skater_step",
+    "name": "Low-Impact Skater",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "skater_step",
+    "purpose": "Step side to side with the back foot sweeping behind, for the legs and balance.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Keep one foot on the floor at all times. Stop if you feel pain in your knees or ankles.",
+    "instructions": [
+      "Stand on one leg with the knee bent and the chest a little forward.",
+      "Step wide to the other side and land softly on that foot.",
+      "Let the other foot sweep behind and touch lightly with the toes.",
+      "Swing the arms and repeat to the other side."
+    ],
+    "commonCues": [
+      "Soft landing.",
+      "Knee over the toes.",
+      "Sweep behind."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Landing with a straight knee",
+        "adjustment": "Bend the knee as you land."
+      },
+      {
+        "mistake": "The knee caving inward",
+        "adjustment": "Keep the knee in line with the toes."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "wall_push_up",
+    "name": "Wall Push-up",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "wall_pushup",
+    "purpose": "An easier push-up against a wall, for the chest, shoulders and arms.",
+    "space": "A clear wall with space to stand an arm's length away.",
+    "equipment": [],
+    "safety": "Make sure your feet will not slip. Stop if you feel pain in your shoulders or wrists.",
+    "instructions": [
+      "Stand facing a wall, a little more than an arm's length away.",
+      "Put your hands on the wall at shoulder height, a little wider than the shoulders.",
+      "Keep the body in one straight line and bend the elbows to bring the chest toward the wall.",
+      "Press back to the start."
+    ],
+    "commonCues": [
+      "One straight line.",
+      "Elbows at about 45 degrees.",
+      "Press the wall away."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the wall",
+        "adjustment": "Tighten the stomach and glutes."
+      },
+      {
+        "mistake": "Elbows flared straight out",
+        "adjustment": "Bring the elbows a little closer to the body."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "wall_sit",
+    "name": "Wall Sit",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "wall_sit",
+    "purpose": "Hold a seated position against a wall, for the thighs.",
+    "space": "A clear, smooth wall and non-slip floor.",
+    "equipment": [],
+    "safety": "Go only as low as is comfortable for your knees. Stop if you feel pain in your knees.",
+    "instructions": [
+      "Stand with your back flat against a wall, feet out in front.",
+      "Slide down until your thighs are a little above level and the knees are over the ankles.",
+      "Rest the hands on the thighs and hold, breathing steadily.",
+      "Slide back up the wall to stand."
+    ],
+    "commonCues": [
+      "Back flat on the wall.",
+      "Knees over the ankles.",
+      "Breathe steadily."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Knees past the toes",
+        "adjustment": "Walk the feet further from the wall."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly and evenly."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_goblet_squat",
+    "name": "Goblet Squat",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "db_goblet_squat",
+    "purpose": "A squat holding one dumbbell upright at the chest.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbell (light)"
+    ],
+    "safety": "Master the bodyweight squat first. Use a light weight you can control for every rep. Stop if you feel pain in your knees, hips or back.",
+    "instructions": [
+      "Hold one dumbbell upright against your chest, both hands cupping the top end.",
+      "Stand with feet about shoulder-width apart, toes slightly out.",
+      "Squat down with control, elbows inside the knees, chest tall.",
+      "Stand up by pushing through the whole foot."
+    ],
+    "commonCues": [
+      "Weight close to the chest.",
+      "Knees out over the toes.",
+      "Chest tall."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Letting the weight pull you forward",
+        "adjustment": "Keep it tight against the chest."
+      },
+      {
+        "mistake": "Heels lifting",
+        "adjustment": "Squat a little less deep and sit back."
+      }
+    ],
+    "limitations": "The camera counts repetitions from your knee angle; it does not judge technique or the load. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_floor_press",
+    "name": "Dumbbell Floor Press",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "db_floor_press",
+    "purpose": "A chest press lying on the floor, for the chest, shoulders and arms.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Dumbbells (light)",
+      "Exercise mat (optional)"
+    ],
+    "safety": "Use light weights you can control. Lower slowly until the upper arms touch the floor. Stop if you feel pain in your shoulders.",
+    "instructions": [
+      "Lie on your back, knees bent, feet flat, a dumbbell in each hand.",
+      "Upper arms on the floor at about 45 degrees from the body, forearms pointing up.",
+      "Press the dumbbells up over the chest.",
+      "Lower slowly until the upper arms touch the floor again."
+    ],
+    "commonCues": [
+      "Press up over the chest.",
+      "Lower slowly.",
+      "Elbows at 45 degrees."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the weights onto the floor",
+        "adjustment": "Lower slowly and let the elbows touch softly."
+      },
+      {
+        "mistake": "Flaring the elbows straight out",
+        "adjustment": "Keep them at about 45 degrees."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_shrug",
+    "name": "Dumbbell Shrug",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "db_shrug",
+    "purpose": "Lift the shoulders straight up, for the upper back and neck muscles.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Use light weights and move only the shoulders. Stop if you feel pain in your neck.",
+    "instructions": [
+      "Stand tall with a dumbbell in each hand, arms long at your sides.",
+      "Lift the shoulders straight up toward the ears.",
+      "Pause briefly.",
+      "Lower the shoulders slowly."
+    ],
+    "commonCues": [
+      "Straight up, straight down.",
+      "Arms stay long.",
+      "Slow on the way down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rolling the shoulders in circles",
+        "adjustment": "Move straight up and down only."
+      },
+      {
+        "mistake": "Bending the elbows",
+        "adjustment": "Keep the arms long and let the shoulders do the work."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "dumbbell_calf_raise",
+    "name": "Dumbbell Calf Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "db_calf_raise",
+    "purpose": "Rise onto the toes holding dumbbells, for the calves.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Dumbbells (light)"
+    ],
+    "safety": "Master the bodyweight calf raise first. Stop if you feel pain in your feet, ankles or calves.",
+    "instructions": [
+      "Stand tall with a dumbbell in each hand at your sides.",
+      "Rise onto the balls of the feet.",
+      "Pause at the top.",
+      "Lower the heels slowly to the floor."
+    ],
+    "commonCues": [
+      "Straight up.",
+      "Pause at the top.",
+      "Heels down slowly."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rolling onto the outside of the feet",
+        "adjustment": "Press through the big toes."
+      },
+      {
+        "mistake": "Bouncing",
+        "adjustment": "Lower slowly and pause at the bottom."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "kettlebell_swing",
+    "name": "Kettlebell Swing",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "kb_swing",
+    "purpose": "A two-hand swing driven by the hips, for the glutes, hamstrings and back.",
+    "space": "About 2 × 3 m of clear floor, nothing in front or behind you.",
+    "equipment": [
+      "Kettlebell (light)"
+    ],
+    "safety": "Learn the hip hinge first and use a light kettlebell. Keep everyone clear of the swing. Stop if you feel pain in your back.",
+    "instructions": [
+      "Stand with feet a little wider than the hips, the kettlebell held in both hands.",
+      "Hinge back so the bell swings back between the thighs.",
+      "Drive the hips forward to stand tall; let the straight arms float to chest height.",
+      "Let the bell fall back into the next hinge. Finish by standing still."
+    ],
+    "commonCues": [
+      "Hips drive the bell.",
+      "Arms are ropes.",
+      "Stand tall at the top."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Lifting the bell with the arms",
+        "adjustment": "Let the hip drive do the work; the arms only guide."
+      },
+      {
+        "mistake": "Squatting instead of hinging",
+        "adjustment": "Send the hips back with a soft knee."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bench_dip",
+    "name": "Bench Dip (Bent Knees)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "bench_dip",
+    "purpose": "Lower and press the body with the hands on a bench behind you, for the triceps.",
+    "space": "A sturdy bench or chair that will not slide.",
+    "equipment": [
+      "Sturdy bench, table or counter"
+    ],
+    "safety": "Use a stable bench that will not slide. Lower only until the elbows are about 90 degrees. Stop if you feel pain in your shoulders or wrists.",
+    "instructions": [
+      "Sit on the edge of a bench, hands on the edge beside your hips, fingers forward.",
+      "Walk the feet forward with the knees bent and slide the hips just off the bench.",
+      "Bend the elbows to lower the hips, shoulders down away from the ears.",
+      "Press back up."
+    ],
+    "commonCues": [
+      "Hips close to the bench.",
+      "Elbows point back.",
+      "Shoulders down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Going too deep",
+        "adjustment": "Stop when the elbows reach about 90 degrees."
+      },
+      {
+        "mistake": "Shrugging the shoulders up",
+        "adjustment": "Keep them pressed down."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "crunch",
+    "name": "Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "crunch",
+    "purpose": "Curl the head and shoulders off the floor, for the stomach muscles.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the lower back on the floor and the neck relaxed. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with knees bent, feet flat, arms folded on the chest.",
+      "Curl the head and shoulders a little off the floor.",
+      "Pause briefly.",
+      "Lower slowly."
+    ],
+    "commonCues": [
+      "Ribs toward the hips.",
+      "Lower back stays down.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling on the neck",
+        "adjustment": "Keep the arms folded on the chest."
+      },
+      {
+        "mistake": "Sitting all the way up",
+        "adjustment": "Lift only the head and shoulders."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "heel_taps",
+    "name": "Heel Taps",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "heel_taps",
+    "purpose": "Reach side to side toward the heels, for the sides of the stomach.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the neck relaxed. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with knees bent and feet flat.",
+      "Lift the head and shoulders a little off the floor, arms long beside you.",
+      "Bend sideways to reach one hand toward that heel.",
+      "Come back through the middle and reach to the other side."
+    ],
+    "commonCues": [
+      "Reach to the heel.",
+      "Shoulders stay lifted.",
+      "Smooth side to side."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the head to the floor between taps",
+        "adjustment": "Keep the shoulders lifted the whole set."
+      },
+      {
+        "mistake": "Straining the neck",
+        "adjustment": "Look at the ceiling, chin slightly tucked."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "reverse_crunch",
+    "name": "Reverse Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "reverse_crunch",
+    "purpose": "Curl the hips off the floor toward the chest, for the lower stomach muscles.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Move slowly without swinging the legs. Stop if you feel pain in your back.",
+    "instructions": [
+      "Lie on your back, arms on the floor, legs in tabletop (hips and knees bent 90 degrees).",
+      "Curl the hips a little off the floor, bringing the knees toward the chest.",
+      "Pause briefly.",
+      "Lower the hips slowly back to the floor."
+    ],
+    "commonCues": [
+      "Curl, don't swing.",
+      "Upper back stays down.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the legs",
+        "adjustment": "Make the movement smaller and slower."
+      },
+      {
+        "mistake": "Pushing hard into the floor with the arms",
+        "adjustment": "Let the stomach do the work."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "tabletop_toe_taps",
+    "name": "Tabletop Toe Taps",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "toe_taps",
+    "purpose": "Lower one foot at a time to tap the floor, for stomach control.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the lower back gently on the floor. Stop if you feel pain in your back.",
+    "instructions": [
+      "Lie on your back, legs in tabletop.",
+      "Keep the knee bent and lower one foot from the hip until the toes touch the floor lightly.",
+      "Bring it back to tabletop.",
+      "Switch legs."
+    ],
+    "commonCues": [
+      "Lower back stays down.",
+      "Knee stays bent.",
+      "Tap lightly."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "The lower back arching off the floor",
+        "adjustment": "Lower the foot less far."
+      },
+      {
+        "mistake": "Dropping the leg quickly",
+        "adjustment": "Lower slowly and with control."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "high_plank",
+    "name": "High Plank",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "high_plank",
+    "purpose": "Hold a straight line from head to heels on straight arms, for the trunk and shoulders.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Hold only as long as you can keep a straight line. Stop if you feel pain in your wrists, shoulders or back.",
+    "instructions": [
+      "Put your hands under your shoulders and step the feet back.",
+      "Make one straight line from head to heels.",
+      "Keep the arms long with soft elbows.",
+      "Hold and breathe steadily."
+    ],
+    "commonCues": [
+      "Straight line.",
+      "Push the floor away.",
+      "Breathe."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging",
+        "adjustment": "Tighten the stomach and glutes."
+      },
+      {
+        "mistake": "Hips piking up",
+        "adjustment": "Lower the hips into line."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "plank_shoulder_taps",
+    "name": "Plank Shoulder Taps",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "shoulder_taps",
+    "purpose": "Tap each shoulder from a high plank without letting the hips rock.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Widen the feet for balance. Stop if you feel pain in your wrists, shoulders or back.",
+    "instructions": [
+      "Start in a high plank with the feet a little wider than the hips.",
+      "Lift one hand to tap the opposite shoulder.",
+      "Put the hand back where it was.",
+      "Switch hands, keeping the hips level."
+    ],
+    "commonCues": [
+      "Hips stay still.",
+      "Hand back to the same spot.",
+      "Slow taps."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "The hips rocking side to side",
+        "adjustment": "Widen the feet and slow down."
+      },
+      {
+        "mistake": "The hips piking up",
+        "adjustment": "Keep one straight line."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "single_leg_glute_bridge",
+    "name": "Single-Leg Glute Bridge",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "single_leg_bridge",
+    "purpose": "A glute bridge on one leg, for the glutes and hamstrings.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the two-leg glute bridge first. Stop if you feel pain in your back or hamstrings.",
+    "instructions": [
+      "Lie on your back with knees bent and feet flat.",
+      "Straighten one leg in line with the other thigh.",
+      "Lift the hips by pushing through the planted heel.",
+      "Lower with control. Switch sides."
+    ],
+    "commonCues": [
+      "Push through the heel.",
+      "Hips level.",
+      "Ribs down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "One hip dropping",
+        "adjustment": "Lift less high and keep the hips level."
+      },
+      {
+        "mistake": "Arching the lower back at the top",
+        "adjustment": "Stop when shoulders, hips and knee are in line."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "donkey_kick",
+    "name": "Quadruped Glute Kickback",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "donkey_kick",
+    "purpose": "On all fours, lift one bent leg back to hip height, for the glutes.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the back flat and the movement slow. Stop if you feel pain in your back, wrists or knees.",
+    "instructions": [
+      "Start on all fours, hands under the shoulders, knees under the hips.",
+      "Keep one knee bent at 90 degrees and lift that thigh back to hip height.",
+      "The sole of the foot faces the ceiling.",
+      "Lower with control. Switch sides."
+    ],
+    "commonCues": [
+      "Back stays flat.",
+      "Knee stays bent.",
+      "Lift to hip height only."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Arching the back to lift higher",
+        "adjustment": "Lift only to hip height."
+      },
+      {
+        "mistake": "Turning the hips open",
+        "adjustment": "Keep both hips facing the floor."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "fire_hydrant",
+    "name": "Fire Hydrant",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "fire_hydrant",
+    "purpose": "On all fours, lift one bent knee out to the side, for the outer hips.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the movement small and the back flat. Stop if you feel pain in your hips, back, wrists or knees.",
+    "instructions": [
+      "Start on all fours, hands under the shoulders, knees under the hips.",
+      "Keep the knee bent and lift it out to the side.",
+      "Raise it only as high as you can without leaning.",
+      "Lower with control. Switch sides."
+    ],
+    "commonCues": [
+      "Knee stays bent.",
+      "Body stays square.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning the body away",
+        "adjustment": "Lift less high and keep the shoulders level."
+      },
+      {
+        "mistake": "Rushing",
+        "adjustment": "Pause at the top."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "childs_pose",
+    "name": "Child's Pose",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "childs_pose",
+    "purpose": "A resting stretch for the back, hips and shoulders.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Widen the knees if the hips or knees feel tight. Stop if you feel pain in your knees.",
+    "instructions": [
+      "Start on all fours.",
+      "Sit the hips back toward the heels.",
+      "Let the arms stay long on the floor and the forehead come toward the floor.",
+      "Breathe slowly, then come back to all fours."
+    ],
+    "commonCues": [
+      "Hips back.",
+      "Arms long.",
+      "Breathe slowly."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Forcing the hips down",
+        "adjustment": "Go only as far as is comfortable."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly into the back."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bear_plank_hold",
+    "name": "Bear Plank Hold",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "bear_hold",
+    "purpose": "On all fours with the knees hovering just off the floor, for the trunk and shoulders.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Lift the knees only a few centimetres. Stop if you feel pain in your wrists, shoulders or back.",
+    "instructions": [
+      "Start on all fours with the toes tucked.",
+      "Lift the knees a few centimetres off the floor.",
+      "Keep the back flat and the hips level.",
+      "Hold and breathe, then lower the knees."
+    ],
+    "commonCues": [
+      "Knees just off the floor.",
+      "Back flat.",
+      "Breathe."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Lifting the hips high",
+        "adjustment": "Keep the back flat, like a table."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_body_cross",
+    "name": "Cross to the Body",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_body_cross",
+    "purpose": "Practise dropping your level with the knees and throwing the cross to the body.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Bend the knees to drop your level; keep the back straight.",
+      "Throw the cross to chest height of an imaginary opponent, turning the rear hip.",
+      "Come back up to your stance. Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Bend the knees, not the waist.",
+      "Chin stays down.",
+      "Back up to stance."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Bending at the waist",
+        "adjustment": "Lower with the knees and keep the chest up."
+      },
+      {
+        "mistake": "Dropping the lead hand",
+        "adjustment": "Keep the lead glove by the cheek."
+      }
+    ],
+    "limitations": "The camera counts each body shot when you come back up to your stance; it does not judge power or accuracy. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_body_hook",
+    "name": "Lead Hook to the Body",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_body_hook",
+    "purpose": "Practise the lead hook to the body with a level change.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bend the knees to drop your level.",
+      "Turn the lead hip and throw a short hook to the ribs, elbow bent.",
+      "Come back up. Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Knees drop the level.",
+      "Short and tight.",
+      "Rear hand stays up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging wide with a straight arm",
+        "adjustment": "Keep the elbow bent and the punch short."
+      },
+      {
+        "mistake": "Leaning over the lead leg",
+        "adjustment": "Stay centred between the feet."
+      }
+    ],
+    "limitations": "The camera counts each body shot when you come back up to your stance; it does not judge power or accuracy. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_rear_body_hook",
+    "name": "Rear Hook to the Body",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_rear_body_hook",
+    "purpose": "Practise the rear hook to the body, turned through by the rear foot and hips.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bend the knees to drop your level.",
+      "Turn the rear hip and pivot the rear foot as the rear hook travels to the ribs.",
+      "Come back up. Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Turn the hip.",
+      "Pivot the rear foot.",
+      "Lead hand guards the chin."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Reaching with the arm",
+        "adjustment": "Let the body turn bring the hook round."
+      },
+      {
+        "mistake": "Dropping the lead hand",
+        "adjustment": "Keep it at the chin."
+      }
+    ],
+    "limitations": "The camera counts each body shot when you come back up to your stance; it does not judge power or accuracy. Keep your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_jab_body_cross",
+    "name": "Jab, Cross to the Body",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_jab_body_cross",
+    "purpose": "Combine a jab to the head with a cross to the body.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Jab to head height.",
+      "As it comes back, bend the knees and throw the cross to the body.",
+      "Come back up. Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Up, then down.",
+      "Knees, not waist.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Bending at the waist for the body shot",
+        "adjustment": "Lower with the knees."
+      },
+      {
+        "mistake": "Leaving the jab out",
+        "adjustment": "Bring it back before the cross."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_body_head_jab",
+    "name": "Jab Body-Head",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_body_head_jab",
+    "purpose": "Change levels with two jabs: the first to the body, the second to the head.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bend the knees and jab to the body.",
+      "Come back up and jab to the head.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Low then high.",
+      "Knees change the level.",
+      "Rear hand stays home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Reaching down with the arm",
+        "adjustment": "Lower with the knees so the jab stays straight."
+      },
+      {
+        "mistake": "Dropping the rear hand",
+        "adjustment": "Keep it at the chin."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. It does not judge power or accuracy.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_parry",
+    "name": "Parry",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_parry",
+    "purpose": "Practise tapping an imaginary jab aside with the rear hand.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Move the rear palm a short way across in front of your face.",
+      "Tap the imaginary jab aside, small and quick.",
+      "Return the hand straight to the chin."
+    ],
+    "commonCues": [
+      "Small tap.",
+      "Don't reach.",
+      "Straight back to the chin."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Reaching far out",
+        "adjustment": "Keep the movement small, in front of your face."
+      },
+      {
+        "mistake": "Swatting down",
+        "adjustment": "Tap across, not down."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_catch",
+    "name": "Catch",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_catch",
+    "purpose": "Practise catching an imaginary jab with the rear palm.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Open the rear palm a hand's width in front of your face.",
+      "Let the imaginary jab land in the palm; don't reach for it.",
+      "Return the hand to the chin."
+    ],
+    "commonCues": [
+      "Palm in front of the face.",
+      "Let it come to you.",
+      "Hand home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Reaching out to the punch",
+        "adjustment": "Keep the hand close."
+      },
+      {
+        "mistake": "Dropping the lead hand",
+        "adjustment": "Keep the lead glove up."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_high_block",
+    "name": "High Block (Cover)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_high_block",
+    "purpose": "Cover up with both gloves to the temples and the elbows in.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bring both gloves up to the temples, forearms in front of the face.",
+      "Elbows down and in, chin tucked, knees soft.",
+      "Hold briefly, then return to guard."
+    ],
+    "commonCues": [
+      "Gloves to the temples.",
+      "Elbows in.",
+      "Chin down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Covering the eyes completely",
+        "adjustment": "Keep looking between the gloves."
+      },
+      {
+        "mistake": "Elbows flaring out",
+        "adjustment": "Squeeze them in to protect the body."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_body_block",
+    "name": "Elbow Block (Body)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_body_block",
+    "purpose": "Drop the lead elbow to protect the ribs with a small crunch.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Drop the lead elbow onto the ribs, glove staying by the cheek.",
+      "Crunch a little toward that side.",
+      "Return to guard."
+    ],
+    "commonCues": [
+      "Elbow to the ribs.",
+      "Glove by the cheek.",
+      "Small crunch."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the glove with the elbow",
+        "adjustment": "Keep the glove at the cheek."
+      },
+      {
+        "mistake": "Bending far sideways",
+        "adjustment": "Keep the crunch small."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_duck",
+    "name": "Duck",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_duck",
+    "purpose": "Lower under an imaginary punch by bending the knees.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bend the knees to lower straight down, eyes forward.",
+      "Keep the hands up.",
+      "Come back up to your stance."
+    ],
+    "commonCues": [
+      "Knees, not waist.",
+      "Eyes forward.",
+      "Hands up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Bending at the waist and looking down",
+        "adjustment": "Lower with the knees and keep the eyes forward."
+      },
+      {
+        "mistake": "Going too low",
+        "adjustment": "Drop only a little below the imaginary punch."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_block_cross",
+    "name": "Cover and Cross",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_block_cross",
+    "purpose": "Cover up, then answer with the cross.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Cover with both gloves to the temples.",
+      "As the gloves come down, throw the cross.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Cover, then answer.",
+      "Turn the rear hip.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Throwing the cross from the cover position",
+        "adjustment": "Return to guard first, then punch."
+      },
+      {
+        "mistake": "Dropping the lead hand",
+        "adjustment": "Keep it at the chin."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_jab_slip",
+    "name": "Jab and Slip",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_jab_slip",
+    "purpose": "Jab, then slip the head to the outside as the hand comes home.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the jab.",
+      "As it returns, bend the knees a little and move the head to the right.",
+      "Come back to the middle."
+    ],
+    "commonCues": [
+      "Jab, then move the head.",
+      "Bend the knees for the slip.",
+      "Hands stay up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Slipping before the jab is home",
+        "adjustment": "Bring the hand back first."
+      },
+      {
+        "mistake": "Leaning the whole body",
+        "adjustment": "Move the head with a small bend."
+      }
+    ],
+    "limitations": "The camera counts each slip when your head comes back to the middle; it does not judge timing. Face the phone with your head and upper body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_slip_cross",
+    "name": "Slip and Cross",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_slip_cross",
+    "purpose": "Slip to the outside, then throw the cross as the head comes back.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Slip the head to the right with a small bend of the knees.",
+      "As the head comes back to the middle, throw the cross.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Slip, then punch.",
+      "Head comes back through the middle.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Punching while still leaning",
+        "adjustment": "Bring the head back to the middle first."
+      },
+      {
+        "mistake": "Dropping the lead hand",
+        "adjustment": "Keep it at the chin."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_roll_hook",
+    "name": "Roll and Hook",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_roll_hook",
+    "purpose": "Roll under an imaginary hook, then answer with the lead hook.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Bend the knees and move the head in a U to the lead side.",
+      "As you come up on the lead side, throw the lead hook.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "U shape with the knees.",
+      "Come up loaded.",
+      "Hook short."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Bending at the waist",
+        "adjustment": "Make the U with the knees."
+      },
+      {
+        "mistake": "Looking at the floor",
+        "adjustment": "Keep the eyes forward."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_pull_counter",
+    "name": "Pull Back and Cross",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "demo_guided_initially",
+    "demoAnimation": "boxing_pull_counter",
+    "purpose": "Lean back out of range, then come forward with the cross.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing. Lean back only a little; stop if you feel pain in your lower back.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Shift the weight onto the rear leg and lean the upper body back a little.",
+      "Come forward and throw the cross.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Small lean back.",
+      "Eyes on the target.",
+      "Forward with the cross."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back too far",
+        "adjustment": "Lean only a little; stop if you feel pain in your lower back."
+      },
+      {
+        "mistake": "Dropping the hands while leaning",
+        "adjustment": "Keep both gloves up."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_jab_uppercut",
+    "name": "Jab-Rear Uppercut (1-6)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_jab_uppercut",
+    "purpose": "Combine a jab with the rear uppercut.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the jab and bring it back.",
+      "Dip the knees and drive the rear uppercut up close to your body.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Jab, then dip.",
+      "Uppercut stays close.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the rear hand low before the uppercut",
+        "adjustment": "Only a small dip with the knees."
+      },
+      {
+        "mistake": "Swinging the uppercut wide",
+        "adjustment": "Keep the elbow close to the body."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_uppercut_hook",
+    "name": "Lead Uppercut-Lead Hook (5-3)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_uppercut_hook",
+    "purpose": "Two punches off the lead hand: uppercut, then hook.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the lead uppercut close to the body.",
+      "Turn the lead hip and throw the lead hook.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Up, then round.",
+      "Elbow bent for both.",
+      "Rear hand at the chin."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling the lead hand far back between punches",
+        "adjustment": "Go straight from one punch to the next."
+      },
+      {
+        "mistake": "Swinging the hook wide",
+        "adjustment": "Keep the elbow bent at about 90 degrees."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_hook_cross",
+    "name": "Lead Hook-Cross (3-2)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_hook_cross",
+    "purpose": "The lead hook followed by the cross, turning the hips one way and back.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the lead hook.",
+      "As it comes back, turn the rear hip and throw the cross.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Turn, then turn back.",
+      "Hook short.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the hook wide",
+        "adjustment": "Keep the elbow bent."
+      },
+      {
+        "mistake": "Leaving the hook out",
+        "adjustment": "Bring it back as the cross goes."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_cross_hook_cross",
+    "name": "Cross-Hook-Cross (2-3-2)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 55,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_cross_hook_cross",
+    "purpose": "Three punches turning the hips back and forth: cross, lead hook, cross.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the cross.",
+      "Throw the lead hook as the cross comes home.",
+      "Throw the cross again. Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Hips turn each punch.",
+      "Short hook.",
+      "Hands home at the end."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Rushing and losing balance",
+        "adjustment": "Slow down and finish each punch."
+      },
+      {
+        "mistake": "Dropping the hand that is not punching",
+        "adjustment": "Keep it at the chin."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_one_two_uppercut",
+    "name": "Jab-Cross-Lead Uppercut (1-2-5)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 55,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_one_two_uppercut",
+    "purpose": "The one-two finished with a lead uppercut.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the jab and the cross.",
+      "As the cross comes back, dip slightly and throw the lead uppercut.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "One-two, then up.",
+      "Uppercut close to the body.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Winding up the uppercut",
+        "adjustment": "Only a small dip of the knees."
+      },
+      {
+        "mistake": "Leaving the cross out",
+        "adjustment": "Bring it back as the uppercut starts."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_uppercuts",
+    "name": "Lead and Rear Uppercut (5-6)",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_uppercuts",
+    "purpose": "Two uppercuts, lead then rear, close to the body.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the lead uppercut.",
+      "Turn the hips and throw the rear uppercut.",
+      "Return both hands to guard and reset."
+    ],
+    "commonCues": [
+      "Close to the body.",
+      "Legs drive up.",
+      "Other hand guards."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the arms wide",
+        "adjustment": "Keep the elbows close."
+      },
+      {
+        "mistake": "Dropping the guard",
+        "adjustment": "The hand not punching stays at the chin."
+      }
+    ],
+    "limitations": "The camera counts each combination when both hands are back in guard; it does not judge power, speed or accuracy. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_stance_bounce",
+    "name": "Stance Bounce",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_stance_bounce",
+    "purpose": "Light rhythm on the balls of the feet in your stance.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing. Keep it light; stop if you feel pain in your ankles or calves.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Bounce lightly on the balls of the feet.",
+      "Keep the stance width the same.",
+      "Breathe steadily."
+    ],
+    "commonCues": [
+      "Light feet.",
+      "Small bounces.",
+      "Hands up."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Jumping high",
+        "adjustment": "Keep the bounce small."
+      },
+      {
+        "mistake": "Feet drifting together",
+        "adjustment": "Keep your stance width."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No rhythm scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_fist_rolls",
+    "name": "Fist Rolls",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_fist_rolls",
+    "purpose": "Roll the fists around each other in front of the chest, for shoulder endurance and rhythm.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Stand in your stance.",
+      "Bring the fists in front of the chest, forearms level.",
+      "Roll the fists around each other in small circles.",
+      "Keep a steady rhythm, then return to guard."
+    ],
+    "commonCues": [
+      "Small circles.",
+      "Elbows up.",
+      "Steady rhythm."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Making big circles",
+        "adjustment": "Keep the circles small and close."
+      },
+      {
+        "mistake": "Shoulders creeping up",
+        "adjustment": "Relax the shoulders down."
+      }
+    ],
+    "limitations": "The camera does not assess this movement. No rhythm scoring.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_circle_left",
+    "name": "Circle Left",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_circle_left",
+    "purpose": "Move left with a push-step, then turn on the lead foot to face the target again.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push-step to the left: the lead foot moves first, the rear foot follows.",
+      "Turn on the ball of the lead foot so you face the target again.",
+      "Return the same way."
+    ],
+    "commonCues": [
+      "Lead foot first.",
+      "Turn to face the target.",
+      "Same stance width."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Crossing the feet",
+        "adjustment": "Push-step; never cross."
+      },
+      {
+        "mistake": "Losing the stance width",
+        "adjustment": "Keep the feet as far apart as at the start."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_circle_right",
+    "name": "Circle Right",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_circle_right",
+    "purpose": "Move right with a push-step, then turn on the lead foot to face the target again.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push-step to the right: the rear foot moves first, the lead foot follows.",
+      "Turn on the ball of the lead foot so you face the target again.",
+      "Return the same way."
+    ],
+    "commonCues": [
+      "Rear foot first.",
+      "Turn to face the target.",
+      "Same stance width."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Crossing the feet",
+        "adjustment": "Push-step; never cross."
+      },
+      {
+        "mistake": "Turning on the heel",
+        "adjustment": "Turn on the ball of the lead foot."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_angle_step",
+    "name": "Angle Step",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_angle_step",
+    "purpose": "Step forward and off the centre line, then turn to face the target.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push-step forward and out to the left.",
+      "Turn on the lead foot to face the target again.",
+      "Step back the same way."
+    ],
+    "commonCues": [
+      "Forward and out.",
+      "Turn to face.",
+      "Hands up throughout."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Stepping straight across",
+        "adjustment": "Step forward and out at an angle."
+      },
+      {
+        "mistake": "Dropping the hands while stepping",
+        "adjustment": "Keep both gloves up."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "footwork_in_out",
+    "name": "In and Out",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "footwork_shuffle",
+    "purpose": "Quick, short push-steps forward and back, light on the feet.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push-step forward a short distance.",
+      "Push-step straight back out.",
+      "Keep it light and repeat."
+    ],
+    "commonCues": [
+      "Short steps.",
+      "Light on the feet.",
+      "Same stance width."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Long, heavy steps",
+        "adjustment": "Keep the steps short and quick."
+      },
+      {
+        "mistake": "Bouncing high",
+        "adjustment": "Stay low and light."
+      }
+    ],
+    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_back_jab",
+    "name": "Jab Stepping Back",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_back_jab",
+    "purpose": "Jab as you push-step back out of range.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push off the lead foot and step the rear foot back.",
+      "Jab as the lead foot follows.",
+      "Step back in to where you started."
+    ],
+    "commonCues": [
+      "Rear foot first going back.",
+      "Jab as you move.",
+      "Same stance width."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back instead of stepping",
+        "adjustment": "Move the feet; keep the head over them."
+      },
+      {
+        "mistake": "Crossing or dragging the feet",
+        "adjustment": "Push-step and keep your stance width."
+      }
+    ],
+    "limitations": "The camera counts each punch when the hand returns to guard; it does not judge power, speed, accuracy or footwork. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_lateral_jab",
+    "name": "Side Step and Jab",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_lateral_jab",
+    "purpose": "Push-step to the left and jab as the lead foot lands.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Push-step to the left, lead foot first.",
+      "Jab as the lead foot lands.",
+      "Step back to the right, rear foot first."
+    ],
+    "commonCues": [
+      "Lead foot first going left.",
+      "Jab on landing.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Jabbing before the feet are set",
+        "adjustment": "Land, then jab."
+      },
+      {
+        "mistake": "Crossing the feet",
+        "adjustment": "Push-step and keep your stance width."
+      }
+    ],
+    "limitations": "The camera counts each punch when the hand returns to guard; it does not judge power, speed, accuracy or footwork. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_jab_pivot",
+    "name": "Jab and Pivot",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "boxing_jab_pivot",
+    "purpose": "Jab, then pivot on the lead foot to take an angle.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
+    "instructions": [
+      "Start in your boxing stance.",
+      "Throw the jab.",
+      "Pivot on the ball of the lead foot as the rear foot swings round.",
+      "Pivot back."
+    ],
+    "commonCues": [
+      "Jab first.",
+      "Turn on the ball of the foot.",
+      "Hands up through the turn."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pivoting on the heel",
+        "adjustment": "Turn on the ball of the lead foot."
+      },
+      {
+        "mistake": "Dropping the hands while turning",
+        "adjustment": "Keep both gloves up."
+      }
+    ],
+    "limitations": "The camera counts each punch when the hand returns to guard; it does not judge power, speed, accuracy or footwork. Face the phone with both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

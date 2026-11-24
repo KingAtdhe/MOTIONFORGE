@@ -33,6 +33,18 @@ class RepCountingTest {
         assertTrue(CountedMove.counterFor("standing_oblique_crunch") is KneeLiftRepCounter)
         assertTrue(CountedMove.counterFor("dumbbell_squat") is SquatRepCounter)
         assertTrue(CountedMove.counterFor("dumbbell_reverse_lunge") is LungeRepCounter)
+        // batch 7: each mapping is checked on rendered videos (RenderedVideoRepTest); everything else is guided only
+        assertTrue(CountedMove.counterFor("dumbbell_goblet_squat") is SquatRepCounter)
+        assertTrue(CountedMove.counterFor("curtsy_lunge") is LungeRepCounter)
+        listOf("boxing_body_cross", "boxing_body_hook", "boxing_rear_body_hook").forEach {
+            assertTrue(it, CountedMove.counterFor(it) is LevelChangeRepCounter)
+        }
+        listOf("boxing_jab_body_cross", "boxing_jab_uppercut", "boxing_uppercut_hook", "boxing_hook_cross", "boxing_cross_hook_cross",
+            "boxing_one_two_uppercut", "boxing_uppercuts").forEach { assertTrue(it, CountedMove.counterFor(it) is ComboRepCounter) }
+        listOf("boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot").forEach { assertTrue(it, CountedMove.counterFor(it) is PunchRepCounter) }
+        assertTrue(CountedMove.counterFor("boxing_jab_slip") is SlipRepCounter)
+        listOf("boxing_parry", "boxing_catch", "boxing_high_block", "boxing_duck", "boxing_slip_cross", "crunch", "kettlebell_swing",
+            "wall_sit", "footwork_circle_left").forEach { assertNull(it, CountedMove.counterFor(it)) }
     }
 
     /** Standing person bending and straightening both elbows (a curl): must never count as push-ups. */

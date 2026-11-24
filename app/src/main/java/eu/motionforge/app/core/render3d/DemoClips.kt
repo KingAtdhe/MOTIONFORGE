@@ -105,9 +105,27 @@ object DemoSequence {
         clip == "db_shoulder_press" -> "Press"
         clip == "db_lateral_raise" -> "Raise"
         clip == "db_bent_over_row" -> "Row"
-        clip.startsWith("footwork_") -> "Step " + clip.removePrefix("footwork_")
+        clip in LABELS -> LABELS.getValue(clip)
+        clip.startsWith("footwork_") -> "Step " + clip.removePrefix("footwork_").replace('_', ' ')
         else -> clip.substringAfter('_').replace('_', ' ').replaceFirstChar { it.uppercase() }
     }
+
+    private val LABELS = mapOf(
+        "good_morning" to "Hips back, then tall", "curtsy_lunge" to "Step back and across", "squat_calf_raise" to "Squat, then rise",
+        "single_leg_balance" to "Balance on one leg", "single_leg_rdl" to "Hinge on one leg", "side_leg_raise" to "Leg out to the side",
+        "glute_kickback" to "Leg back", "butt_kicks" to "Heels to the seat", "torso_twist" to "Turn side to side",
+        "side_bend" to "Reach up and over", "skater_step" to "Side to side", "wall_pushup" to "Lower and press",
+        "wall_sit" to "Slide down and hold", "db_goblet_squat" to "Lower and rise", "db_floor_press" to "Press",
+        "db_shrug" to "Shoulders up", "db_calf_raise" to "Rise and lower", "kb_swing" to "Hinge and swing",
+        "bench_dip" to "Lower and press", "crunch" to "Curl up", "heel_taps" to "Reach to each heel",
+        "reverse_crunch" to "Curl the hips", "toe_taps" to "Lower one foot", "high_plank" to "Hold",
+        "shoulder_taps" to "Tap each shoulder", "single_leg_bridge" to "Lift on one leg", "donkey_kick" to "Lift the knee back",
+        "fire_hydrant" to "Knee out to the side", "childs_pose" to "Sit back and breathe", "bear_hold" to "Knees just off the floor",
+        "footwork_circle_left" to "Step left and turn", "footwork_circle_right" to "Step right and turn",
+        "footwork_angle_step" to "Step off the line", "footwork_shuffle" to "In and out",
+        "boxing_high_block" to "Cover", "boxing_body_block" to "Elbow to the ribs", "boxing_fist_rolls" to "Roll the fists",
+        "boxing_stance_bounce" to "Bounce in your stance", "boxing_pull_counter" to "Pull back, then cross",
+    )
 
     /**
      * Position inside a looping sequence: returns (index of the clip, time inside that clip).

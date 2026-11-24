@@ -1089,3 +1089,32 @@ from the paused screen leaves).
 Checked, no problem found: equipment props show only in their own clips and stay rigid in the hands.
 Known test-only note: under Robolectric's hand-driven clock an animated scroll can swallow the next tap; the helper
 lets the scroll settle first (not an app bug — the semantics click on Save works).
+
+## 2026-11-24 — Search bar + batch 7: 30 fitness and 30 fighting lessons (118 in total)
+**Search (Moves)**: a search bar above the kind filter. Every typed word must match the lesson (name, purpose,
+equipment, kind; cues and steps only when nothing else matches). Everyday words map to moves ("abs", "legs", "punch",
+"defence", "weights"…), "push up" finds push-up, word starts only ("arm" does not find "warm"), accents and dashes
+ignored, names rank first. Empty result explains and offers "Clear search and filters". Unit + flow tests.
+**New fitness (30)**: good morning, curtsy lunge, squat to calf raise, single-leg balance, single-leg RDL, side leg
+raise, standing glute kickback, butt kicks, torso twist, side bend, skater, wall push-up, wall sit, goblet squat,
+dumbbell floor press, shrug, dumbbell calf raise, kettlebell swing, bench dip, crunch, heel taps, reverse crunch,
+tabletop toe taps, high plank, plank shoulder taps, single-leg bridge, quadruped kickback, fire hydrant, child's pose,
+bear plank hold. New props: goblet dumbbell, dip bench, two walls (placed from the coach's own skin: palms on the wall,
+back flat against it).
+**New fighting (30)** — no kicks, sparring or partner drills, combinations of at most three punches: cross / lead hook /
+rear hook to the body, jab–body cross, jab body–head, parry, catch, high block, elbow block, duck, cover and cross, jab
+and slip, slip and cross, roll and hook, pull back and cross, 1-6, 5-3, 3-2, 2-3-2, 1-2-5, 5-6, stance bounce, fist
+rolls, circle left / right, angle step, in and out, jab stepping back, side step and jab, jab and pivot.
+Clip code: tools/blender/clips_fit2.py, clips_fight2.py (stance pose gained body-shot heights, parry, catch, cover,
+elbow block, bounce). Lessons: tools/lessons_batch7.py.
+**Camera counting** only where an existing counter fits and was checked on rendered videos of both coaches (16
+lessons: goblet squat, curtsy lunge, three body shots, seven combinations, three moving jabs, jab and slip). All other
+new lessons are guided (timer, no cues).
+**QC (both coaches)**: contact sheets of every clip, joint-kink / floor / hand-in-body audit, reach check per frame.
+Fixed before shipping: glute kickback barely moved (angle converted to radians twice); single-leg bridge lifted the
+whole body (free leg laid on the floor) and its foot swung 27 cm a frame; crunch arms 12 cm in the floor (arm fold
+in world, not chest, axes); child's pose buried the torso (search ran the wrong way); bear hold over-reached and its
+toes poked 2–3 cm into the floor; side-bend arm flew overhead at 8 m/s and the hand flipped; wall-sit hands out of
+reach; bench dip seated on the bench; donkey kick / fire hydrant knee pointing the wrong way; single-leg RDL knee
+pole along the leg (twist); kettlebell-swing hands in the hips at rest; high-block gloves on top of the head.
+Known: male bear-hold / donkey-kick toes up to 2 cm below the floor in transitions (same range as earlier floor clips).
