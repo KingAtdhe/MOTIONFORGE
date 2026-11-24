@@ -107,6 +107,8 @@ class AppFlowTest {
                 compose.onAllNodes(androidx.compose.ui.test.hasScrollAction())[0]
                     .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.ScrollBy) { it(0f, 4000f) }
             }
+            // the scroll is animated: a tap while it still runs only stops it (as on a phone), so let it settle
+            pump(1500, 50)
         }
         pump(100)
         node.performClick()
@@ -211,14 +213,6 @@ class AppFlowTest {
         }
         waitFor("summary") { exists("Session complete") || exists("Session ended") }
         click("Save session")
-        pump(600, 300)
-        val touchWorked = exists("Saved to your progress on this phone.")
-        if (!touchWorked) {
-            compose.onAllNodesWithText("Save session")[0].performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
-            pump(600, 300)
-            fail("Save did not react to a tap; the click action " +
-                (if (exists("Saved to your progress on this phone.")) "did save (a touch is intercepted)" else "did not save either (logic)"))
-        }
         var waited = 0
         while (!exists("Saved to your progress on this phone.")) {
             val failed = exists("Saving failed. Please try again.")
