@@ -218,7 +218,9 @@ class AppFlowTest {
             if (waited > 15000) fail(
                 "not saved; failed=" + failed + ", tooShort=" + tooShort + ", saving=" + exists("Saving…") +
                     ", saveButton=" + exists("Save session") + "\n" +
-                    compose.onAllNodes(androidx.compose.ui.test.isRoot())[0].printToString().take(4000),
+                    compose.onAllNodesWithText("Save session").fetchSemanticsNodes().joinToString("\n") {
+                        "bounds=" + it.boundsInRoot + " config=" + it.config
+                    },
             )
             pump(200, 40); waited += 200
         }
