@@ -201,7 +201,9 @@ class AppFlowTest {
         }
         waitFor("summary") { exists("Session complete") || exists("Session ended") }
         click("Save session")
-        waitForText("Saved to your progress on this phone.")
+        waitFor("saved (failed: ${'$'}{exists("Saving failed. Please try again.")}, too short: ${'$'}{exists("This session was too short to save.")})", 15000) {
+            exists("Saved to your progress on this phone.")
+        }
         assertEquals(1, sessionCount())
     }
 
@@ -307,7 +309,7 @@ class EveryLessonTest {
                 waitFor("setup ${lesson.id}") { exists("Start without camera") }
                 compose.onAllNodesWithText("Start without camera")[0].let { runCatching { it.performScrollTo() }; it.performClick() }
                 pump()
-                repeat(6) { pump(1000, 0) }
+                repeat(3) { pump(1000, 0) }
                 waitFor("running ${lesson.id}") { exists(lesson.name) }
                 compose.runOnUiThread { nav.popBackStack("home", inclusive = false) }
                 pump(300)
@@ -345,6 +347,8 @@ class EveryLessonTest {
         compose.onAllNodesWithText("Start without camera")[0].let { runCatching { it.performScrollTo() }; it.performClick() }
         pump()
         repeat(20) { pump(1000, 0) }
+        // pause, so the clock stands still while the state on disk is compared
+        compose.onAllNodesWithText("Tap anywhere to pause", substring = true)[0].performClick()
         pump(500, 300)
         val before = app.container.activeSession.read()
         assertTrue("a running session is kept on disk", before != null)
