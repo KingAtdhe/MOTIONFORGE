@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.printToString
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.test.core.app.ApplicationProvider
@@ -205,7 +206,11 @@ class AppFlowTest {
         while (!exists("Saved to your progress on this phone.")) {
             val failed = exists("Saving failed. Please try again.")
             val tooShort = exists("This session was too short to save.")
-            if (waited > 15000) fail("not saved; failed=" + failed + ", tooShort=" + tooShort)
+            if (waited > 15000) fail(
+                "not saved; failed=" + failed + ", tooShort=" + tooShort + ", saving=" + exists("Saving…") +
+                    ", saveButton=" + exists("Save session") + "\n" +
+                    compose.onAllNodes(androidx.compose.ui.test.isRoot())[0].printToString().take(4000),
+            )
             pump(200, 40); waited += 200
         }
         assertEquals(1, sessionCount())
