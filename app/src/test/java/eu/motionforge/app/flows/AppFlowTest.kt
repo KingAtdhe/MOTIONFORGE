@@ -7,7 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.printToString
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -49,6 +51,7 @@ import java.time.Duration
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w411dp-h891dp-xhdpi")
 class AppFlowTest {
+    @get:Rule val timeout: org.junit.rules.Timeout = org.junit.rules.Timeout.seconds(240)
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
@@ -101,10 +104,13 @@ class AppFlowTest {
         waitForText(text, substring)
         val node = compose.onAllNodesWithText(text, substring = substring)[0]
         if (runCatching { node.performScrollTo() }.isFailure) {
-            // the summary column scrolls by itself: bring the node into view through its scrollable container
-            runCatching {
-                compose.onAllNodes(androidx.compose.ui.test.hasScrollAction())[0]
-                    .performScrollToNode(androidx.compose.ui.test.hasText(text, substring = substring))
+            // bring it into view by swiping the screen up (bounded: never loops forever)
+            repeat(6) {
+                val shown = runCatching { node.assertIsDisplayed() }.isSuccess
+                if (!shown) {
+                    compose.onAllNodes(androidx.compose.ui.test.isRoot())[0].performTouchInput { swipeUp() }
+                    pump(300)
+                }
             }
         }
         pump(100)
@@ -262,6 +268,7 @@ class AppFlowTest {
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w411dp-h891dp-xhdpi")
 class EveryLessonTest {
+    @get:Rule val timeout: org.junit.rules.Timeout = org.junit.rules.Timeout.seconds(1200)
     @get:Rule val compose = createAndroidComposeRule<androidx.activity.ComponentActivity>()
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
