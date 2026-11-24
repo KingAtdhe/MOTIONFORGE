@@ -1118,3 +1118,9 @@ toes poked 2–3 cm into the floor; side-bend arm flew overhead at 8 m/s and the
 reach; bench dip seated on the bench; donkey kick / fire hydrant knee pointing the wrong way; single-leg RDL knee
 pole along the leg (twist); kettlebell-swing hands in the hips at rest; high-block gloves on top of the head.
 Known: male bear-hold / donkey-kick toes up to 2 cm below the floor in transitions (same range as earlier floor clips).
+**Also in this batch**: the Moves list is now lazy — with 118 lessons the motion strips decode to ~60 MB, and the
+plain scrolling column built and held every row at once (the art cache is 24 MB). Search: fighting-only words
+("punch", "defence"…) match fighting lessons only (the curtsy lunge's leg "crosses"), "biceps" no longer matches
+"curl the head", "squats" ranks like "squat". Side Step and Jab now jabs at the plain jab's tempo (at 0.34 s out the
+validated punch counter missed two of three). CI logs every test; job limit 75 min (two session flow tests now take
+~30 min each under Robolectric — to look at).
