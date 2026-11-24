@@ -66,6 +66,11 @@ jobs:
           git add -A && git commit -q -m "Screenshots of ${GITHUB_SHA::7}"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-screenshots
 
+      - name: Every lesson opens and runs, both coaches (end-to-end)
+        env:
+          MF_FULL_FLOWS: "1"
+        run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest --tests "eu.motionforge.app.flows.EveryLessonTest"
+
       - name: Build debug APK
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true assembleDebug
 
