@@ -885,7 +885,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             # high block: the gloves come up to the temples, forearms close in front of the face, elbows down and in
             for side, sg in (("L", 1.0), ("R", -1.0)):
                 g = res[side]
-                cv = {"w": Hc + V(sg * 0.075 * k, -0.105 * k, -0.055 * k), "pole": V(sg * 0.15, -0.35, -1.0), "fingers": V(-sg * 0.05, 0.10, 1.0),
+                # gloves at the temples (QC: higher, they sat on top of the head)
+                cv = {"w": Hc + V(sg * 0.080 * k, -0.100 * k, -0.115 * k), "pole": V(sg * 0.15, -0.35, -1.0), "fingers": V(-sg * 0.05, 0.10, 1.0),
                       "palm": V(-sg * 0.6, -0.8, 0.0)}
                 res[side] = mix_arm(g, cv, smooth(e_cover))
         if e_bblock > 0:

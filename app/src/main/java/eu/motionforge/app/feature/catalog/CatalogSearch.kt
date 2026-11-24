@@ -26,9 +26,9 @@ object CatalogSearch {
         "bum" to listOf("glute", "bridge", "squat", "lunge"),
         "hamstring" to listOf("deadlift", "hinge", "bridge", "good morning"),
         "calves" to listOf("calf"),
-        "arm" to listOf("curl", "triceps", "biceps", "push-up", "dip"),
-        "bicep" to listOf("curl"),
-        "biceps" to listOf("curl"),
+        "arm" to listOf("biceps", "hammer curl", "triceps", "push-up", "dip"),
+        "bicep" to listOf("biceps", "hammer curl"),
+        "biceps" to listOf("biceps", "hammer curl"),
         "tricep" to listOf("triceps", "dip", "push-up"),
         "chest" to listOf("push-up", "press", "fly"),
         "pec" to listOf("push-up", "press", "fly"),
@@ -59,6 +59,10 @@ object CatalogSearch {
         "pushups" to listOf("push-up"),
         "situp" to listOf("sit-up", "crunch"),
     )
+
+    /** Words that only ever mean boxing: their everyday matches are looked for in fighting lessons only ("cross" is
+     *  also how a curtsy lunge's leg moves). */
+    private val FIGHT_WORDS = setOf("punch", "punches", "strike", "boxing", "fight", "combo", "defence", "defense", "dodge")
 
     fun normalize(s: String): String =
         Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD)
@@ -108,9 +112,9 @@ object CatalogSearch {
         return false
     }
 
-    private fun matchesTerm(primary: String, secondary: String, forms: List<String>): Boolean = forms.any { f ->
-        val syn = SYNONYMS[f]
-        primary.hasWord(f) || syn.orEmpty().any { primary.hasWord(normalize(it)) } || (syn == null && secondary.hasWord(f))
+    private fun matchesTerm(primary: String, secondary: String, forms: List<String>, fighting: Boolean = true): Boolean = forms.any { f ->
+        val syn = if (!fighting && f in FIGHT_WORDS) emptyList() else SYNONYMS[f]
+        primary.hasWord(f) || syn.orEmpty().any { primary.hasWord(normalize(it)) } || (SYNONYMS[f] == null && secondary.hasWord(f))
     }
 
     /** The lessons that match [query], best first. A blank query returns [exercises] unchanged. */
@@ -129,12 +133,15 @@ object CatalogSearch {
         exercises.mapIndexedNotNull { i, e ->
             val p = primary(e)
             val sec = if (withSteps) secondary(e) else ""
-            val hit = words.all { matchesTerm(p, sec, it) } || (words.size > 1 && p.hasWord(joined))
+            val fighting = e.category == TrainingCategory.FIGHTING_FUNDAMENTALS
+            val hit = words.all { matchesTerm(p, sec, it, fighting) } || (words.size > 1 && p.hasWord(joined))
             if (!hit) return@mapIndexedNotNull null
             val name = normalize(e.name)
+            // a one-word query ranks by any of its forms, so "squats" orders the list exactly like "squat"
+            val qs = if (words.size == 1) words[0] else listOf(q)
             val rank = when {
-                name.startsWith(q) -> 0
-                name.contains(q) || name.replace("-", "").contains(q.replace(" ", "").replace("-", "")) -> 1
+                qs.any { name.startsWith(it) } -> 0
+                qs.any { name.contains(it) } || name.replace("-", "").contains(q.replace(" ", "").replace("-", "")) -> 1
                 words.all { forms -> forms.any { name.contains(it) } } -> 2
                 else -> 3
             }

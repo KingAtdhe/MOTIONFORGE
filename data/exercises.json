@@ -3713,20 +3713,20 @@
     "recommendedView": "front_or_diagonal",
     "analysisMode": "demo_guided_initially",
     "demoAnimation": "boxing_body_block",
-    "purpose": "Drop the lead elbow to protect the ribs with a small crunch.",
+    "purpose": "Drop the lead elbow to protect the ribs, with a small bend toward that side.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
     "equipment": [],
     "safety": "Practise slowly without contact. Have a qualified coach review your technique before progressing.",
     "instructions": [
       "Start in your boxing stance.",
       "Drop the lead elbow onto the ribs, glove staying by the cheek.",
-      "Crunch a little toward that side.",
+      "Bend a little toward that side.",
       "Return to guard."
     ],
     "commonCues": [
       "Elbow to the ribs.",
       "Glove by the cheek.",
-      "Small crunch."
+      "Small bend."
     ],
     "commonMistakes": [
       {
@@ -3735,7 +3735,7 @@
       },
       {
         "mistake": "Bending far sideways",
-        "adjustment": "Keep the crunch small."
+        "adjustment": "Keep the bend small."
       }
     ],
     "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
