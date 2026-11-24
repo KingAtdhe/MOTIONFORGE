@@ -339,7 +339,8 @@ class EveryLessonTest {
         assertTrue("Lessons with problems (${coach.name}):\n" + problems.joinToString("\n"), problems.isEmpty())
     }
 
-    @Test fun every_lesson_opens_and_runs_female() = run(Coach.FEMALE)
+    // ~8 minutes each: its own CI step (MF_FULL_FLOWS=1)
+    @Test fun every_lesson_opens_and_runs_female() { org.junit.Assume.assumeTrue(System.getenv("MF_FULL_FLOWS") == "1"); run(Coach.FEMALE) }
 
     /** Android closes the app mid-workout: Home offers the unfinished session and it comes back paused, same step. */
     @Test
@@ -383,5 +384,6 @@ class EveryLessonTest {
         assertEquals(before.state.elapsedTotal, after.state.elapsedTotal)
     }
 
-    @Test fun every_lesson_opens_and_runs_male() = run(Coach.MALE)
+    // ~8 minutes each: its own CI step (MF_FULL_FLOWS=1)
+    @Test fun every_lesson_opens_and_runs_male() { org.junit.Assume.assumeTrue(System.getenv("MF_FULL_FLOWS") == "1"); run(Coach.MALE) }
 }
