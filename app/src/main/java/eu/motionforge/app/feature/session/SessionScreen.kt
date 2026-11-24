@@ -143,7 +143,9 @@ fun SessionScreen(
     when (state.phase) {
         SessionPhase.READY -> SetupStage(state.plan, coach, onStart = { camera -> viewModel.onEvent(SessionEvent.Start(camera)) }, onClose = onClose)
         SessionPhase.RUNNING, SessionPhase.PAUSED -> {
-            BackHandler { viewModel.onEvent(SessionEvent.Stop) }
+            // Back pauses a running workout (one accidental press used to end it); from the pause screen it ends it,
+            // and the summary still offers saving.
+            BackHandler { viewModel.onEvent(if (state.phase == SessionPhase.RUNNING) SessionEvent.Pause else SessionEvent.Stop) }
             // the workout runs on the black plate: camera and coach stand out, light status icons
             // the phone may stand on its side during a workout; the rest of the app stays portrait
             val activity = androidx.activity.compose.LocalActivity.current
