@@ -15,17 +15,17 @@
     },
     {
       "name": "bird_dog",
-      "durationSeconds": 5.067,
+      "durationSeconds": 6.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_body_jab",
-      "durationSeconds": 1.867,
+      "durationSeconds": 1.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross",
-      "durationSeconds": 1.567,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "boxing_double_jab",
-      "durationSeconds": 1.733,
+      "durationSeconds": 1.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "name": "boxing_jab_jab_cross",
-      "durationSeconds": 2.4,
+      "durationSeconds": 2.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "name": "boxing_lead_uppercut",
-      "durationSeconds": 1.5,
+      "durationSeconds": 1.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "name": "boxing_rear_uppercut",
-      "durationSeconds": 1.533,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -120,12 +120,12 @@
     },
     {
       "name": "db_bent_over_row",
-      "durationSeconds": 2.4,
+      "durationSeconds": 2.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_curl",
-      "durationSeconds": 2.633,
+      "durationSeconds": 2.667,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -135,12 +135,12 @@
     },
     {
       "name": "db_hammer_curl",
-      "durationSeconds": 2.633,
+      "durationSeconds": 2.667,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_lateral_raise",
-      "durationSeconds": 2.733,
+      "durationSeconds": 2.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -155,7 +155,7 @@
     },
     {
       "name": "db_rdl_up",
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -170,12 +170,12 @@
     },
     {
       "name": "db_shoulder_press",
-      "durationSeconds": 2.7,
+      "durationSeconds": 2.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "db_squat",
-      "durationSeconds": 3.133,
+      "durationSeconds": 3.167,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -185,12 +185,12 @@
     },
     {
       "name": "footwork_backward",
-      "durationSeconds": 0.9,
+      "durationSeconds": 0.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_forward",
-      "durationSeconds": 0.9,
+      "durationSeconds": 0.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -225,7 +225,7 @@
     },
     {
       "name": "hip_hinge_up",
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -250,7 +250,7 @@
     },
     {
       "name": "kb_deadlift_up",
-      "durationSeconds": 1.233,
+      "durationSeconds": 1.267,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -270,7 +270,7 @@
     },
     {
       "name": "mountain_climber_slow",
-      "durationSeconds": 4.733,
+      "durationSeconds": 5.667,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -300,12 +300,12 @@
     },
     {
       "name": "side_lunge",
-      "durationSeconds": 4.667,
+      "durationSeconds": 4.7,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "split_squat",
-      "durationSeconds": 2.267,
+      "durationSeconds": 2.3,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -335,7 +335,7 @@
     },
     {
       "name": "superman",
-      "durationSeconds": 2.7,
+      "durationSeconds": 2.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

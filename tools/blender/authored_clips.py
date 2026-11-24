@@ -279,6 +279,7 @@ class Rig:
         arm.animation_data.action = act
         reach0 = (self.worst_leg, self.worst_arm)
         self.worst_leg = self.worst_arm = 0.0
+        specs = _with_life(name, specs)
         frames_ = []                                             # per frame: {bone: (loc, rot)}, activity sample
         prev = {}
         track = ("hips", "head", "hand_L", "hand_R", "foot_L", "foot_R")
@@ -304,6 +305,7 @@ class Rig:
         self.worst_leg, self.worst_arm = max(reach0[0], self.worst_leg), max(reach0[1], self.worst_arm)
         frames_ = _retime(frames_, acts, RETIME.get(name, RETIME_DEFAULT), self.order)
         frames_ = _follow_through(frames_, self.order, name)
+        frames_ = _desync(frames_, name)
         for f, fr in enumerate(frames_):
             for bn in self.order:
                 loc, rot = fr[bn]
@@ -324,7 +326,8 @@ RETIME_DEFAULT = (2.2, 1.2)
 RETIME = {name: (1.0, 1.0) for name in ("idle_neutral", "warmup_march", "high_knee_march", "step_jack", "arm_circles",
                                          "plank_hold", "boxing_stance")}
 # knee lifts: the default warp sped the lifts up 1.2x and the pauses 2.2x -- rushed, snappy lifts (QC); gentler here
-RETIME.update({"knee_crunch": (1.4, 1.0), "oblique_crunch": (1.4, 1.0), "mountain_climber_slow": (1.6, 1.0)})
+RETIME.update({"knee_crunch": (1.4, 1.0), "oblique_crunch": (1.4, 1.0), "mountain_climber_slow": (1.4, 1.0),
+               "bird_dog": (1.4, 1.0)})      # (the default warp sped the slow landings up -- hands arrived with a bump)
 # clips whose hands rest on the floor: the upper back must not lag, or the planted hands would slide
 PLANTED_HANDS = ("pushup_", "knee_pushup_", "incline_pushup_", "plank_hold", "mountain_climber_slow", "bird_dog",
                  "cat_cow", "superman", "glute_bridge")
@@ -645,7 +648,7 @@ def _hinge_pose(r, st, u, t, grip=None):
     return sp
 
 
-HINGE_GRIP_X, HINGE_GRIP_FWD, HINGE_GRIP_FWD_B = 0.160, 0.22, 0.10
+HINGE_GRIP_X, HINGE_GRIP_FWD, HINGE_GRIP_FWD_B = 0.160, 0.28, 0.12   # (0.22: plates in the thighs standing -- QC)
 
 
 def hinge(r, st, grip=None):
@@ -673,7 +676,7 @@ def _pushup_geometry(r, st):
             feet[s] = (ball, 0.0, phi - 4.0)
         A = r.ankle("L", feet["L"])
         up = Rx(phi) @ V(0, 0, 1)
-        hipj = V(0, A.y, A.z) + up * (r.leg * 0.996)
+        hipj = V(0, A.y, A.z) + up * (r.leg * st.get("leg_ext", 0.996))
         pel = Q(0, phi, 0)
         mid = (r.hj["L"] + r.hj["R"]) / 2
         pos = hipj - pel @ mid
@@ -703,7 +706,7 @@ def _pushup_geometry(r, st):
     dx = 0.105 * r.k
     # soft elbows at the top (0.985 of the arm's reach): at 0.9965 the arms were all but locked and the elbow swung
     # wildly whenever the planted hands were pinned (QC: forearm jitter of 5-8 cm a frame on the male coach)
-    top_z = wrist_h + math.sqrt((0.985 * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
+    top_z = wrist_h + math.sqrt((st.get("top_reach", 0.985) * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
     phi_top = solve_phi(top_z, 0.0)
     phi_bot = solve_phi(wrist_h + st.get("bottom_h", 0.175) * r.k, 1.0)
     top = shoulders(phi_top, 0.0)
@@ -1416,7 +1419,9 @@ def arm_circles(r, st):
     for i in range(n):
         t = T * i / (n - 1)
         rise = smoother(min(1.0, t / 0.5)) * smoother(min(1.0, (T - t) / 0.5))
-        ph = 2 * math.pi * (t / (T / 4)) * (1 if t < T / 2 else -1)
+        # two circles forward, a smooth stop, two back (QC: the direction flipped instantly at half time -- a jolt)
+        uu = t / (T / 2)
+        ph = 4 * math.pi * math.sin(0.5 * math.pi * min(uu, 2.0 - uu))
         b = breath(t, T, 0.0)
         feet = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * 9.0) for s, sg in SIDES}
         sp = torso_spec(V(0, r.P0.y + 0.004 * k, 0), pitch=1.0, spine=0.5, chest=-1.0, head_pitch=1.0, br=b * 0.6)
@@ -1431,10 +1436,12 @@ def arm_circles(r, st):
                 circ = V(0, math.sin(ph), math.cos(ph)) * (0.09 * k * rise)
                 outw = S + d_out * (0.90 * r.la) + circ                 # the circle stays inside the arm's reach
                 hangw = hang(r, pts, s, sg, out=st["arm_out"])
-                res[s] = {"w": hangw["w"].lerp(outw, rise), "pole": V(0, 1.0, -0.3 * rise), "fingers": d_out if rise > 0.5 else None,
+                # the fingers turn from pointing down to pointing out as the arm rises (they switched over in one frame
+                # at half height -- QC: the hands snapped ~38 deg)
+                fing = V(0, 0, -1).lerp(d_out, smooth(rise))
+                res[s] = {"w": hangw["w"].lerp(outw, rise), "pole": V(0, 1.0, -0.3 * rise),
+                          "fingers": fing.normalized() if fing.length > 1e-6 else d_out,
                           "palm": V(-sg * (1 - rise), 0.15 * (1 - rise), -rise)}
-                if res[s]["fingers"] is None:
-                    del res[s]["fingers"]
             return res
         sp["arms"] = arms
         out.append(sp)
@@ -1548,8 +1555,11 @@ def bird_dog(r, st):
                 S = pts["S_" + arm_side]
                 sg = 1.0 if arm_side == "L" else -1.0
                 fwd = S + V(sg * 0.03 * k, -0.985 * r.la, 0.0)
-                up = 0.06 * k * math.sin(math.pi * e) * (1 - e)
-                res[arm_side] = {"w": wrists[arm_side].lerp(fwd, e) + V(0, 0, up), "pole": V(sg * 0.4, 0.6, -0.5).lerp(V(sg * 0.2, 0, -1), e),
+                # the hand peels straight up off the floor first, then reaches forward (it used to slide forward while
+                # still low, so the planted-hand pin held it back and let go with a jump -- QC)
+                ef = smooth((e - 0.15) / 0.85)
+                up = 0.07 * k * smooth(e / 0.15) * (1.0 - ef)
+                res[arm_side] = {"w": wrists[arm_side].lerp(fwd, ef) + V(0, 0, up), "pole": V(sg * 0.4, 0.6, -0.5).lerp(V(sg * 0.2, 0, -1), e),
                                  "fingers": V(-sg * 0.1, -1, 0), "palm": V(-sg * e, 0, -(1 - e) - 0.2)}
                 return res
             sp["arms"] = arms
@@ -1599,7 +1609,8 @@ def knee_pushup(r, st):
                 hi = m
         return (lo + hi) / 2
     dx = 0.105 * k
-    th_top = solve(wrist_h + math.sqrt((0.9965 * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
+    # soft elbows at the top, as in the push-up (0.9965 was locked: elbow jitter / male hands sliding -- QC)
+    th_top = solve(wrist_h + math.sqrt((st.get("top_reach", 0.985) * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
     th_bot = solve(wrist_h + 0.215 * k)                           # chest a fist above the floor, elbows clear of it
     _, top = r.torso(_kneeling_line(r, st, th_top, knee_y))
     wrist = {s: V(top["S_" + s].x + sg * dx, top["S_" + s].y + 0.03 * k, wrist_h) for s, sg in SIDES}
@@ -1621,9 +1632,11 @@ def knee_pushup(r, st):
 def mountain_climber_slow(r, st):
     """High plank (push-up top); one knee drives toward the chest and returns, then the other. Slow, controlled."""
     k = r.k
+    st = dict(st)
+    st["leg_ext"] = 0.990          # the support leg keeps a hint of bend: locked straight, its knee jittered as the hips rose
     geo = _pushup_geometry(r, st)
     body, phi_top, phi_bot, wrist, blades = geo
-    segs = [(0.3, 0, 0), (1.0 * st["tempo"], 0, 1), (0.3, 1, 1), (0.9 * st["tempo"], 1, 0), (0.2, 0, 0)]
+    segs = [(0.3, 0, 0), (1.3 * st["tempo"], 0, 1), (0.3, 1, 1), (1.2 * st["tempo"], 1, 0), (0.2, 0, 0)]
     T1 = sum(d for d, _, _ in segs)
     n = frames(T1)
     out = []
@@ -1636,7 +1649,8 @@ def mountain_climber_slow(r, st):
             sp = _pushup_pose(r, st, geo, 0.0, t)
             # the body pivots about the shoulders (hands stay planted) and the hips rise a little while the knee passes
             # under them, so the knee never brushes the floor
-            dl = st.get("mc_lift", 24.0) * max(0.0, math.sin(math.pi * min(1.0, e))) ** 0.6     # (QC: at 15 deg the knee brushed the floor)
+            # (sin**0.6 had an infinite slope at the start of each drive: the hips jolted up -- QC jerk peak)
+            dl = st.get("mc_lift", 24.0) * smooth(min(1.0, e / 0.55))    # hips rise gradually with the knee     # (QC: at 15 deg the knee brushed the floor)
             _, pts0 = r.torso(sp)
             Sm = (pts0["S_L"] + pts0["S_R"]) / 2
             Rd = Rx(dl)
@@ -1666,6 +1680,7 @@ def mountain_climber_slow(r, st):
             shin = V(0, -math.sin(th + fl), -math.cos(th + fl))
             Kp = Hj + thigh * (r.l1[side] * 0.999)
             A = Kp + shin * (r.l2[side] * 0.999)
+            A = A0.lerp(A, smooth(e / 0.08))                # starts exactly at the planted ankle (no step at the side switch)
             A.x = lerp(A0.x, A_in.x, es)
             A.z = max(A.z, lerp(A0.z, 0.11 * k, smooth(min(1.0, e / 0.25))))     # the foot never brushes the floor
             d0 = (r.foot_q(side, yaw, pitch) @ r.fv[side]).normalized()
@@ -1848,6 +1863,7 @@ def db_curl(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -1876,6 +1892,7 @@ def db_shoulder_press(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T, pitch=0.0)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -1900,6 +1917,7 @@ def db_lateral_raise(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -1943,7 +1961,7 @@ def db_bent_over_row(r, st):
     return out
 
 
-KB_DEPTH, KB_LEAN, KB_FWD_TOP = 1.0, 57.0, 0.15
+KB_DEPTH, KB_LEAN, KB_FWD_TOP = 1.0, 57.0, 0.21   # (0.15: the bell sat in the thighs at the top -- QC)
 
 
 def _kb_pose(r, st, u, t):
@@ -1988,6 +2006,7 @@ def band_pull_apart(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T)
+        _effort(sp, e)
         sp["prot"] = {"L": 6.0 - 16.0 * e, "R": 6.0 - 16.0 * e}
 
         def arms(pts, e=e):
@@ -2089,6 +2108,7 @@ def db_hammer_curl(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -2116,6 +2136,7 @@ def db_front_raise(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -2256,6 +2277,7 @@ def db_overhead_triceps(r, st):
         t = T * i / (n - 1)
         e = _phases(t, segs)
         sp = _stand(r, st, t, T=T, pitch=0.0)
+        _effort(sp, e)
 
         def arms(pts, e=e):
             res = {}
@@ -2458,6 +2480,102 @@ def step_jab(r, st):
     return out
 
 
+# =============================================================================================== natural movement (2026-11-24)
+# QC metrics (tools/qc/natural.py) found the clips too clean to read as a person: 20-40 % of frames with no joint moving
+# at all (holds frozen like a mannequin, the plank 98 %), both arms moving as exact mirror images in every two-handed
+# exercise, and the head and chest dead still while the arms lift dumbbells. Three small layers fix that.
+
+# Lying / planted clips: breathing only (no sway that would slide the body on the floor)
+LIFE_FLOOR = ("pushup_", "knee_pushup_", "incline_pushup_", "plank_hold", "mountain_climber_slow", "bird_dog", "cat_cow",
+              "superman", "glute_bridge", "dead_bug")
+
+
+def _with_life(name, specs):
+    """A living body under every clip: a slow postural sway of the pelvis, a little breathing in the chest, small head
+    adjustments. Whole cycles over the clip (zero at both ends), so loops and down/up pairs still join exactly; the
+    pelvis only ever moves down (never over-reaching a straight standing leg); planted feet / hands are absolute IK
+    targets, so they stay put."""
+    n = len(specs)
+    if n < 8:
+        return specs
+    T = n / FPS
+    floor = name.startswith(LIFE_FLOOR)
+    k1 = max(1, round(T / 3.6))                                 # breaths per clip
+    k2 = max(1, round(T / 5.0))                                 # sway cycles per clip
+    out = []
+    for i, sp in enumerate(specs):
+        sp = dict(sp)
+        u = i / (n - 1)
+        br = math.sin(2 * math.pi * k1 * u)
+        sw = math.sin(2 * math.pi * k2 * u)
+        sw2 = math.sin(4 * math.pi * k2 * u + 0.8 * math.sin(2 * math.pi * k2 * u))
+        if not floor:
+            pos = sp["pos"].copy()
+            pos.x += 0.0035 * sw
+            pos.z -= 0.0012 * (1.0 - math.cos(2 * math.pi * k1 * u)) * 0.5
+            sp["pos"] = pos
+            sp["pel"] = Ry(0.5 * sw) @ sp["pel"]
+            sp["spi"] = Ry(-0.4 * sw) @ sp["spi"]
+            sp["hed"] = Rz(1.2 * sw2) @ Rx(0.7 * br) @ sp["hed"]
+            sp["nek"] = Rz(0.6 * sw2) @ sp["nek"]
+        else:                                                   # on the floor: the trunk rises and falls with the breath
+            pos = sp["pos"].copy()
+            pos.z += 0.0022 * br
+            sp["pos"] = pos
+            sp["hed"] = Rx(0.8 * br) @ Rz(0.8 * sw2) @ sp["hed"]
+        sp["che"] = Rx(-0.7 * br) @ sp["che"]                  # in-breath: the chest lifts a little
+        sh = dict(sp.get("shrug", {}))
+        for s_ in ("L", "R"):
+            sh[s_] = sh.get(s_, 0.0) + 0.8 * max(0.0, br)
+        sp["shrug"] = sh
+        out.append(sp)
+    return out
+
+
+def _effort(sp, e):
+    """Standing dumbbell work: the trunk answers the load -- a slight lean back and lift of the chest as the weights
+    go up, the head steady (it counter-rotates a little), shoulders braced."""
+    sp["che"] = Rx(-1.6 * e) @ sp["che"]
+    sp["spi"] = Rx(-0.8 * e) @ sp["spi"]
+    sp["hed"] = Rx(1.2 * e) @ sp["hed"]
+    sh = dict(sp.get("shrug", {}))
+    for s_ in ("L", "R"):
+        sh[s_] = sh.get(s_, 0.0) + 1.5 * e
+    sp["shrug"] = sh
+
+
+# Two-handed moves: the left arm trails the right by a couple of frames (people never move both arms as exact mirror
+# images). Clips that start and end at rest only; never in down/up pairs (the join would break) or planted hands.
+DESYNC = {"db_curl": 2, "db_hammer_curl": 2, "db_shoulder_press": 2, "db_lateral_raise": 2, "db_front_raise": 2,
+          "db_overhead_triceps": 2, "db_reverse_fly": 2, "db_bent_over_row": 2, "arm_circles": 1, "step_jack": 1,
+          "db_squat": 1, "db_reverse_lunge": 1, "reverse_lunge": 1, "calf_raise": 1}
+DESYNC_BONES = ("shoulder_L", "upper_arm_L", "forearm_L", "hand_L")
+
+
+def _desync(frames_, name):
+    d = DESYNC.get(name, 0)
+    n = len(frames_)
+    if not d or n < 4 * d:
+        return frames_
+    out = []
+    for i, fr in enumerate(frames_):
+        fr = dict(fr)
+        j = max(0, i - d)
+        if i >= n - d:                                         # the last frames ease back onto the clip's own end pose
+            a = (i - (n - d - 1)) / d
+            for bn in DESYNC_BONES:
+                if bn in fr:
+                    l0, r0 = frames_[j][bn]
+                    l1, r1 = frames_[i][bn]
+                    fr[bn] = (l0.lerp(l1, a), r0.slerp(r1, a))
+        else:
+            for bn in DESYNC_BONES:
+                if bn in fr:
+                    fr[bn] = frames_[j][bn]
+        out.append(fr)
+    return out
+
+
 # which clips show which prop (tools/blender/coach_props.py adds the meshes and keys their visibility)
 PROPS_BY_CLIP = {
     "db_curl": ("dumbbell_L", "dumbbell_R"), "db_shoulder_press": ("dumbbell_L", "dumbbell_R"),
@@ -2476,7 +2594,7 @@ STYLE = {
     # the two coaches perform the same technique; only build-related details differ
     "coach_f": {"stance": 1.0, "sway": 1.0, "arm_out": 0.085, "tempo": 1.0, "swing": 1.0, "wrist_h": 0.050},
     "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050, "kb_lean": 64.0,
-                "mc_lift": 17.0},   # longer arms: the hips sit higher in the plank, less lift needed (24 over-reached 5.7 cm)
+                "mc_lift": 17.0, "top_reach": 0.972},   # (0.985: the male's longer mesh arms could not reach -- hands slid)   # longer arms: the hips sit higher in the plank, less lift needed (24 over-reached 5.7 cm)
 }
 
 

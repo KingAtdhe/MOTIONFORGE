@@ -1045,3 +1045,33 @@ every lesson from 3/4 and side, and close-ups where something looked wrong. Foun
 - **Punches**: the return left the hold at full speed in one frame (hand jerk 3–4 cm) — eased start; the fist turns
   over across more of the extension.
 Remaining by design: punches are fast (the fist still turns ~30° a frame at the snap of a jab/cross).
+
+## 2026-11-24 — Natural movement pass + second glitch hunt
+New QC (`tools/qc/natural.py`, `jerk.py`, `clip_int.py`): frozen frames, mirror-identical arms, jerk peaks, hands /
+props inside the body. Findings and changes (both coaches rebuilt):
+**Natural movement**
+- Holds were mannequin-still (20–40 % of frames with nothing moving; plank 98 %). Every clip now has a living layer:
+  slow postural sway of the pelvis, breathing in the chest and shoulders, small head adjustments (whole cycles over
+  the clip, so loops and down/up joins stay exact; pelvis only moves down, planted hands/feet stay pinned). On the
+  floor: breathing only (trunk rises and falls). Frozen frames: dumbbell clips 20 % → 0, curls/presses/raises 0,
+  plank 98 % → 65–77 % (a held plank), all-fours 36 % → 13–22 %.
+- Both arms moved as exact mirror images in every two-handed exercise (mirror difference 0.0 cm). The left arm now
+  trails by 1–2 frames (curls, presses, raises, rows, reverse fly, triceps, arm circles, step jack, squats/lunges with
+  dumbbells), easing back onto the clip's end pose.
+- Dumbbell work: the trunk answers the load (chest lifts, slight lean back, shoulders brace, head steady).
+**Glitches fixed**
+- Arm circles: direction flipped instantly at half time; the hands flipped 38° as the arms rose — smooth stop and
+  reverse, fingers turn gradually.
+- Bird dog: the reaching hand slid forward while still low and the floor pin let it go with a jump; on the male coach
+  the hand landed 4 cm off and slid back, and the whole body jolted as the weight moved between knees. Now the hand
+  peels up, reaches, and is steered in the air to land exactly where it stood; the knee-on-floor correction is
+  smoothed; slower timing.
+- Mountain climber: hips jolted up at the start of each drive (curve with infinite slope); the driving ankle stepped
+  at the side switch; support knee jittered when locked straight — gradual hip rise, ankle starts at the planted
+  spot, a hint of bend in the support leg, slower timing. Peak jerk 1974 → 833 m/s³ (female), 504 (male).
+- Push-ups / knee push-ups / cat-cow / plank: hands that never leave the floor are now pinned the whole time (the
+  release ramp made them hover and catch); knee push-up elbows soft (locked arms made the male's elbows jump).
+  Knee push-up jerk 1028 → 19 (female), cat-cow 591 → 211.
+- Romanian deadlift: the dumbbell plates were inside the thighs standing; kettlebell deadlift: the bell sat in the
+  thighs at the top — both moved forward (no prop in the body now on either coach).
+Screens (CI screenshots of Home, Train, Lesson, Workout, Progress, Profile, Plan) checked: no layout bugs found.

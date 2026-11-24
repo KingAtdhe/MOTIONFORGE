@@ -597,6 +597,9 @@ def key_fingers(arm, scene, grip_for):
 #   hands  — planted hands are pinned: palm on the floor, wrist held in place (no sliding, no hovering, no sinking)
 #   back   — lying on the back: the head is tucked just enough that it never sinks into the floor
 #   prone  — lying face down: belly / thighs rest on the floor, head clear
+# clips in which a hand leaves the floor on purpose (the pin lets go smoothly); in every other contact clip the hands
+# stay planted the whole time
+LIFTING_HANDS = ("bird_dog",)
 CONTACTS = {
     "cat_cow": ("kneel",), "bird_dog": ("kneel",), "knee_pushup_down": ("kneel",), "knee_pushup_up": ("kneel",),
     "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
@@ -687,6 +690,11 @@ def _two_bone(arm, side, target, limb="arm"):
         _key(pb)
 
 
+def smooth_(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+
+
 def settle_contacts(arm, mesh, scene, names):
     """See CONTACTS. Prints, per clip, the worst remaining penetration and hand drift."""
     import numpy as np
@@ -703,6 +711,7 @@ def settle_contacts(arm, mesh, scene, names):
         a, b = [int(x) for x in act.frame_range]
         lock = {"L": None, "R": None}
         home = {"L": None, "R": None}       # where each hand first planted: it plants there again (loops close exactly)
+        land = {"L": a, "R": a}
         worst = 0.0
         # the hands' authored resting height (after the whole-body drop below): the planted weight fades out from just
         # above it. Fading over 4-9 cm instead held a lifting hand on the floor for its first 4 cm and then let it
@@ -717,21 +726,65 @@ def settle_contacts(arm, mesh, scene, names):
                 scene.frame_set(f)
                 lows.append(_skin_z(mesh)[R["torso"], 2].min())
             back_shift = -min(lows)
-        if mode in ("kneel", "hands"):
+        drops = {}
+        auth = {"L": {}, "R": {}}
+        if mode in ("kneel", "hands", "prone"):
+            raw = []
             for f in range(a, b + 1):
                 scene.frame_set(f)
                 z = _skin_z(mesh)
-                ref = {"kneel": ("shin", "thigh")}.get(mode)
+                ref = {"kneel": ("shin", "thigh"), "prone": ("torso", "thigh")}.get(mode)
                 drop = min(z[R[k], 2].min() for k in ref) if ref else 0.0
-                for s in ("L", "R"):
-                    rest[s] = min(rest[s], z[R["hand" + s], 2].min() - drop)
+                raw.append(drop)
+                if mode != "prone":
+                    for s in ("L", "R"):
+                        rest[s] = min(rest[s], z[R["hand" + s], 2].min() - drop)
+                        hb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Hand"]
+                        auth[s][f] = (_world(arm, hb).translation.copy(), z[R["hand" + s], 2].min() - drop)
+            # The whole-body drop that puts the knees (belly) on the floor is smoothed over a few frames: the lowest point
+            # hops from one knee to the other as a leg leaves or lands, and following it frame by frame jolted the whole
+            # body (QC: male bird dog). Ends kept exact so the loop still closes.
+            if len(raw) > 8:
+                ker = (1, 2, 3, 4, 3, 2, 1)
+                sm = [sum(kw * raw[min(len(raw) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(raw))]
+                sm[0], sm[-1] = raw[0], raw[-1]
+                raw = sm
+            drops = {f: d for f, d in zip(range(a, b + 1), raw)}
+        # A lifted hand is steered in the air so that it comes down exactly where it first stood (the retargeted arm lands
+        # a few cm off on the male coach; sliding it back afterwards was visible). The steer is zero at the top of the
+        # reach and full at lift-off / touch-down, so the hand's path stays smooth.
+        steer = {"L": {}, "R": {}}
+        if n in LIFTING_HANDS:
+            for s in ("L", "R"):
+                fr_ = sorted(auth[s])
+                if not fr_:
+                    continue
+                down = [f for f in fr_ if auth[s][f][1] <= rest[s] + 0.008]
+                if not down:
+                    continue
+                home0 = auth[s][down[0]][0]
+                dset = set(down)
+                for f in fr_:
+                    if f in dset:
+                        continue
+                    f0 = max([d for d in down if d < f], default=None)
+                    f1 = min([d for d in down if d > f], default=None)
+                    o0 = (home0 - auth[s][f0][0]) if f0 is not None else None
+                    o1 = (home0 - auth[s][f1][0]) if f1 is not None else None
+                    if o0 is None: o0 = o1
+                    if o1 is None: o1 = o0
+                    u = 0.5 if f0 is None or f1 is None else (f - f0) / float(f1 - f0)
+                    off = o0.lerp(o1, smooth_(u))
+                    h = auth[s][f][1] - rest[s]
+                    w_air = 1.0 - smooth_(h / 0.06)
+                    steer[s][f] = Vector((off.x * w_air, off.y * w_air, 0.0))
         for f in range(a, b + 1):
             scene.frame_set(f)
             z = _skin_z(mesh)
             # whole-body vertical: knees / belly on the floor
             ref = {"kneel": ("shin", "thigh"), "prone": ("torso", "thigh")}.get(mode)
             if ref:
-                low = min(z[R[k], 2].min() for k in ref)
+                low = drops.get(f, min(z[R[k], 2].min() for k in ref))
                 Mw = _world(arm, hips)
                 _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ Mw)
                 _key(hips, loc=True)
@@ -762,21 +815,34 @@ def settle_contacts(arm, mesh, scene, names):
                     hz = z[R["hand" + s], 2].min()
                     hd = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Hand"]
                     # planted weight: full on the floor, fading out smoothly as the hand lifts (no pop when it leaves or lands)
-                    u_ = max(0.0, min(1.0, (hz - rest[s] - 0.02) / 0.05))
-                    wgt = 1.0 - u_ * u_ * (3.0 - 2.0 * u_)
+                    if n in LIFTING_HANDS:
+                        u_ = max(0.0, min(1.0, (hz - rest[s] - 0.006) / 0.045))
+                        wgt = 1.0 - u_ * u_ * (3.0 - 2.0 * u_)
+                    else:
+                        wgt = 1.0                                  # these hands never leave the floor
                     if wgt <= 0.0:
                         lock[s] = None
                         continue
                     W = _world(arm, hd).translation.copy()
-                    if lock[s] is None:                               # anchored as soon as the planted weight starts to
-                        lock[s] = W.copy()                            # rise (it rises smoothly, so the pin eases in)
-                        if home[s] is not None and (Vector((home[s].x, home[s].y)) - Vector((W.x, W.y))).length < 0.05:
-                            lock[s] = home[s].copy()
-                        elif home[s] is None:
+                    # where the hand stands is fixed only once it is really down (for a landing hand: within 8 mm of its
+                    # resting height). Fixing it while still 5 cm up pulled the descending hand sideways to that spot
+                    # and then let it carry on -- a visible double move on the male coach.
+                    if lock[s] is None and (n not in LIFTING_HANDS or hz <= rest[s] + 0.008):
+                        lock[s] = W.copy()
+                        if n in LIFTING_HANDS and home[s] is not None:
+                            lock[s] = Vector((home[s].x, home[s].y, W.z))
+                        land[s] = f
+                        if home[s] is None:
                             home[s] = W.copy()
+                    anchor = lock[s] if lock[s] is not None else W + steer[s].get(f, Vector((0, 0, 0)))
+                    if lock[s] is not None and home[s] is not None and (Vector((home[s].x, home[s].y)) - Vector((lock[s].x, lock[s].y))).length < 0.06:
+                        # a re-planted hand creeps back to where it first stood over ~0.8 s while it bears weight (snapping
+                        # it there made the hand jump 3.5 cm on the male coach; leaving it made the loop jump)
+                        anchor = lock[s].lerp(home[s], smooth_((f - land[s]) / 24.0))
                     for _ in range(3):
-                        anchor = lock[s] if lock[s] is not None else W
-                        full = Vector((anchor.x, anchor.y, W.z - hz))
+                        # the height correction stops growing a few mm above the resting level: it removes sinking or
+                        # hovering of a planted hand but never holds back a hand that is being lifted on purpose
+                        full = Vector((anchor.x, anchor.y, W.z - (min(hz, rest[s] + 0.006) if n in LIFTING_HANDS else hz)))
                         tgt = W.lerp(full, wgt)
                         if (tgt - W).length < 0.0015:
                             break

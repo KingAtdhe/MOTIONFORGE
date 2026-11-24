@@ -171,3 +171,15 @@ reg_obl_f_front|standing_oblique_crunch|8
 reg_kcrunch_m_q45|standing_knee_crunch|8
 reg_onetwo_f_front|boxing_one_two|3
 reg_jjc_m_q45|boxing_jab_jab_cross|3
+# natural-movement pass (2026-11-24): living layer, arm desync, effort response -- counting unchanged
+n_curl_f_front|dumbbell_biceps_curl|3
+n_lateral_m_front|dumbbell_lateral_raise|3
+n_press_f_q45|dumbbell_shoulder_press|3
+n_row_m_side|dumbbell_bent_over_row|3
+n_kbdl_f_q45|kettlebell_deadlift|3
+n_squat_m_front|bodyweight_squat|3
+n_jab_f_front|boxing_jab|4
+n_lunge_m_side|reverse_lunge|4
+n_stance_f_front|boxing_slip|0
+n_stance_f_front|boxing_lead_hook|0
+n_stance_f_front|boxing_jab_jab_cross|0
