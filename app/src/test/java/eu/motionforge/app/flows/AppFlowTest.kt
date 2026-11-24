@@ -256,6 +256,33 @@ class AppFlowTest {
         pump(400, 200)
         assertEquals(1, sessionCount())
     }
+
+    @Test
+    fun reset_app_data_deletes_history_and_returns_to_welcome() {
+        onboard()
+        click("Start session")
+        click("Start without camera")
+        train(15)
+        endAndSave()
+        click("Done")
+        assertEquals(1, sessionCount())
+        click("You")
+        click("Reset app data")
+        waitForText("Reset app data?")
+        click("Cancel")
+        pump(300, 100)
+        assertEquals("Cancel keeps everything", 1, sessionCount())
+        click("Reset app data")
+        click("Reset")
+        waitForText("Get started")                                 // back on the welcome screens
+        pump(400, 200)
+        assertEquals(0, sessionCount())
+        val prefs = runBlocking { app.container.preferences.preferences.first() }
+        assertEquals(false, prefs.onboardingComplete)
+        assertEquals(null, app.container.activeSession.read())
+        onboard()                                                  // and the app works again from scratch
+        waitForText("Start session")
+    }
 }
 
 /**
