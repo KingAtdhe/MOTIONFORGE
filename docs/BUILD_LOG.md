@@ -1075,3 +1075,17 @@ props inside the body. Findings and changes (both coaches rebuilt):
 - Romanian deadlift: the dumbbell plates were inside the thighs standing; kettlebell deadlift: the bell sat in the
   thighs at the top — both moved forward (no prop in the body now on either coach).
 Screens (CI screenshots of Home, Train, Lesson, Workout, Progress, Profile, Plan) checked: no layout bugs found.
+
+## 2026-11-24 — App functionality pass (end-to-end flow tests)
+New Robolectric flow tests drive the real app (`app/src/test/.../flows/AppFlowTest.kt`):
+- Fresh install → onboarding (both coaches, both focuses) → quick session → summary → Save → counted on Progress.
+- Skipping through every step finishes the session; a training plan session runs and advances the plan.
+- Saved history survives an app restart; an unfinished session is offered on Home and resumes paused at the same
+  step and time.
+- Every lesson (58) opens and runs a camera-free practice on both coaches (CI step "Every lesson opens and runs",
+  `MF_FULL_FLOWS=1`).
+**Bug fixed**: system Back during a running workout stopped it and threw it away. Back now pauses (a second Back
+from the paused screen leaves).
+Checked, no problem found: equipment props show only in their own clips and stay rigid in the hands.
+Known test-only note: under Robolectric's hand-driven clock an animated scroll can swallow the next tap; the helper
+lets the scroll settle first (not an app bug — the semantics click on Save works).
