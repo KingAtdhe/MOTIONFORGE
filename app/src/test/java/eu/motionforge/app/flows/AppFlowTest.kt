@@ -51,6 +51,19 @@ class AppFlowTest {
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
 
+    @org.junit.Before
+    fun freshInstall() {
+        // the workout-notification permission dialog has no answer under Robolectric: granted up front
+        org.robolectric.Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
+        // DataStore and the database are process-wide: every test starts from a fresh install
+        runBlocking {
+            app.container.preferences.clearAll()
+            app.container.sessions.deleteAll()
+        }
+        app.container.activeSession.clear()
+        pump(300, 100)
+    }
+
     // ------------------------------------------------------------------------------------------------ helpers
     private fun pump(ms: Long = 200, sleep: Long = 30) {
         compose.mainClock.autoAdvance = false
@@ -234,6 +247,19 @@ class EveryLessonTest {
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
     private val lessons = ExerciseCatalogParser.parse(File("src/main/assets/${ExerciseCatalogParser.ASSET_PATH}").readText())
+
+    @org.junit.Before
+    fun freshInstall() {
+        // the workout-notification permission dialog has no answer under Robolectric: granted up front
+        org.robolectric.Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
+        // DataStore and the database are process-wide: every test starts from a fresh install
+        runBlocking {
+            app.container.preferences.clearAll()
+            app.container.sessions.deleteAll()
+        }
+        app.container.activeSession.clear()
+        pump(300, 100)
+    }
 
     private fun pump(ms: Long = 200, sleep: Long = 30) {
         compose.mainClock.autoAdvance = false
