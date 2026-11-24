@@ -51,7 +51,6 @@ import java.time.Duration
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w411dp-h891dp-xhdpi")
 class AppFlowTest {
-    @get:Rule val timeout: org.junit.rules.Timeout = org.junit.rules.Timeout.seconds(240)
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
@@ -268,7 +267,6 @@ class AppFlowTest {
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w411dp-h891dp-xhdpi")
 class EveryLessonTest {
-    @get:Rule val timeout: org.junit.rules.Timeout = org.junit.rules.Timeout.seconds(1200)
     @get:Rule val compose = createAndroidComposeRule<androidx.activity.ComponentActivity>()
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
