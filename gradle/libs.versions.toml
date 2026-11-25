@@ -4,7 +4,7 @@
 # CI must stay green before a bump is merged.
 [versions]
 agp = "8.11.1"
-kotlin = "2.2.0"
+kotlin = "2.4.21"
 coreKtx = "1.16.0"
 coreSplashscreen = "1.2.0"
 robolectric = "4.16"
