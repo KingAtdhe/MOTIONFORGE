@@ -1154,3 +1154,21 @@ the body; no body bone scale in any exported clip. Remaining highest jerk is pun
 (rig level 400–570, close to the physical floor for a 35 cm punch in under 0.4 s).
 Known: arms lying on the floor (reverse crunch, toe taps, forearm plank) press up to ~1 cm into it; bear-hold toes up
 to ~1 cm for a few frames.
+
+## 2026-11-25 (2) — Animation leftovers
+
+- **Plank reach guard** (contact pass, all hands-on-floor clips): the coaches' arms are shorter than the authoring rig's,
+  so in the mountain climber the left arm locked straight (99.95 %) and the hand lifted 4 mm while the elbow stopped and
+  restarted. Where an arm would pass 98.5 % of its length, the body now tips down about the toes by the smoothed need.
+  Climber jerk 884 → 494; every plank-type clip stays at or under 98.2 % reach.
+- **Double easing removed** in shoulder taps, fire hydrant and donkey kick (their phase value is already eased); the
+  quadruped leg blend finished at 40 % of the lift while the lift went on (the leg stopped and restarted). Male shoulder
+  taps 924 → off the top list.
+- **Footwork**: every push step (lateral, forward/back, circles, angle step, in and out, step / lateral / back jab) is
+  quintic over 0.38 s instead of cubic over 0.30 s (a jolt at the start and end of each step; knee ~730 m/s³).
+- **Lying arms** (reverse crunch, toe taps, single-leg bridge) authored 1.2 cm higher: the forearms pressed ~1 cm into
+  the floor.
+- Studies re-rendered for the 22 affected lessons, both coaches.
+QC now: mesh jerk median 265 (F) / 308 (M); the top of both lists is punches only (600–920, near the physical limit
+for a full-speed punch); no hand or prop in the body; no over-reach; hands planted (hover ≤ 1 cm). Known: bear-hold
+toes ~1 cm into the floor for a few frames while tucking; mountain-climber toe tips ~1 cm at landing.

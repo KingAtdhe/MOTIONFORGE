@@ -1031,8 +1031,8 @@ def footwork(r, st):
     n = frames(T)
 
     def phase(t, forward):
-        first = smooth((t - 0.20) / 0.30)                       # first foot in the air 0.20 - 0.50
-        second = smooth((t - 0.46) / 0.30)                      # second foot follows 0.46 - 0.76
+        first = smoother((t - 0.20) / 0.38)                       # first foot in the air 0.20 - 0.50
+        second = smoother((t - 0.46) / 0.38)                      # second foot follows 0.46 - 0.76
         body = smoother((t - 0.18) / 0.60)
         g1 = math.sin(math.pi * first)
         g2 = math.sin(math.pi * second)
@@ -1084,8 +1084,8 @@ def footwork_lateral(r, st):
     for direction in (1.0, -1.0):
         for i in range(n if direction > 0 else n):
             t = T * i / (n - 1)
-            first = smooth((t - 0.20) / 0.30)
-            second = smooth((t - 0.46) / 0.30)
+            first = smoother((t - 0.20) / 0.38)   # (quintic: the cubic jolted at start and stop -- QC)
+            second = smoother((t - 0.46) / 0.38)
             body = smoother((t - 0.18) / 0.60)
             g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
             base = 0.0 if direction > 0 else step
@@ -2555,8 +2555,8 @@ def step_jab(r, st):
     out = []
     for i in range(n):
         t = T * i / (n - 1)
-        first = smooth((t - 0.20) / 0.30)
-        second = smooth((t - 0.48) / 0.30)
+        first = smoother((t - 0.20) / 0.38)
+        second = smoother((t - 0.48) / 0.38)
         body = smoother((t - 0.18) / 0.60)
         g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
         e = _punch_curve(t, 0.18, 0.34, 0.12, 0.45)
@@ -2568,8 +2568,8 @@ def step_jab(r, st):
         out.append(sp)
     for i in range(1, n):
         t = T * i / (n - 1)
-        first = smooth((t - 0.20) / 0.30)
-        second = smooth((t - 0.46) / 0.30)
+        first = smoother((t - 0.20) / 0.38)
+        second = smoother((t - 0.46) / 0.38)
         body = smoother((t - 0.18) / 0.60)
         g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
         sp = _stance_pose(r, st, T + t, travel=step * (1 - body), lead_step=g2, rear_step=g1, bob_amp=0.0, loop=2 * T)

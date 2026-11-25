@@ -768,6 +768,7 @@ def settle_contacts(arm, mesh, scene, names):
             sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(mx))]
             sm[0], sm[-1] = mx[0], mx[-1]                                           # ...then ease (ends exact: loops close)
             bridge_lift = {f: v for f, v in zip(range(a, b + 1), sm)}
+        reach_raw, reach_drop = [], {}
         if mode in ("kneel", "hands", "prone"):
             raw = []
             for f in range(a, b + 1):
@@ -776,6 +777,18 @@ def settle_contacts(arm, mesh, scene, names):
                 ref = {"kneel": ("shin", "thigh"), "prone": ("torso", "thigh")}.get(mode)
                 drop = min(z[R[k], 2].min() for k in ref) if ref else 0.0
                 raw.append(drop)
+                if mode == "hands":
+                    # how far each arm would have to stretch past 98.5 % of its length to put its palm on the floor (the
+                    # deforming arms are shorter than the authoring rig's: in the mountain climber the left arm locked
+                    # straight and the hand left the floor -- QC)
+                    need = 0.0
+                    for s in ("L", "R"):
+                        S_ = "Left" if s == "L" else "Right"
+                        ua_, fa_, hd_ = (arm.pose.bones[P + S_ + nm] for nm in ("Arm", "ForeArm", "Hand"))
+                        Sh_, El_, Wr_ = (_world(arm, x).translation for x in (ua_, fa_, hd_))
+                        Wf = Wr_ - Vector((0, 0, z[R["hand" + s], 2].min()))
+                        need = max(need, (Wf - Sh_).length - 0.985 * ((El_ - Sh_).length + (Wr_ - El_).length))
+                    reach_raw.append(max(0.0, need))
                 if mode != "prone":
                     for s in ("L", "R"):
                         rest[s] = min(rest[s], z[R["hand" + s], 2].min() - drop)
@@ -790,6 +803,12 @@ def settle_contacts(arm, mesh, scene, names):
                 sm[0], sm[-1] = raw[0], raw[-1]
                 raw = sm
             drops = {f: d for f, d in zip(range(a, b + 1), raw)}
+            if reach_raw and max(reach_raw) > 0.0005:
+                mx = [max(reach_raw[max(0, i - 4):i + 5]) for i in range(len(reach_raw))]
+                ker = (1, 2, 3, 4, 3, 2, 1)
+                sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(mx))]
+                sm[0], sm[-1] = mx[0], mx[-1]
+                reach_drop = {f: v * 1.25 for f, v in zip(range(a, b + 1), sm)}
             # a hand's resting height is where it spends most of its time on the floor (25th percentile), not its single
             # lowest frame: a brief authored dip 1.5 cm into the floor made the male bird dog's resting right hand count as
             # half-lifted, so the pin held it 2.5 cm up the whole clip -- QC
@@ -838,6 +857,18 @@ def settle_contacts(arm, mesh, scene, names):
                 low = drops.get(f, min(z[R[k], 2].min() for k in ref))
                 Mw = _world(arm, hips)
                 _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ Mw)
+                _key(hips, loc=True)
+                z = _skin_z(mesh)
+            # plank: where an arm would lock, the body tips down about the toes (as a real plank does) by the smoothed need
+            if mode == "hands" and reach_drop.get(f, 0.0) > 0.0005:
+                balls = [_world(arm, arm.pose.bones[P + sd + "Foot"]).translation.copy() for sd in ("Left", "Right")]
+                Pv = (balls[0] + balls[1]) / 2
+                Sm_ = sum((_world(arm, arm.pose.bones[P + sd + "Arm"]).translation for sd in ("Left", "Right")), Vector()) / 2
+                v_ = Sm_ - Pv
+                hlen = max(0.2, Vector((v_.x, v_.y)).length)
+                ax_ = v_.cross(Vector((0, 0, 1))).normalized()
+                th_ = math.atan2(reach_drop[f], hlen)
+                _set_world(arm, hips, Matrix.Translation(Pv) @ Matrix.Rotation(-th_, 4, ax_) @ Matrix.Translation(-Pv) @ _world(arm, hips))
                 _key(hips, loc=True)
                 z = _skin_z(mesh)
             # kneeling: the tops of the feet rest on the floor instead of sinking into it

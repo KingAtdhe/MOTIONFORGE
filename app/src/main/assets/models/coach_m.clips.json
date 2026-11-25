@@ -145,7 +145,7 @@
     },
     {
       "name": "boxing_lateral_jab",
-      "durationSeconds": 2.033,
+      "durationSeconds": 2.067,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -235,7 +235,7 @@
     },
     {
       "name": "boxing_step_jab",
-      "durationSeconds": 2.067,
+      "durationSeconds": 2.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -365,17 +365,17 @@
     },
     {
       "name": "donkey_kick",
-      "durationSeconds": 6.033,
+      "durationSeconds": 6.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "fire_hydrant",
-      "durationSeconds": 5.667,
+      "durationSeconds": 5.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_angle_step",
-      "durationSeconds": 3.1,
+      "durationSeconds": 3.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -385,12 +385,12 @@
     },
     {
       "name": "footwork_circle_left",
-      "durationSeconds": 3.1,
+      "durationSeconds": 3.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "footwork_circle_right",
-      "durationSeconds": 3.067,
+      "durationSeconds": 3.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -400,7 +400,7 @@
     },
     {
       "name": "footwork_lateral",
-      "durationSeconds": 1.833,
+      "durationSeconds": 1.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -540,7 +540,7 @@
     },
     {
       "name": "shoulder_taps",
-      "durationSeconds": 5.333,
+      "durationSeconds": 5.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
