@@ -10,17 +10,17 @@
     },
     {
       "name": "band_pull_apart",
-      "durationSeconds": 2.567,
+      "durationSeconds": 2.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "bear_hold",
-      "durationSeconds": 4.4,
+      "durationSeconds": 5.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "bench_dip",
-      "durationSeconds": 2.4,
+      "durationSeconds": 2.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -35,12 +35,12 @@
     },
     {
       "name": "boxing_block_cross",
-      "durationSeconds": 2.067,
+      "durationSeconds": 2.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_body_block",
-      "durationSeconds": 1.433,
+      "durationSeconds": 1.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "name": "boxing_body_head_jab",
-      "durationSeconds": 2.033,
+      "durationSeconds": 2.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -65,7 +65,7 @@
     },
     {
       "name": "boxing_catch",
-      "durationSeconds": 1.767,
+      "durationSeconds": 1.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -75,22 +75,22 @@
     },
     {
       "name": "boxing_cross_hook",
-      "durationSeconds": 1.933,
+      "durationSeconds": 1.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross_hook_cross",
-      "durationSeconds": 2.633,
+      "durationSeconds": 2.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_double_jab",
-      "durationSeconds": 1.767,
+      "durationSeconds": 1.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_duck",
-      "durationSeconds": 1.433,
+      "durationSeconds": 1.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -105,12 +105,12 @@
     },
     {
       "name": "boxing_high_block",
-      "durationSeconds": 1.433,
+      "durationSeconds": 1.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_hook_cross",
-      "durationSeconds": 2.0,
+      "durationSeconds": 1.967,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -120,12 +120,12 @@
     },
     {
       "name": "boxing_jab_body_cross",
-      "durationSeconds": 2.267,
+      "durationSeconds": 2.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab_jab_cross",
-      "durationSeconds": 2.433,
+      "durationSeconds": 2.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -135,12 +135,12 @@
     },
     {
       "name": "boxing_jab_slip",
-      "durationSeconds": 1.833,
+      "durationSeconds": 1.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab_uppercut",
-      "durationSeconds": 1.967,
+      "durationSeconds": 1.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -165,7 +165,7 @@
     },
     {
       "name": "boxing_one_two_hook",
-      "durationSeconds": 2.6,
+      "durationSeconds": 2.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -175,7 +175,7 @@
     },
     {
       "name": "boxing_parry",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -190,7 +190,7 @@
     },
     {
       "name": "boxing_rear_body_hook",
-      "durationSeconds": 2.067,
+      "durationSeconds": 2.033,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -250,7 +250,7 @@
     },
     {
       "name": "butt_kicks",
-      "durationSeconds": 3.8,
+      "durationSeconds": 4.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -275,7 +275,7 @@
     },
     {
       "name": "curtsy_lunge",
-      "durationSeconds": 5.6,
+      "durationSeconds": 7.467,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -305,7 +305,7 @@
     },
     {
       "name": "db_goblet_squat",
-      "durationSeconds": 2.967,
+      "durationSeconds": 3.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -325,7 +325,7 @@
     },
     {
       "name": "db_rdl_down",
-      "durationSeconds": 1.833,
+      "durationSeconds": 1.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -340,7 +340,7 @@
     },
     {
       "name": "db_reverse_lunge",
-      "durationSeconds": 7.5,
+      "durationSeconds": 7.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -365,12 +365,12 @@
     },
     {
       "name": "donkey_kick",
-      "durationSeconds": 5.967,
+      "durationSeconds": 5.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "fire_hydrant",
-      "durationSeconds": 5.6,
+      "durationSeconds": 5.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -405,7 +405,7 @@
     },
     {
       "name": "footwork_pivot",
-      "durationSeconds": 1.833,
+      "durationSeconds": 1.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -415,7 +415,7 @@
     },
     {
       "name": "forward_lunge",
-      "durationSeconds": 7.633,
+      "durationSeconds": 7.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -450,7 +450,7 @@
     },
     {
       "name": "hip_hinge_down",
-      "durationSeconds": 1.833,
+      "durationSeconds": 1.867,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -490,7 +490,7 @@
     },
     {
       "name": "knee_crunch",
-      "durationSeconds": 6.133,
+      "durationSeconds": 6.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -505,12 +505,12 @@
     },
     {
       "name": "mountain_climber_slow",
-      "durationSeconds": 5.667,
+      "durationSeconds": 5.7,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "oblique_crunch",
-      "durationSeconds": 6.533,
+      "durationSeconds": 6.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -535,22 +535,22 @@
     },
     {
       "name": "reverse_lunge",
-      "durationSeconds": 7.5,
+      "durationSeconds": 7.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "shoulder_taps",
-      "durationSeconds": 3.733,
+      "durationSeconds": 5.333,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "side_bend",
-      "durationSeconds": 8.233,
+      "durationSeconds": 8.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "side_leg_raise",
-      "durationSeconds": 5.567,
+      "durationSeconds": 5.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -565,7 +565,7 @@
     },
     {
       "name": "single_leg_bridge",
-      "durationSeconds": 11.733,
+      "durationSeconds": 13.3,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -580,12 +580,12 @@
     },
     {
       "name": "split_squat",
-      "durationSeconds": 2.3,
+      "durationSeconds": 2.267,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "squat_calf_raise",
-      "durationSeconds": 4.267,
+      "durationSeconds": 4.233,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -595,7 +595,7 @@
     },
     {
       "name": "squat_up",
-      "durationSeconds": 1.367,
+      "durationSeconds": 1.4,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -635,7 +635,7 @@
     },
     {
       "name": "wall_sit",
-      "durationSeconds": 5.8,
+      "durationSeconds": 5.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

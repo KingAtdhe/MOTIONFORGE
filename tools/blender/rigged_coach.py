@@ -1,3 +1,4 @@
+import os
 """Use the owner's professionally rigged coach (Tripo export, Mixamo-style skeleton with its own skin weights) instead
 of MOTIONFORGE's auto-rig.
 
@@ -161,7 +162,8 @@ def transfer(src_arm, dst_arm, act, scene, name):
                     # toes stay flat on the floor while the heel is raised (they bend at the ball instead of pointing down)
                     fb = src_arm.data.bones[src]
                     ball_z = (ps[src].translation + Vector(ps[src].col[1][:3]).normalized() * fb.length).z
-                    u_ = max(0.0, min(1.0, (ball_z - fb.tail_local.z) / 0.035))
+                    # (over 3.5 cm the toes snapped flat on a quick landing -- QC: curtsy lunge toe jerk ~900 m/s3)
+                    u_ = max(0.0, min(1.0, (ball_z - fb.tail_local.z) / 0.06))
                     w = 1.0 - u_ * u_ * (3.0 - 2.0 * u_)
                     D = delta(src)
                     fw_ = D @ Vector((0, -1, 0))
@@ -513,6 +515,15 @@ def floor_contact(arm, mesh, scene, names):
                 sm.append(acc / wsum)
             sm[0], sm[-1] = dzs[0], dzs[-1]
             dzs = sm
+        elif len(dzs) > 8:
+            # every other clip: the lowest shoe point hands over between the feet (or heel and toe) as a foot lifts or
+            # lands, and following it frame by frame stepped the whole body by millimetres (QC: foot jerk ~1300 m/s3 in
+            # the glute kickback). The largest need nearby (nothing sinks), then a short ease; ends exact (loops close).
+            mx = [max(dzs[max(0, i - 2):i + 3]) for i in range(len(dzs))]
+            ker = (1, 2, 3, 2, 1)
+            sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 2))] for j, kw in enumerate(ker)) / 9.0 for i in range(len(mx))]
+            sm[0], sm[-1] = dzs[0], dzs[-1]
+            dzs = sm
         for f, dz in zip(range(a, b + 1), dzs):
             scene.frame_set(f)
             hips.location = hips.location + rest_inv @ Vector((0, 0, dz))
@@ -600,6 +611,7 @@ def key_fingers(arm, scene, grip_for):
 # clips in which a hand leaves the floor on purpose (the pin lets go smoothly); in every other contact clip the hands
 # stay planted the whole time
 LIFTING_HANDS = ("bird_dog", "shoulder_taps")
+KNEEL_FOOT_SMOOTH = True        # kneeling feet: measure the needed turn per frame, apply it eased over time
 CONTACTS = {
     "cat_cow": ("kneel",), "bird_dog": ("kneel",), "knee_pushup_down": ("kneel",), "knee_pushup_up": ("kneel",),
     "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
@@ -607,7 +619,9 @@ CONTACTS = {
     # batch 7 (clips_fit2.py)
     "crunch": ("bridge",), "heel_taps": ("bridge",), "db_floor_press": ("bridge",), "single_leg_bridge": ("bridge",),
     "reverse_crunch": ("back",), "toe_taps": ("back",),
-    "high_plank": ("hands",), "shoulder_taps": ("hands",), "bear_hold": ("hands",),
+    "high_plank": ("hands",), "bear_hold": ("hands",),
+    # (shoulder_taps: not pinned -- releasing the pin as a hand lifts jolted the elbow 7 cm in a frame; the authored hands
+    # stay put on their own)
     "donkey_kick": ("kneel",), "fire_hydrant": ("kneel",), "childs_pose": ("kneel",),
 }
 
@@ -648,6 +662,12 @@ def _key(pb, loc=False):
 
 def _set_world(arm, pb, Mw):
     pb.matrix = arm.matrix_world.inverted() @ Mw
+    # only the rotation (and the root's location) is keyed and exported: rounding left a little scale / offset on each
+    # assignment that was never keyed, so it piled up across clips (male left hand at 1.4 x 1.7 x 0.46 by the end) and
+    # the contact passes measured a distorted arm while the export reset it -- QC: male plank hand 3 cm in the floor
+    pb.scale = (1.0, 1.0, 1.0)
+    if pb.parent is not None:
+        pb.location = (0.0, 0.0, 0.0)
     bpy.context.view_layer.update()
 
 
@@ -715,6 +735,7 @@ def settle_contacts(arm, mesh, scene, names):
         arm.animation_data.action = act
         a, b = [int(x) for x in act.frame_range]
         lock = {"L": None, "R": None}
+        foot_need = {"L": {}, "R": {}}
         home = {"L": None, "R": None}       # where each hand first planted: it plants there again (loops close exactly)
         land = {"L": a, "R": a}
         worst = 0.0
@@ -733,6 +754,20 @@ def settle_contacts(arm, mesh, scene, names):
             back_shift = -min(lows)
         drops = {}
         auth = {"L": {}, "R": {}}
+        # on the back with the feet planted: how far the body must rise so the back never sinks into the floor, smoothed
+        # over time (lifting it per frame only where it sank popped the whole body up and down -- QC: knee jerk spikes
+        # of ~2000 m/s3 in the crunch, heel taps and glute bridge)
+        bridge_lift = {}
+        if mode == "bridge":
+            raw = []
+            for f in range(a, b + 1):
+                scene.frame_set(f)
+                raw.append(max(0.0, -float(_skin_z(mesh)[R["torso"], 2].min())))
+            mx = [max(raw[max(0, i - 4):i + 5]) for i in range(len(raw))]          # cover every frame's need...
+            ker = (1, 2, 3, 4, 3, 2, 1)
+            sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(mx))]
+            sm[0], sm[-1] = mx[0], mx[-1]                                           # ...then ease (ends exact: loops close)
+            bridge_lift = {f: v for f, v in zip(range(a, b + 1), sm)}
         if mode in ("kneel", "hands", "prone"):
             raw = []
             for f in range(a, b + 1):
@@ -755,6 +790,17 @@ def settle_contacts(arm, mesh, scene, names):
                 sm[0], sm[-1] = raw[0], raw[-1]
                 raw = sm
             drops = {f: d for f, d in zip(range(a, b + 1), raw)}
+            # a hand's resting height is where it spends most of its time on the floor (25th percentile), not its single
+            # lowest frame: a brief authored dip 1.5 cm into the floor made the male bird dog's resting right hand count as
+            # half-lifted, so the pin held it 2.5 cm up the whole clip -- QC
+            if mode != "prone":
+                import numpy as np
+                for s in ("L", "R"):
+                    if auth[s]:
+                        rest[s] = float(np.percentile([h for _, h in auth[s].values()], 25))
+                    # never below the floor: a negative resting height made the capped correction below *raise* the hand
+                    # a few mm on each of its three solver passes (male bird dog right hand held 2-2.5 cm up -- QC)
+                    rest[s] = max(0.0, rest[s])
         # A lifted hand is steered in the air so that it comes down exactly where it first stood (the retargeted arm lands
         # a few cm off on the male coach; sliding it back afterwards was visible). The steer is zero at the top of the
         # reach and full at lift-off / touch-down, so the hand's path stays smooth.
@@ -800,17 +846,47 @@ def settle_contacts(arm, mesh, scene, names):
                     fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
                     fz = z[R["foot" + s], 2].min()
                     ax = _world(arm, fb).to_3x3().col[0]
-                    step = math.radians(2.0)
-                    sign, tries = None, 0
-                    while fz < -0.002 and tries < 20:
-                        tries += 1
-                        if sign is None:
+                    if fz < -0.002 and not KNEEL_FOOT_SMOOTH:
+                        # the smallest turn that lifts the foot clear, found by bisection (whole 2-degree steps made the
+                        # correction jump between frames -- QC: toe jerk ~4000 m/s3 in the fire hydrant / donkey kick)
+                        step = math.radians(2.0)
+                        _rotate_about(arm, fb, ax, step)
+                        up = _skin_z(mesh)[R["foot" + s], 2].min()
+                        _rotate_about(arm, fb, ax, -step)
+                        sign = 1.0 if up > fz else -1.0
+                        lo_, hi_ = 0.0, math.radians(40.0)
+                        done = 0.0
+                        for _ in range(12):
+                            mid = 0.5 * (lo_ + hi_)
+                            _rotate_about(arm, fb, ax, sign * (mid - done))
+                            done = mid
+                            if _skin_z(mesh)[R["foot" + s], 2].min() < -0.002:
+                                lo_ = mid
+                            else:
+                                hi_ = mid
+                        _rotate_about(arm, fb, ax, sign * (hi_ - done))
+                        fz = _skin_z(mesh)[R["foot" + s], 2].min()
+                    if KNEEL_FOOT_SMOOTH:
+                        need = 0.0
+                        if fz < -0.002:
+                            step = math.radians(2.0)
                             _rotate_about(arm, fb, ax, step)
                             up = _skin_z(mesh)[R["foot" + s], 2].min()
                             _rotate_about(arm, fb, ax, -step)
                             sign = 1.0 if up > fz else -1.0
-                        _rotate_about(arm, fb, ax, sign * step)
-                        fz = _skin_z(mesh)[R["foot" + s], 2].min()
+                            lo_, hi_ = 0.0, math.radians(40.0)
+                            done = 0.0
+                            for _ in range(12):
+                                mid = 0.5 * (lo_ + hi_)
+                                _rotate_about(arm, fb, ax, sign * (mid - done))
+                                done = mid
+                                if _skin_z(mesh)[R["foot" + s], 2].min() < -0.002:
+                                    lo_ = mid
+                                else:
+                                    hi_ = mid
+                            _rotate_about(arm, fb, ax, -sign * done)          # measured only; applied smoothed below
+                            need = sign * hi_
+                        foot_need[s][f] = need
                     _key(fb)
                     worst = max(worst, max(0.0, -fz))
                 z = _skin_z(mesh)
@@ -855,22 +931,26 @@ def settle_contacts(arm, mesh, scene, names):
                         z = _skin_z(mesh)
                         hz = z[R["hand" + s], 2].min()
                         W = _world(arm, hd).translation.copy()
+                    if os.environ.get("MF_DEBUG_PIN") == n and f % 12 == 0:
+                        print("PINDBG", n, f, s, "hz %.4f rest %.4f wgt %.3f lock %s" % (hz, rest[s], wgt, lock[s] is not None))
                     if wgt >= 1.0:
                         worst = max(worst, abs(hz))
             # bridge: shoulders, arms and back rest on the floor (never in it); the planted feet follow down onto the floor
             if mode == "bridge":
-                low = z[R["torso"], 2].min()
-                if low < 0:
-                    _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ _world(arm, hips))
+                lift = bridge_lift.get(f, 0.0)
+                if lift > 0.0005:
+                    _set_world(arm, hips, Matrix.Translation(Vector((0, 0, lift))) @ _world(arm, hips))
                     _key(hips, loc=True)
                     z = _skin_z(mesh)
                 for s in ("L", "R"):
                     fz = z[R["foot" + s], 2].min()
-                    # (a foot lifted on purpose -- single-leg bridge -- is far above the floor and left alone)
-                    if fz < -0.002 or 0.002 < fz < 0.03:
+                    # planted feet go onto the floor; the pull fades out between 0.5 and 2.5 cm above it, so a foot lifted
+                    # on purpose (single-leg bridge) is left alone and nothing switches on or off from one frame to the next
+                    wgt = 1.0 if fz <= 0.005 else max(0.0, 1.0 - smooth_((fz - 0.005) / 0.02))
+                    if abs(fz) > 0.0015 and wgt > 0.0:
                         fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
                         A = _world(arm, fb).translation.copy()
-                        _two_bone(arm, s, A - Vector((0, 0, fz)), limb="leg")
+                        _two_bone(arm, s, A - Vector((0, 0, fz * wgt)), limb="leg")
                 z = _skin_z(mesh)
             if mode == "back" and abs(back_shift) > 0.002:
                 _set_world(arm, hips, Matrix.Translation(Vector((0, 0, back_shift))) @ _world(arm, hips))
@@ -905,6 +985,28 @@ def settle_contacts(arm, mesh, scene, names):
                 if low < 0:
                     _set_world(arm, hips, Matrix.Translation(Vector((0, 0, -low))) @ _world(arm, hips))
                     _key(hips, loc=True)
+        if mode == "kneel" and KNEEL_FOOT_SMOOTH and any(foot_need[s_] for s_ in ("L", "R")):
+            # the turns that keep the tops of the feet out of the floor, eased over time: frame by frame they switched
+            # on and off as a foot came down (QC: toe jerk 3000-5000 m/s3 in the fire hydrant / donkey kick)
+            for s_ in ("L", "R"):
+                fr_ = sorted(foot_need[s_])
+                v = [foot_need[s_][f_] for f_ in fr_]
+                if not any(abs(x) > 1e-6 for x in v):
+                    continue
+                sgn = 1.0 if sum(v) >= 0 else -1.0
+                mag = [abs(x) for x in v]
+                mx = [max(mag[max(0, i - 3):i + 4]) for i in range(len(mag))]
+                ker = (1, 2, 3, 4, 3, 2, 1)
+                sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(mx))]
+                sm[0], sm[-1] = mx[0], mx[-1]
+                fb = arm.pose.bones[P + ("Left" if s_ == "L" else "Right") + "Foot"]
+                for f_, ang in zip(fr_, sm):
+                    if ang <= 1e-6:
+                        continue
+                    scene.frame_set(f_)
+                    ax = _world(arm, fb).to_3x3().col[0]
+                    _rotate_about(arm, fb, ax, sgn * ang)
+                    _key(fb)
         print(f"  contacts {n}: {mode}, worst remaining {worst * 100:.1f} cm", flush=True)
     arm.animation_data.action = None
 
@@ -922,7 +1024,7 @@ def _find_fcurve(act, path, index):
     return None
 
 
-def smooth_toes(arm, passes=3):
+def smooth_toes(arm, passes=5):
     """Low-pass the toe bones' keys in every clip ([1 2 1] / 4, a few passes; first and last keys kept so loops and
     down/up pairs still join). The toes flatten and lift with the ball's height above the floor, which can change a lot
     between two frames when a foot lands or leaves (QC: toes snapping 35-50 deg in one frame -- mountain climber, bird
