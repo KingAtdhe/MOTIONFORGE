@@ -3,7 +3,7 @@
 # was chosen and how it was verified. Dependabot (.github/dependabot.yml) proposes bumps;
 # CI must stay green before a bump is merged.
 [versions]
-agp = "8.11.1"
+agp = "9.5.2"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 coreSplashscreen = "1.2.0"
