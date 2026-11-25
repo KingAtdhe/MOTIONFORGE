@@ -1175,3 +1175,19 @@ toes ~1 cm into the floor for a few frames while tucking; mountain-climber toe t
 - CI: the rolling APK publish retries when GitHub's API answers 500 (the #16 merge build passed but its publish
   failed: the old release could not be deleted, so creating the new one hit "tag already exists"); as a fallback it
   replaces the APK in the existing release.
+
+## 2026-11-25 (3) — "3D isn't available on this phone" shown at random
+
+Reported on device: opening an exercise sometimes showed the motion-study fallback with "3D isn't available on this
+phone". Causes found in `GlbModelView` (could not be reproduced here — no device/emulator; covered by reasoning and
+tests):
+- Filament's `ModelViewer` destroys itself **and its engine** when its view leaves the window. The scene object was
+  kept by `remember`, so a view that was detached and re-attached (transitions, toggling 3D / motion study) loaded or
+  drew on a dead engine → load failure → fallback. The scene now tracks this (`dead`), the render loop stops touching
+  it, and a re-attached view gets a fresh scene.
+- Every lesson opened read the 11 MB model twice (byte array + direct buffer): ~22 MB of garbage per tap; an
+  out-of-memory there was not even caught. The bytes are now read once per coach and shared (`GlbBytes`, read-only
+  duplicates).
+- Any failed scene creation or load now retries twice with a fresh scene (350 / 700 ms) before the fallback shows;
+  the reason is logged. Scenes that never reached a window are destroyed (engine leak).
+Test: `GlbBytesTest` (shared, direct, independent read positions, glTF header).
