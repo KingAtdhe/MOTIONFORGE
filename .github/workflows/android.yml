@@ -121,9 +121,22 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk motionforge-debug.apk
-          gh release delete debug-latest -y --cleanup-tag || true
-          gh release create debug-latest motionforge-debug.apk \
-            --prerelease \
-            --target "$GITHUB_SHA" \
-            --title "MOTIONFORGE debug build (${GITHUB_SHA::7})" \
-            --notes "Automatic debug build of ${GITHUB_SHA}. For testing on your own device only — not for distribution."
+          TITLE="MOTIONFORGE debug build (${GITHUB_SHA::7})"
+          NOTES="Automatic debug build of ${GITHUB_SHA}. For testing on your own device only — not for distribution."
+          # GitHub's API sometimes answers 500: retry, and if the old release cannot be removed, replace its APK in place
+          for i in 1 2 3 4 5; do
+            gh release view debug-latest >/dev/null 2>&1 || break
+            gh release delete debug-latest -y --cleanup-tag || sleep $((i * 10))
+          done
+          ok=0
+          for i in 1 2 3 4 5; do
+            if gh release view debug-latest >/dev/null 2>&1; then
+              gh release upload debug-latest motionforge-debug.apk --clobber && \
+                gh release edit debug-latest --title "$TITLE" --notes "$NOTES" --prerelease && { ok=1; break; }
+            else
+              gh release create debug-latest motionforge-debug.apk --prerelease --target "$GITHUB_SHA" \
+                --title "$TITLE" --notes "$NOTES" && { ok=1; break; }
+            fi
+            sleep $((i * 10))
+          done
+          [ "$ok" = 1 ]
