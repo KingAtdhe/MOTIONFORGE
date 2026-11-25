@@ -1092,3 +1092,61 @@ def smooth_toes(arm, passes=5):
                     fcs[i].keyframe_points[j].handle_right[1] = Q[j][i]
             for fc in fcs:
                 fc.update()
+
+
+def toe_floor(arm, mesh, scene, names):
+    """Shoe tips never in the floor (clips with hands or knees down). After the contact pass and the toe smoothing a
+    tip still dipped up to 1.4 cm for a few frames where a foot rolls over its toes (bear hold tucking and untucking,
+    mountain climber landing, fire hydrant). Bending the toes does not fix it: which way lifts the tip flips as the
+    toes go from their tops onto their pads. So the foot is raised (leg two-bone, foot keeps its orientation) by the
+    dip, eased over time (largest need nearby, then a short kernel) so nothing pops; feet clear of the floor are left
+    exactly as they were."""
+    import numpy as np
+    gi = {g.index: g.name for g in mesh.vertex_groups}
+    tips = {"L": [], "R": []}
+    for v in mesh.data.vertices:
+        if not v.groups:
+            continue
+        g = gi[max(v.groups, key=lambda g_: g_.weight).group]
+        for s, side in (("L", "Left"), ("R", "Right")):
+            if side + "Foot" in g or side + "ToeBase" in g or side + "Toe_End" in g:
+                tips[s].append(v.index)
+    tips = {s: np.array(v) for s, v in tips.items()}
+    for n in names:
+        mode = CONTACTS.get(n, ("",))[0]
+        if mode not in ("hands", "kneel"):
+            continue
+        act = bpy.data.actions[n]
+        arm.animation_data.action = act
+        a, b = [int(x) for x in act.frame_range]
+        need = {"L": [], "R": []}
+        for f in range(a, b + 1):
+            scene.frame_set(f)
+            z = _skin_z(mesh)
+            for s in ("L", "R"):
+                need[s].append(max(0.0, -float(z[tips[s], 2].min())))
+        before = max(max(need["L"]), max(need["R"]))
+        if before < 0.0015:
+            continue
+        for s in ("L", "R"):
+            v = [x if x >= 0.0015 else 0.0 for x in need[s]]
+            if not any(v):
+                continue
+            mx = [max(v[max(0, i - 2):i + 3]) for i in range(len(v))]
+            ker = (1, 2, 3, 2, 1)
+            sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 2))] for j, kw in enumerate(ker)) / 9.0 for i in range(len(mx))]
+            sm[0], sm[-1] = mx[0], mx[-1]
+            fb = arm.pose.bones[P + ("Left" if s == "L" else "Right") + "Foot"]
+            for i, f in enumerate(range(a, b + 1)):
+                if sm[i] <= 1e-5:
+                    continue
+                scene.frame_set(f)
+                A = _world(arm, fb).translation.copy()
+                _two_bone(arm, s, A + Vector((0, 0, sm[i])), limb="leg")
+        after = 0.0
+        for f in range(a, b + 1):
+            scene.frame_set(f)
+            z = _skin_z(mesh)
+            after = min(after, float(min(z[tips["L"], 2].min(), z[tips["R"], 2].min())))
+        print(f"  toe tips {n}: lowest {-before * 100:.1f} -> {after * 100:.1f} cm", flush=True)
+    arm.animation_data.action = None

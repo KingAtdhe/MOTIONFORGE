@@ -102,12 +102,22 @@ class AppFlowTest {
     private fun click(text: String, substring: Boolean = false) {
         waitForText(text, substring)
         val node = compose.onAllNodesWithText(text, substring = substring)[0]
-        if (runCatching { node.performScrollTo() }.isFailure) {
-            // scroll the page's own scroll container by a fixed amount (synchronous semantics action; no gestures,
-            // which would wait on the hand-driven clock)
+        // performScrollTo() is not used: with the hand-driven clock its animated scroll never settles, and it waited
+        // ~11 minutes for an internal timeout each time a button sat below the fold (the save button under a long
+        // session summary, "Reset app data" on the profile) -- two flow tests took ~17 min each in CI.
+        var tries = 0
+        while (!onScreen(node) && tries++ < 8) {
+            // scroll the node's own scroll container towards it (synchronous semantics action; no gestures, which
+            // would wait on the hand-driven clock)
             runCatching {
-                compose.onAllNodes(androidx.compose.ui.test.hasScrollAction())[0]
-                    .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.ScrollBy) { it(0f, 4000f) }
+                val n = node.fetchSemanticsNode()
+                val sc = scrollerOf(n)
+                if (sc != null) {
+                    // a lazy-list row prefetched below the fold is in the tree but not placed (zero bounds): scroll down
+                    val dy = if (n.boundsInRoot.height <= 0f) sc.boundsInRoot.height * 0.7f
+                    else n.boundsInRoot.center.y - sc.boundsInRoot.center.y
+                    compose.runOnUiThread { sc.config[androidx.compose.ui.semantics.SemanticsActions.ScrollBy].action?.invoke(0f, dy); Unit }
+                }
             }
             // the scroll is animated: a tap while it still runs only stops it (as on a phone), so let it settle
             pump(1500, 50)
@@ -116,6 +126,23 @@ class AppFlowTest {
         node.performClick()
         pump()
     }
+
+    /** The nearest scroll container around [n], if any. */
+    private fun scrollerOf(n: androidx.compose.ui.semantics.SemanticsNode): androidx.compose.ui.semantics.SemanticsNode? {
+        var p = n.parent
+        while (p != null && !p.config.contains(androidx.compose.ui.semantics.SemanticsActions.ScrollBy)) p = p.parent
+        return p
+    }
+
+    /** Fully inside the viewport of its scroll container (or of its window when it does not scroll). */
+    private fun onScreen(node: androidx.compose.ui.test.SemanticsNodeInteraction): Boolean = runCatching {
+        val n = node.fetchSemanticsNode()
+        val b = n.boundsInRoot
+        var r = scrollerOf(n)
+        if (r == null) { r = n; while (r!!.parent != null) r = r.parent }
+        val v = r.boundsInRoot
+        b.height > 0f && b.top >= v.top - 0.5f && b.bottom <= v.bottom + 0.5f
+    }.getOrDefault(false)
 
     private fun clickDesc(desc: String) {
         waitFor("button '$desc'") { existsDesc(desc) }
