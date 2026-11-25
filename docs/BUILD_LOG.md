@@ -1172,3 +1172,6 @@ to ~1 cm for a few frames.
 QC now: mesh jerk median 265 (F) / 308 (M); the top of both lists is punches only (600–920, near the physical limit
 for a full-speed punch); no hand or prop in the body; no over-reach; hands planted (hover ≤ 1 cm). Known: bear-hold
 toes ~1 cm into the floor for a few frames while tucking; mountain-climber toe tips ~1 cm at landing.
+- CI: the rolling APK publish retries when GitHub's API answers 500 (the #16 merge build passed but its publish
+  failed: the old release could not be deleted, so creating the new one hit "tag already exists"); as a fallback it
+  replaces the APK in the existing release.
