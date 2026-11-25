@@ -74,11 +74,11 @@ def body_head_jab(r, st):
         lv = PC(t, 0.25, 0.38, 0.55, 0.45)
         j1 = PC(t, 0.42, 0.38, 0.12, 0.40)
         j2 = PC(t, 1.45, 0.36, 0.10, 0.42)
-        e = max(j1, j2)
+        e = min(1.0, j1 + j2)
         dz = -0.20 * k if t < 1.38 else 0.0
         # (the target height is switched only while the hand is home in guard, so the arm never jumps)
         return _stance_pose(r, st, t, e_jab=e, dip=0.85 * lv, jab_dz=dz, loop=T,
-                            hip={"e_jab": max(PC(t + 0.05, 0.42, 0.38, 0.12, 0.40), PC(t + 0.05, 1.45, 0.36, 0.10, 0.42))})
+                            hip={"e_jab": min(1.0, PC(t + 0.05, 0.42, 0.38, 0.12, 0.40) + PC(t + 0.05, 1.45, 0.36, 0.10, 0.42))})
     return _seq(r, st, 2.8, f)
 
 
@@ -110,7 +110,7 @@ def high_block(r, st):
 def body_block(r, st):
     """Elbow block to the body: the lead elbow drops onto the ribs with a small crunch to that side; hold, back to guard."""
     def f(t, T):
-        b = PC(t, 0.40, 0.30, 0.60, 0.45)
+        b = PC(t, 0.40, 0.42, 0.55, 0.50)
         return _stance_pose(r, st, t, e_bblock=b, loop=T, bob_amp=0.5)
     return _seq(r, st, 2.6, f)
 
@@ -177,8 +177,8 @@ def _combo(r, st, T, punches):
     def f(t, T_):
         kw, hip = {}, {}
         for key, s0, o, h, b in punches:
-            kw[key] = max(kw.get(key, 0.0), PC(t, s0, o, h, b))
-            hip[key] = max(hip.get(key, 0.0), PC(t + lead[key], s0, o, h, b))
+            kw[key] = min(1.0, kw.get(key, 0.0) + PC(t, s0, o, h, b))          # (sum: max() leaves a corner)
+            hip[key] = min(1.0, hip.get(key, 0.0) + PC(t + lead[key], s0, o, h, b))
         return _stance_pose(r, st, t, loop=T_, hip=hip, **kw)
     return _seq(r, st, T, f)
 
@@ -240,17 +240,19 @@ def fist_rolls(r, st):
     for i in range(n):
         t = T * i / (n - 1)
         on = smoother(min(1.0, t / 0.35)) * smoother(min(1.0, (T - t) / 0.35))
-        ph = 2 * math.pi * t / 0.40                               # six turns per clip
+        ph = 2 * math.pi * t / 0.60                               # four turns per clip (at 0.4 s a turn the elbow jerk ran ~1800 m/s3)
         sp = _stance_pose(r, st, t, loop=T, bob_amp=0.6)
         base = sp["arms"]
 
         def arms(pts, ph=ph, on=on, base=base):
             res = base(pts)
             Hc = pts["head"]
-            c = Hc + V(0.005 * k, -0.25 * k, -0.21 * k)
+            c = Hc + V(0.005 * k, -0.21 * k, -0.20 * k)       # (further out, the male fist left his reach once a turn)
             for s_, sg, off in (("L", 1.0, 0.0), ("R", -1.0, math.pi)):
-                w = c + V(sg * 0.035 * k, 0.048 * k * math.sin(ph + off), 0.048 * k * math.cos(ph + off))
-                tgt = {"w": w, "pole": V(sg * 0.9, 0.25, -0.5), "fingers": V(-sg * 1.0, -0.25, 0.1), "palm": V(0, 0.15, -1.0)}
+                w = c + V(sg * 0.035 * k, 0.040 * k * math.sin(ph + off), 0.040 * k * math.cos(ph + off))
+                # the guard's own elbow direction throughout, so the elbow only follows the fist (QC: blending to another
+                # pole let it swing faster than the fist itself)
+                tgt = {"w": w, "pole": res[s_]["pole"], "fingers": V(-sg * 1.0, -0.25, 0.1), "palm": V(0, 0.15, -1.0)}
                 res[s_] = ac.mix_arm(res[s_], tgt, on)
             return res
         sp["arms"] = arms

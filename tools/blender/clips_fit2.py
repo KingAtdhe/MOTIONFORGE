@@ -87,13 +87,18 @@ def _one_leg(r, st, t, side, g, ws, leg, pitch=1.0, roll=0.0, arms="out", spine=
     sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
     z_both = r.fit_z(sp, 0.992)
     z_one = r.fit_z(sp, 0.992, sides=(stand,))
-    sp["pos"].z = lerp(z_both, z_one, smooth(ws))
+    # the hips rise to the one-leg height only as the foot leaves (rising first stretched the other leg -- QC)
+    sp["pos"].z = lerp(z_both, z_one, smooth(ws) * smooth(min(1.0, g / 0.45)))   # (a product: min() has a corner)
     if g > 0:
         Hj = r.hip_joint(sp, side)
-        A, d = leg(Hj)
+        A, d = leg(Hj, g)
+        # the leg moves by its joint angles; the small difference between the planted ankle and the path's start fades
+        # as it lifts. (Blending the whole path in from the planted foot multiplied two easings: the foot went from
+        # rest to 10 cm a frame in three frames -- QC jerk ~1700 m/s3)
         A0 = r.ankle(side, home[side])
-        bl = smooth(g / 0.18)                                  # leaves exactly from the planted foot
-        A = A0.lerp(A, bl)
+        A_0, _ = leg(Hj, 0.0)
+        A = A + (A0 - A_0) * (1.0 - smooth(g))
+        bl = smooth(min(1.0, g / 0.6))
         f0 = (r.foot_q(side, home[side][1], 0.0) @ r.fv[side]).normalized()
         sp["feet"][side] = r.foot_toward(side, A, f0.lerp(d, bl), yaw=home[side][1])
     if arms == "out":
@@ -149,8 +154,12 @@ def single_leg_rdl(r, st):
             up = Rx(1.0 + lean) @ V(0, 0, 1)
             A_back = Hj - up * (0.975 * r.leg)
             A0 = r.ankle(side, feet[side])
-            bl = smooth(e / 0.25)
-            A = A0.lerp(A_back, bl) + V(0, 0, 0.03 * k * math.sin(math.pi * min(1.0, e / 0.25)))
+            # the leg swings back with the body (its path starts below the hip); the small offset to the planted ankle
+            # fades, and the toes clear the floor on a sin-squared bump (blending the whole path in from the planted
+            # foot, and a sine cut off mid-swing, jolted the knee at lift-off and touch-down -- QC)
+            A_0 = Hj - (Rx(1.0) @ V(0, 0, 1)) * (0.975 * r.leg)        # the path's start (the body leans 1 deg at rest)
+            bl = smooth(min(1.0, e / 0.35))
+            A = A_back + (A0 - A_0) * (1.0 - smooth(e)) + V(0, 0, 0.03 * k * math.sin(math.pi * min(1.0, e / 0.35)) ** 2)
             f0 = (r.foot_q(side, feet[side][1], 0.0) @ r.fv[side]).normalized()
             down = (Rx(1.0 + lean) @ V(0, -1.0, 0)).normalized()    # the toes point to the floor, foot square
             sp["feet"][side] = r.foot_toward(side, A, f0.lerp(down, bl), yaw=feet[side][1])
@@ -180,7 +189,7 @@ def side_leg_raise(r, st):
 
         def leg(Hj, g=g):
             a = math.radians(35.0 * smooth(g))
-            A = Hj + V(sg * math.sin(a), -0.02, -math.cos(a)) * (0.985 * r.leg)
+            A = Hj + V(sg * math.sin(a), -0.02, -math.cos(a)) * (0.955 * r.leg)      # (0.985 + the fading offset locked the knee)
             return A, V(0, -1.0, -0.1)
         sp = _one_leg(r, st, t, side, g, ws, leg, roll=-sg * 4.0 * g)
         sp["kpole"][side] = V(sg * 0.05, -1, 0)
@@ -208,7 +217,7 @@ def butt_kicks(r, st):
     """Low-impact butt kicks: walking on the spot, each heel lifts behind toward the seat, thigh stays near vertical,
     arms swing bent."""
     k = r.k
-    Ts = 0.95 * st["tempo"]
+    Ts = 1.15 * st["tempo"]          # (0.95: the heel swung at 2.7 m/s and landed hard -- QC)
     steps = 4
     T = Ts * steps
     n = frames(T)
@@ -219,7 +228,7 @@ def butt_kicks(r, st):
         step = int(t / Ts) % steps
         u = (t / Ts) % 1.0 if i < n - 1 else 0.0
         up = "L" if step % 2 == 0 else "R"
-        g = math.sin(math.pi * smoother((u - 0.08) / 0.84))
+        g = math.sin(math.pi * smoother((u - 0.05) / 0.90))
         stand = "R" if up == "L" else "L"
         sgu = 1.0 if up == "L" else -1.0
         sw = -sgu * math.sin(math.pi * u)
@@ -230,14 +239,17 @@ def butt_kicks(r, st):
         sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
         z_both = r.fit_z(sp, 0.994)
         z_st = r.fit_z(sp, 0.994, sides=(stand,))
-        sp["pos"].z = lerp(z_both, z_st, 0.5 + 0.5 * math.sin(math.pi * u)) - 0.004 * k
+        # standing-leg height only while a foot is up: at the changeover the standing leg switches, and a weight of 0.5
+        # there made the pelvis jump between the two legs' heights (QC: foot jerk ~1600)
+        sp["pos"].z = lerp(z_both, z_st, math.sin(math.pi * u)) - 0.004 * k
         if g > 0:
             Hj = r.hip_joint(sp, up)
             K = Hj + _dir(14.0 * g) * r.l1[up] * 0.999
             A = K + _dir(14.0 * g - 112.0 * g) * r.l2[up] * 0.999
             A0 = r.ankle(up, home[up])
-            bl = smooth(g / 0.12)
-            A = A0.lerp(A, bl)
+            A_0 = Hj + _dir(0.0) * (r.l1[up] + r.l2[up]) * 0.999
+            A = A + (A0 - A_0) * (1.0 - smooth(g))                 # (as _one_leg: angles drive, the offset fades)
+            bl = smooth(min(1.0, g / 0.6))
             f0 = (r.foot_q(up, home[up][1], 0.0) @ r.fv[up]).normalized()
             sp["feet"][up] = r.foot_toward(up, A, f0.lerp(_dir(14.0 * g - 112.0 * g + 90.0 + 30.0 * g), bl), yaw=home[up][1])
             sp["kpole"][up] = V(sgu * 0.05, -1, 0)
@@ -314,7 +326,7 @@ def side_bend(r, st):
             res = {}
             for s, s2 in SIDES:
                 S = pts["S_" + s]
-                h = hang(r, pts, s, s2, out=0.06, fwd=0.01, reach=0.985)
+                h = hang(r, pts, s, s2, out=0.07, fwd=0.0, reach=0.985)          # (the same as the other arm: no seam)
                 if s == up_side:
                     ad = lerp(10.0, 165.0, e)          # over the whole lift (QC: over 60 % of it the hand flew at 8 m/s)
                     ra = math.radians(ad)
@@ -403,7 +415,7 @@ def curtsy_lunge(r, st):
         front = "L" if back == "R" else "R"
         fg = 1.0 if front == "L" else -1.0
         bg = -fg
-        step = smooth(min(1.0, e / 0.45))                      # step back first, then lower
+        step = smooth(min(1.0, e / 0.6))                       # step back first, then lower (over 0.45 the foot flew at 3-4 m/s)
         u = smooth((e - 0.40) / 0.60) if e > 0.40 else 0.0
         home = {s: r.foot(s, sg * w, r.ankle0[s].y, sg * 6.0) for s, sg in SIDES}
         # back foot: behind the front heel and across to the far side of it, on the ball
@@ -414,7 +426,10 @@ def curtsy_lunge(r, st):
         sp = torso_spec(V(fg * 0.03 * k * step, r.P0.y + 0.004 * k + 0.10 * k * step + 0.03 * k * u, 0), pitch=2.0 + 8.0 * u, yaw=-fg * 6.0 * step,
                         spine=0.5, chest=-1.0, chest_yaw=fg * 4.0 * step, head_pitch=2.0 + 4.0 * u, br=b * 0.6)
         sp["feet"] = feet
-        sp["kpole"] = {front: V(fg * 0.10, -1, 0), back: V(fg * 0.3, -1, -0.5 * step)}
+        # at rest both knees point as in standing, whichever leg will step (side-dependent poles turned both knees
+        # at the change of side -- QC: a 2 cm one-frame jump)
+        rest_p = {s_: V(sg * 0.10, -1, 0) for s_, sg in SIDES}
+        sp["kpole"] = {front: rest_p[front].lerp(V(fg * 0.10, -1, 0), step), back: rest_p[back].lerp(V(fg * 0.3, -1, -0.5), step)}
         z = r.fit_z(sp, 0.992)
         sp["pos"].z = z - 0.30 * k * u
         sp["arms"] = lambda pts: {s: {"w": (pts["S_L"] + pts["S_R"]) / 2 + V(sg * 0.035 * k, -0.25 * k, -0.20 * k),
@@ -539,24 +554,9 @@ def wall_sit(r, st):
         z_top = r.fit_z(sp, 0.985)
         sp["pos"].z = lerp(z_top, hz_bot - hj_off.z, u)
 
-        def arms(pts, u=u):
-            res = {}
-            for s2, sg in SIDES:
-                hangw = hang(r, pts, s2, sg, out=0.10, fwd=0.0, reach=0.985)
-                Hj = sp["pos"] + sp["pel"] @ r.hj[s2]
-                K = V(Hj.x, knee_y, knee_z)
-                # the furthest point along the top of the thigh the hand can rest on with a soft elbow
-                S2 = pts["S_" + s2]
-                f = 0.55
-                while f > 0.05 and (S2 - (Hj.lerp(K, f) + V(sg * 0.01 * k, 0, 0.095 * k))).length > 0.96 * r.la:
-                    f -= 0.01
-                on = {"w": Hj.lerp(K, f) + V(sg * 0.01 * k, 0, 0.095 * k), "pole": V(sg * 0.6, 0.3, -0.4), "fingers": V(0, -1, -0.2),
-                      "palm": V(0, 0, -1)}
-                # only near the bottom, where the knee has reached the spot used above (earlier it was out of reach)
-                reach_ok = (S2 - on["w"]).length <= 0.985 * r.la      # (shorter arms: the hands stay by the sides)
-                res[s2] = mix_arm(hangw, on, smooth((u - 0.75) / 0.25)) if reach_ok else hangw
-            return res
-        sp["arms"] = arms
+        # arms folded on the chest, a common wall-sit hold (hands hanging at the sides met the hips once seated, and
+        # resting on the thighs was out of the male coach's reach -- QC)
+        sp["arms"] = _chest_cross(r, k)
         return sp
     return _loop(r, st, [(0.4, 0, 0), (2.0, 0, 1), (2.6, 1, 1), (1.6, 1, 0), (0.4, 0, 0)], f)
 
@@ -662,7 +662,7 @@ def db_calf_raise(r, st):
     return out
 
 
-KB_REST = 18.0         # deg: at rest the bell hangs a little in front (QC: straight down, the hands met the hips)
+KB_REST = 30.0         # deg: at rest the bell hangs a little in front (QC: straight down, the hands met the hips)
 
 
 def kb_swing(r, st):
@@ -687,7 +687,10 @@ def kb_swing(r, st):
             # hinge u: deepest when the bell is furthest back (ph 0.18), standing tall at the float (ph 0.65)
             u = 0.5 + 0.5 * math.cos(2 * math.pi * (ph - 0.18))
             # arm angle from hanging (0) forward: back between the legs -28 deg (rel. to the body), up to ~88 at the top
-            a = -28.0 + 116.0 * (0.5 - 0.5 * math.cos(2 * math.pi * (ph - 0.18)))
+            # (back to -28 deg the bell went 6 cm into the pelvis at the bottom of the backswing -- QC)
+            # the arms lag the hips a little: the hips go back first, then the bell follows between the legs (in step,
+            # the bell met the hips at the start of each backswing -- QC)
+            a = -16.0 + 104.0 * (0.5 - 0.5 * math.cos(2 * math.pi * (ph - 0.24)))
             a = lerp(KB_REST, a, smooth(min(1.0, (t - T0) / 0.35)) if cyc == 0 else 1.0)
             a = lerp(a, KB_REST, smooth((t - (T - T0 - 0.35)) / 0.35)) if t > T - T0 - 0.35 else a
             u = lerp(0.0, u, smooth(min(1.0, (t - T0) / 0.35)) if cyc == 0 else 1.0)
@@ -913,6 +916,10 @@ def shoulder_taps(r, st):
     and returns to the same spot; then the other. The hips stay level."""
     k = r.k
     st2 = dict(st)
+    st2["top_reach"] = min(0.965, st.get("top_reach", 0.968))   # softer elbows: one arm takes the weight (near-locked, it popped -- QC)
+    # not pinned by the build (see rigged_coach.CONTACTS), so the palms are authored onto the floor: unpinned they rested
+    # 0.7 cm (female) / 1.0 cm (male) above it
+    st2["wrist_h"] = st["wrist_h"] - (0.0105 if st.get("stance", 1.0) > 1.0 else 0.0075) / r.k
     geo = _pushup_geometry(r, st2)
     body, phi_top, phi_bot, wrist, blades = geo
 
@@ -935,14 +942,19 @@ def shoulder_taps(r, st):
             tap = O + V(sg * 0.04 * k, -0.06 * k, -0.07 * k)
             lift = wrist[side] + V(0, 0, 0.10 * k)
             # up off the floor first, then across to the shoulder on one smooth path (no corner), and back the same way
-            ex = smoother(max(0.0, (e - 0.12) / 0.88))
-            w = wrist[side].lerp(tap, ex) + V(0, 0, 0.09 * k * smooth(min(1.0, e / 0.30)) * (1.0 - ex))
-            res[side] = {"w": w, "pole": V(sg * 0.72, 0.68, 0.15).lerp(V(sg * 0.6, 0.2, -1.0), smooth(e)),
-                         "fingers": V(sg * 0.14, -1, 0).lerp(V(-sg, 0, 0.3), smooth(e)), "palm": V(0, 0, -1).lerp(V(0, 1.0, 0.0), smooth(e))}
+            # one smooth arc on one parameter: off the floor, up and across to the shoulder, back the same way (the lift
+            # bump on its own, faster parameter dropped the hand the last 9 cm in a few frames -- QC: landing at 8 cm a
+            # frame, elbow jerk ~2000 m/s3)
+            ex = smoother(e)
+            w = wrist[side].lerp(tap, ex) + V(0, 0, 0.10 * k * math.sin(math.pi * ex) * (1.0 - 0.3 * ex))
+            # the elbow, fingers and palm turn with the hand's own progress (turning on smooth(e) ran ahead of the hand:
+            # the elbow swung at 11 cm a frame -- QC)
+            res[side] = {"w": w, "pole": V(sg * 0.72, 0.68, 0.15).lerp(V(sg * 0.6, 0.2, -1.0), ex),
+                         "fingers": V(sg * 0.14, -1, 0).lerp(V(-sg, 0, 0.3), ex), "palm": V(0, 0, -1).lerp(V(0, 1.0, 0.0), ex)}
             return res
         sp["arms"] = arms
         return sp
-    return _sides(r, st, [(0.3, 0, 0), (0.7, 0, 1), (0.25, 1, 1), (0.7, 1, 0), (0.3, 0, 0)], fn)
+    return _sides(r, st, [(0.3, 0, 0), (1.25, 0, 1), (0.25, 1, 1), (1.1, 1, 0), (0.3, 0, 0)], fn)
 
 
 def single_leg_bridge(r, st):
@@ -1007,7 +1019,7 @@ def single_leg_bridge(r, st):
             K0 = Hj + ((Hp + dn * aa + perp * hh) - Hp)               # the bent knee before the leg straightens
             shin_bent = (A0 - K0).normalized()
             A = Kp + shin_bent.lerp(thigh, ext).normalized() * r.l2[side] * 0.985
-            A = A0.lerp(A, smooth(min(1.0, ext / 0.2)))          # leaves exactly from the planted ankle (QC: a 1 cm step)
+            A = A + (A0 - (K0 + shin_bent * r.l2[side] * 0.985)) * (1.0 - ext)   # starts exactly at the planted ankle
             d0 = (r.foot_q(side, feet0[side][1], 0.0) @ r.fv[side]).normalized()
             sp["feet"][side] = r.foot_toward(side, A, d0.lerp(V(0, -0.3, 1.0).normalized(), ext), yaw=feet0[side][1])
             # kneecap square to the straightening leg, facing up (the default pole ran almost along the leg: it twisted)
@@ -1027,8 +1039,8 @@ def single_leg_bridge(r, st):
         return sp
     tp = st["tempo"]
     # each part has its own time (QC: squeezed into a quarter of the lift, the free foot swung 27 cm a frame)
-    return _sides(r, st, [(0.4, 0, 0), (0.9 * tp, 0, 1), (0.2, 1, 1), (1.5 * tp, 1, 2), (0.8, 2, 2), (1.6 * tp, 2, 1), (0.2, 1, 1),
-                          (0.9 * tp, 1, 0), (0.3, 0, 0)], fn)
+    return _sides(r, st, [(0.4, 0, 0), (1.3 * tp, 0, 1), (0.2, 1, 1), (1.5 * tp, 1, 2), (0.8, 2, 2), (1.6 * tp, 2, 1), (0.2, 1, 1),
+                          (1.3 * tp, 1, 0), (0.3, 0, 0)], fn)
 
 
 def _quad_leg(r, st, side, thigh, shin, fdir, e):
@@ -1055,7 +1067,7 @@ def donkey_kick(r, st):
         a = math.radians(-90.0 + 90.0 * smooth(e))
         thigh = V(0, math.cos(a), math.sin(a))
         shin = V(0, math.cos(a + math.pi / 2), math.sin(a + math.pi / 2))
-        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25).lerp(V(0, 1.0, 0.1), smooth(e)), smooth(min(1.0, e / 0.15)))
+        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25).lerp(V(0, 1.0, 0.1), smooth(e)), smooth(min(1.0, e / 0.4)))
         sp["kpole"] = dict(sp["kpole"])
         sp["kpole"][side] = V(0, -0.3, -1).lerp(thigh.normalized(), smooth(min(1.0, e / 0.15)))   # knee where the thigh points
         sp["arms"] = _hands_on_floor(wrists)
@@ -1071,7 +1083,7 @@ def fire_hydrant(r, st):
         b = math.radians(62.0 * smooth(e))
         thigh = V(sg * math.sin(b), 0.0, -math.cos(b))
         shin = V(0, 1.0, -0.06)
-        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25), smooth(min(1.0, e / 0.15)))
+        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25), smooth(min(1.0, e / 0.4)))
         sp["kpole"] = dict(sp["kpole"])
         sp["kpole"][side] = V(0, -0.3, -1).lerp(thigh.normalized(), smooth(min(1.0, e / 0.15)))
         sp["pel"] = Ry(-sg * 3.0 * e) @ sp["pel"]
@@ -1121,7 +1133,7 @@ BEAR_TIP = 9.0
 def bear_hold(r, st):
     """Bear plank hold: on all fours, toes tucked, knees lift a few centimetres off the floor; back flat; breathe."""
     k = r.k
-    T = 4.4
+    T = 5.0                             # (slower transitions: the toe clearance lift made a 4.4 s hold jerky -- QC)
     n = frames(T)
     out = []
     sp0, wrists, pitch0 = _quadruped_base(r, st)
@@ -1129,7 +1141,7 @@ def bear_hold(r, st):
     tuck = V(0, -0.6, -1.0).normalized()
     for i in range(n):
         t = T * i / (n - 1)
-        e = _phases(t, [(0.4, 0, 0), (0.8, 0, 1), (2.2, 1, 1), (0.7, 1, 0), (0.3, 0, 0)])
+        e = _phases(t, [(0.4, 0, 0), (1.1, 0, 1), (2.2, 1, 1), (1.0, 1, 0), (0.3, 0, 0)])
         # the knees lift by raising the hips; the trunk tips a little nose-down so the shoulders stay over the hands
         sp, _, _ = _quadruped_base(r, st, pitch_fixed=pitch0 + BEAR_TIP * e)
         sp["pos"] = sp["pos"] + V(0, 0, hover * e)
@@ -1140,14 +1152,21 @@ def bear_hold(r, st):
             # toes tucked: the ankle sits a foot's length above the ball, the shin slopes up to it from the knee
             # the ball rests exactly at floor height, so the toes flatten onto the floor (the build bends them flat only
             # when the ball is down -- QC: lifted 2.7 cm, the straight toes poked 2-3 cm into the floor)
-            Az = r.ball0[s].z - tuck.z * r.fv[s].length
+            # a little above the floor: the build's shoe pass then only ever lowers the body onto the toes (lifting it
+            # instead took the floor out of the arms' reach -- QC: hands 3 cm up); the toes still flatten that close
+            Az = r.ball0[s].z - tuck.z * r.fv[s].length + 0.02 * k
             dz = Az - K.z
             A_t = V(K.x, K.y + math.sqrt(max((r.l2[s] * 0.998) ** 2 - dz * dz, 1e-6)), Az)
             A0 = r.ankle(s, sp0["feet"][s])
             d0 = (r.foot_q(s, sp0["feet"][s][1], sp0["feet"][s][2]) @ r.fv[s]).normalized()
-            ee = smooth(min(1.0, e / 0.6))                          # the toes tuck first, then the knees lift
+            # kneeling, the tops of the feet tilted up a touch: just sinking into the floor, the shoe pass lifted the body
+            # and a planted hand came 2 cm off the floor (QC, male)
+            d0 = (d0 + V(0, 0, 0.14)).normalized()
+            ee = smooth(min(1.0, e / 0.9))                          # the toes tuck first, then the knees lift
             # the ankle rises ahead of the turn of the foot, so the toes never sweep through the floor
-            feet[s] = r.foot_toward(s, A0.lerp(A_t, smooth(min(1.0, ee * 1.7))), d0.lerp(tuck, ee).normalized())
+            # mid-turn the toes swept ~1 cm through the floor (QC, both coaches): the ankle lifts a little while it turns
+            clr = V(0, 0, 0.032 * k * math.sin(math.pi * ee))
+            feet[s] = r.foot_toward(s, A0.lerp(A_t, smooth(min(1.0, ee * 1.7))) + clr, d0.lerp(tuck, ee).normalized())
         sp["feet"] = feet
         sp["kpole"] = {s: V(0, -0.3, -1) for s, _ in SIDES}
         sp["arms"] = _hands_on_floor(wrists)
@@ -1168,7 +1187,7 @@ CLIPS = (
 )
 
 RETIME = {n: (1.0, 1.0) for n in ("butt_kicks", "skater_step", "kb_swing", "high_plank", "bear_hold", "heel_taps", "torso_twist")}
-RETIME.update({n: (1.4, 1.0) for n in ("single_leg_bridge", "side_bend", "single_leg_balance", "side_leg_raise", "glute_kickback", "donkey_kick", "fire_hydrant",
+RETIME.update({n: (1.4, 1.0) for n in ("curtsy_lunge", "single_leg_bridge", "side_bend", "single_leg_balance", "side_leg_raise", "glute_kickback", "donkey_kick", "fire_hydrant",
                                        "shoulder_taps", "toe_taps", "single_leg_rdl", "childs_pose", "wall_sit")})
 
 PROPS = {

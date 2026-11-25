@@ -45,6 +45,9 @@ jobs:
           done
           ls -la "$d"
 
+      - name: Animation code check (closures must not read loop variables late)
+        run: python3 tools/qc/latebind.py tools/blender/authored_clips.py tools/blender/clips_fit2.py tools/blender/clips_fight2.py
+
       - name: Unit tests
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest
 

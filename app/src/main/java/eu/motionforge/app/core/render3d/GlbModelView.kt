@@ -166,6 +166,9 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
     }
 
     /** Must run on the main thread. */
+    /** The asset this scene has loaded, so a new playback (next exercise) reuses it instead of reading 11 MB again. */
+    var loadedPath: String? = null
+
     fun load(buffer: ByteBuffer) {
         viewer.loadModelGlb(buffer)
         viewer.transformToUnitCube()
@@ -237,7 +240,13 @@ fun GlbModelView(
         return
     }
 
-    LaunchedEffect(scene, assetPath) {
+    // Keyed on the playback too: in a workout the view stays while the exercise (and its playback) changes. Keyed on
+    // the scene alone, the render loop kept driving the first exercise's playback and the coach went on showing it.
+    LaunchedEffect(scene, assetPath, playback) {
+        if (scene.loadedPath == assetPath) {
+            playback.loadState = GlbLoadState.Loaded(scene.clips)
+            return@LaunchedEffect
+        }
         playback.loadState = GlbLoadState.Loading
         val buffer = try {
             withContext(Dispatchers.IO) { readAsset(context, assetPath) }
@@ -247,13 +256,14 @@ fun GlbModelView(
         }
         playback.loadState = try {
             scene.load(buffer)
+            scene.loadedPath = assetPath
             GlbLoadState.Loaded(scene.clips)
         } catch (t: Throwable) {
             GlbLoadState.Failed("3D model could not be loaded (${t.message ?: t.javaClass.simpleName}).")
         }
     }
 
-    val loop = remember(scene) { RenderLoop(scene, playback) }
+    val loop = remember(scene, playback) { RenderLoop(scene, playback) }
     DisposableEffect(loop) {
         val listener = object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) = loop.start()

@@ -1124,3 +1124,33 @@ plain scrolling column built and held every row at once (the art cache is 24 MB)
 "curl the head", "squats" ranks like "squat". Side Step and Jab now jabs at the plain jab's tempo (at 0.34 s out the
 validated punch counter missed two of three). CI logs every test; job limit 75 min (two session flow tests now take
 ~30 min each under Robolectric — to look at).
+
+## 2026-11-25 — Animation optimisation pass (all 128 clips, both coaches)
+
+**App bug**: the workout 3D coach kept playing the first exercise's animation after moving to the next one (the
+renderer skipped reloading because the scene was reused and its clip list never updated). `GlbModelView` now records the
+loaded path and the render loop is keyed to the playback.
+**Whole-library changes**: clips are authored at 120 fps and resampled to 30 fps (fewer sampling corners); straight
+punches reach 95.5 % of arm length instead of 99.6 % (the elbow snapped near lock-out); double easing removed from
+every guard / parry / catch / cover / block / hook / uppercut blend; combos sum punch weights instead of max() (corner);
+smooth max for two-leg height fits; knees kept a little softer in marches, lunges, step jacks, stance and crunches; the
+jab's fist turn is spread over the whole extension (was ~80°/frame at full speed, now ~60°).
+**Clip fixes**: bird dog and dead bug moved the *same* arm in both reps (the arm function read the loop's side late — a
+Python closure bug); a new CI step (`tools/qc/latebind.py`) fails the build if any clip closure does that again. Bird dog
+lifting arm now starts from the planted pose. Bear hold toes no longer sweep through the floor while tucking
+(transitions 0.8/0.7 → 1.1/1.0 s with a small ankle lift). Plus earlier in this pass: fire hydrant, shoulder taps,
+single-leg balance / RDL / bridge, butt kicks, curtsy lunge, side bend, mountain climber, uppercuts, fist rolls, body
+block, kettlebell swing, wall sit, child's pose, lunges.
+**Contact pipeline fixes**: (1) a planted hand's resting height came from its single lowest frame — one authored dip
+below the floor made it negative, and the capped correction then *raised* the hand each solver pass (male bird dog hand
+held 2.5 cm up the whole clip; female 111 hovering frames → 2); now the 25th percentile, never below the floor.
+(2) Every world-matrix assignment left tiny unkeyed scale on arm bones; it piled up across clips (male left hand
+1.4×1.7×0.46 by the end), so the floor passes measured a distorted arm while the export reset it (male plank hand 3 cm
+in the floor). Scale / offset are now reset on each assignment. Floor-contact heights smoothed over time in all contact
+modes; kneeling-foot correction applied eased.
+**QC tools**: `tools/qc/rigscan.py` (rig-level jerk / stretch per clip), `hover.py` (hands floating 0.5–4 cm),
+`latebind.py`. Results: mesh jerk median 457 → 267 (female) and 545 → 353 (male); no over-reach; no hand or prop in
+the body; no body bone scale in any exported clip. Remaining highest jerk is punches and footwork at 600–900 m/s³
+(rig level 400–570, close to the physical floor for a 35 cm punch in under 0.4 s).
+Known: arms lying on the floor (reverse crunch, toe taps, forearm plank) press up to ~1 cm into it; bear-hold toes up
+to ~1 cm for a few frames.

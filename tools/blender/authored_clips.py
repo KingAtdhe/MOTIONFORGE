@@ -17,7 +17,15 @@ import math
 import bpy
 from mathutils import Matrix, Vector
 
-FPS = 30
+FPS_OUT = 30          # frames per second of the exported clips
+OVERSAMPLE = 4        # clips are authored at FPS_OUT x OVERSAMPLE and resampled once to FPS_OUT on write: resampling the
+                      # time-warp from 30 fps poses with straight-line blends stepped the speed at every source frame
+                      # (QC: elbow jerk spikes of ~1000 m/s3 at every punch, toes and knees in many clips)
+FPS = FPS_OUT * OVERSAMPLE
+# Moving legs keep some knee bend: near full stretch a millimetre of hip or foot travel swings the knee a long way, so
+# knees straightening to 99-99.6 % stopped and restarted in a frame when a foot landed (QC: knee jerk 500-900 m/s3 in
+# marches, lunges, step jack, footwork). Marches 0.996 -> 0.985, lunges 0.992 -> 0.982, step jack 0.990 -> 0.975,
+# boxing stance 0.992 -> 0.985, side lunge 0.994 -> 0.985.
 SIDES = (("L", 1.0), ("R", -1.0))
 
 
@@ -59,6 +67,10 @@ def _frame(x, y, z):
     m = Matrix((x, y, z))
     m.transpose()
     return m
+
+
+def _smax(a, b, eps=0.004):
+    return 0.5 * (a + b) + math.sqrt((0.5 * (a - b)) ** 2 + eps * eps) - eps
 
 
 class Rig:
@@ -142,7 +154,11 @@ class Rig:
         for _ in range(40):
             mid = (lo + hi) / 2
             sp["pos"].z = mid
-            worst = max((self.hip_joint(sp, s) - self.ankle(s, sp["feet"][s])).length / (self.l1[s] + self.l2[s]) for s in sides)
+            rs = [(self.hip_joint(sp, s) - self.ankle(s, sp["feet"][s])).length / (self.l1[s] + self.l2[s]) for s in sides]
+            # smooth maximum of the two legs (equal to max() when they differ clearly, and when they are equal): with a
+            # hard max the limiting leg handed over in one frame as a stepping foot landed, and the knee stopped and
+            # restarted (QC: knee jerk 500-900 m/s3 in lunges, step jack, marches, footwork)
+            worst = rs[0] if len(rs) == 1 else _smax(rs[0], rs[1])
             if worst > ext:
                 hi = mid
             else:
@@ -344,18 +360,18 @@ def _retime(frames_, acts, speeds, order):
     (max speed of hips / head / hands / feet). The speed profile is smoothed so the warp itself never jerks."""
     still, moving = speeds
     n = len(frames_)
-    if n < 3 or (still == 1.0 and moving == 1.0):
+    if n < 3:
         return frames_
     acts = acts[:]
     acts[0] = acts[1]
     sp = [lerp(still, moving, smooth(a / 0.10)) for a in acts]
-    w = 5
+    w = 5 * OVERSAMPLE
     sp = [sum(sp[max(0, i - w):min(n, i + w + 1)]) / (min(n, i + w + 1) - max(0, i - w)) for i in range(n)]
     cum = [0.0]
     for i in range(1, n):
         cum.append(cum[-1] + 0.5 * (1.0 / sp[i - 1] + 1.0 / sp[i]))
     total = cum[-1]
-    m = max(3, int(round(total)) + 1)
+    m = max(3, int(round(total / OVERSAMPLE)) + 1)          # output frames at FPS_OUT
     out = []
     k = 0
     for j in range(m):
@@ -472,7 +488,7 @@ def idle(r, st):
 
 
 # =============================================================================================== march
-def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9, win=(0.10, 0.80), soft=False):
+def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9, win=(0.10, 0.80), soft=False, arm_out=0.15):
     Ts = step_s * st["tempo"]
     steps = 4
     T = Ts * steps
@@ -507,8 +523,8 @@ def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9, win=(0.10, 0.8
         # pelvis height from the standing leg only
         stand = "R" if step % 2 == 0 else "L"
         other = "L" if stand == "R" else "R"
-        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
-        z_other = r.fit_z(sp, 0.996, sides=(other,))
+        z_stand = r.fit_z(sp, 0.985, sides=(stand,))
+        z_other = r.fit_z(sp, 0.985, sides=(other,))
         # blend the height across the changeover (half each at the switch, the standing leg at mid-swing), so the pelvis
         # never steps when the standing leg changes
         ws = 0.5 + 0.5 * math.sin(math.pi * u)
@@ -522,7 +538,7 @@ def march(r, st, step_s=0.86, lift_m=0.22, fwd_m=0.16, swing=0.9, win=(0.10, 0.8
                 wv = (arm_w if s == "L" else -arm_w) * st["swing"] * var * swing
                 a = math.radians(4.0 + 34.0 * wv)   # each arm goes forward with the opposite knee
                 S = pts["S_" + s]
-                ud = V(sg * 0.10, -math.sin(a), -math.cos(a)).normalized()
+                ud = V(sg * arm_out, -math.sin(a), -math.cos(a)).normalized()   # (0.10: the hands brushed through the thighs -- QC)
                 E = S + ud * r.a1[s]
                 e = a + math.radians(80.0 + 14.0 * wv)                 # the elbow closes a little on the way up, opens behind the hip
                 fd = V(-sg * 0.16, -math.sin(e), -math.cos(e)).normalized()
@@ -648,7 +664,7 @@ def _hinge_pose(r, st, u, t, grip=None):
     return sp
 
 
-HINGE_GRIP_X, HINGE_GRIP_FWD, HINGE_GRIP_FWD_B = 0.160, 0.28, 0.12   # (0.22: plates in the thighs standing -- QC)
+HINGE_GRIP_X, HINGE_GRIP_FWD, HINGE_GRIP_FWD_B = 0.160, 0.32, 0.13   # (0.22, then 0.28 on the male coach: plates in the thighs standing -- QC)
 
 
 def hinge(r, st, grip=None):
@@ -706,7 +722,7 @@ def _pushup_geometry(r, st):
     dx = 0.105 * r.k
     # soft elbows at the top (0.985 of the arm's reach): at 0.9965 the arms were all but locked and the elbow swung
     # wildly whenever the planted hands were pinned (QC: forearm jitter of 5-8 cm a frame on the male coach)
-    top_z = wrist_h + math.sqrt((st.get("top_reach", 0.985) * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
+    top_z = wrist_h + math.sqrt((st.get("top_reach", TOP_REACH) * r.la) ** 2 - dx ** 2 - (0.03 * r.k) ** 2)
     phi_top = solve_phi(top_z, 0.0)
     phi_bot = solve_phi(wrist_h + st.get("bottom_h", 0.175) * r.k, 1.0)
     top = shoulders(phi_top, 0.0)
@@ -745,6 +761,16 @@ def pushup(r, st):
 
 
 # =============================================================================================== boxing
+# push-up family: arms at the top of the press. At 0.985 (male 0.972) the elbows were near lockout and unlocked with a
+# burst as each rep began (QC: elbow jerk ~800 m/s3 on the exported coaches)
+TOP_REACH = 0.968
+
+# straight punches stop short of a locked elbow (the lessons say so). At 0.9965 of the arm the elbow was all but locked:
+# near lockout a millimetre of hand travel swings the elbow a long way, so it stopped dead and restarted in a frame
+# (QC: elbow jerk ~650 m/s3 on the rig, ~1200 on the exported coach, in every jab and cross)
+PUNCH_REACH = 0.955
+
+
 def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, rear_step=0.0, bob_amp=1.0, loop=3.2,
                  e_hook=0.0, slip=0.0, travel_x=0.0, e_rhook=0.0, e_rup=0.0, e_lup=0.0, dip=0.0, hip=None, jab_dz=0.0, pull=0.0,
                  cross_dz=0.0, hook_dz=0.0, rhook_dz=0.0, e_parry=0.0, e_catch=0.0, e_cover=0.0, e_bblock=0.0, bounce=0.0):
@@ -818,7 +844,7 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         sp["feet"]["L"] = (ball, yaw, pitch + 10.0 * bounce)
         ball, yaw, pitch = sp["feet"]["R"]
         sp["feet"]["R"] = (ball, yaw, pitch + 6.0 * bounce)
-    z = r.fit_z(sp, 0.992)
+    z = r.fit_z(sp, 0.985)
     # uppercuts: the knees dip first and drive up with the punch
     eu = max(hv["e_rup"], hv["e_lup"])
     up_dip = 0.035 * math.sin(math.pi * eu) ** 2 * (1.0 - eu)          # smooth: down early in the punch, back up as it lands
@@ -840,6 +866,8 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     sp["prot"] = {"L": 7.0 + 12.0 * e_jab, "R": 5.0 + 14.0 * ca}
     drift = {"L": math.sin(n2 * ph + 0.4), "R": math.sin(n2 * ph + 2.2)}
 
+    # (the e_* values are already eased by the punch curve; easing the arm blends a second time packed the elbow's
+    # turn into a few frames -- QC: jerk 500-1200 m/s3 in hooks, blocks, parry, catch, uppercuts)
     def arms(pts):
         Hc = pts["head"]
         # guard: small independent drifts so the hands never look welded in place; the resting hand tucks in to the chin
@@ -855,7 +883,9 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         def straight(g, e, tgt, sg):
             """Straight punch: the fist travels the straight line from the chin with the elbow kept down behind it; the fist
             only turns over (palm down, elbow rotating out a little) in the last part of the extension."""
-            turn = smoother((e - 0.20) / 0.80)                  # (QC: over 0.45-1 the fist turned ~45 deg in one frame)
+            # spread over the whole extension: (e-0.2)/0.8 through smoother() still packed ~80 deg of fist turn into one
+            # frame at full speed (QC: rotation jump 80 deg/frame in every jab)
+            turn = smooth(e)
             ext = {"w": tgt, "pole": V(sg * 0.5, 0.05, -0.75), "fingers": V(0, -1, 0), "palm": V(sg * 0.12, 0, -1)}
             out = mix_arm(g, ext, turn)
             out["pole"] = g["pole"].lerp(V(sg * 0.18, 0.05, -1.0), smooth(min(1.0, e * 2.0))).lerp(ext["pole"], turn)
@@ -864,23 +894,23 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
         if e_jab > 0:
             S = pts["S_L"]
             dz = 0.08 * k + jab_dz
-            tgt = V(0.03 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.03 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
+            tgt = V(0.03 * k, S.y - math.sqrt(max((PUNCH_REACH * r.la) ** 2 - (S.x - 0.03 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
             res["L"] = straight(gl, e_jab, tgt, 1.0)
         if e_cross > 0:
             S = pts["S_R"]
             dz = 0.08 * k + cross_dz
-            tgt = V(0.01 * k, S.y - math.sqrt(max((0.9965 * r.la) ** 2 - (S.x - 0.01 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
+            tgt = V(0.01 * k, S.y - math.sqrt(max((PUNCH_REACH * r.la) ** 2 - (S.x - 0.01 * k) ** 2 - dz ** 2, 1e-6)), S.z + dz)
             res["R"] = straight(gr, e_cross, tgt, -1.0)
         if e_parry > 0:
             # a small tap across: the rear palm meets the jab in front of the lead shoulder and pushes it aside
             pa = {"w": gr["w"] + V(0.13 * k, -0.11 * k, 0.01 * k), "pole": V(-0.6, 0.3, -1.0), "fingers": V(0.25, -0.30, 1.0),
                   "palm": V(1.0, -0.6, 0.0)}
-            res["R"] = mix_arm(gr, pa, smooth(e_parry))
+            res["R"] = mix_arm(gr, pa, e_parry)
         if e_catch > 0:
             # the rear palm opens toward the jab a hand's width in front of the face (it does not reach out for it)
             ca_ = {"w": gr["w"] + V(0.035 * k, -0.08 * k, 0.03 * k), "pole": V(-0.4, 0.3, -1.0), "fingers": V(0.05, -0.15, 1.0),
                    "palm": V(0.15, -1.0, 0.1)}
-            res["R"] = mix_arm(gr, ca_, smooth(e_catch))
+            res["R"] = mix_arm(gr, ca_, e_catch)
         if e_cover > 0:
             # high block: the gloves come up to the temples, forearms close in front of the face, elbows down and in
             for side, sg in (("L", 1.0), ("R", -1.0)):
@@ -888,12 +918,12 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
                 # gloves at the temples (QC: higher, they sat on top of the head)
                 cv = {"w": Hc + V(sg * 0.080 * k, -0.100 * k, -0.115 * k), "pole": V(sg * 0.15, -0.35, -1.0), "fingers": V(-sg * 0.05, 0.10, 1.0),
                       "palm": V(-sg * 0.6, -0.8, 0.0)}
-                res[side] = mix_arm(g, cv, smooth(e_cover))
+                res[side] = mix_arm(g, cv, e_cover)
         if e_bblock > 0:
             # body block: the lead elbow drops onto the ribs, the glove stays by the cheek
             bb = {"w": Hc + V(0.085 * k, -0.135 * k, -0.135 * k), "pole": V(0.15, 0.05, -1.0), "fingers": V(-0.15, -0.10, 1.0),
                   "palm": V(-1.0, 0.2, 0.0)}
-            res["L"] = mix_arm(res["L"], bb, smooth(e_bblock))
+            res["L"] = mix_arm(res["L"], bb, e_bblock)
         if e_rhook > 0:
             # rear hook: mirror of the lead hook, turned through by the rear foot and hips
             S = pts["S_R"]
@@ -901,7 +931,7 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             tgt = V(Hc.x + 0.02 * k + 0.04 * k * low, S.y - 0.34 * k + 0.04 * k * low, S.z + 0.015 * k + rhook_dz)
             hk = {"w": tgt, "pole": V(-1.0, 0.25, 0.15).lerp(V(-0.7, 0.35, -0.6), low), "fingers": V(1.0, -0.35, 0.0),
                   "palm": V(0.0, 0.1, -1.0).lerp(V(0.0, 0.3, 1.0), 0.6 * low)}
-            res["R"] = mix_arm(gr, hk, smooth(e_rhook))
+            res["R"] = mix_arm(gr, hk, e_rhook)
             res["R"]["w"] = gr["w"].lerp(tgt, e_rhook) + V(-0.10 * k * math.sin(math.pi * e_rhook), 0, 0.02 * k * math.sin(math.pi * e_rhook))
         for side, e, sgn in (("R", e_rup, -1.0), ("L", e_lup, 1.0)):
             if e > 0:
@@ -910,9 +940,11 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
                 S = pts["S_" + side]
                 tgt = V(Hc.x + sgn * 0.02 * k, S.y - 0.27 * k, Hc.z - 0.05 * k)
                 up = {"w": tgt, "pole": V(sgn * 0.3, 0.3, -1.0), "fingers": V(0.0, 0.25, 1.0), "palm": V(0.0, 1.0, 0.25)}
-                res[side] = mix_arm(g, up, smooth(e))
-                drop = 0.09 * k * math.sin(math.pi * min(1.0, e * 1.4)) * (1.0 - e)
-                res[side]["w"] = g["w"].lerp(tgt, smoother(e)) + V(0, -0.02 * k * e, -drop)
+                res[side] = mix_arm(g, up, e)
+                # (sin squared: the plain sine was cut off at e = 0.71 while still moving -- a corner in the fist's path)
+                # one easing only, no fist dip -- the knees dip (up_dip). (A 7 cm fist dip reversing into the rise and a
+                # second easing on top packed the acceleration into a few frames: elbow jerk ~1100 m/s3 -- QC)
+                res[side]["w"] = g["w"].lerp(tgt, e) + V(0, -0.02 * k * e, 0)
         if e_hook > 0:
             # lead hook: elbow rises to shoulder height, forearm level, the fist swings round to just in front of the chin
             hh = e_hook
@@ -921,7 +953,7 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
             tgt = V(Hc.x - 0.02 * k - 0.04 * k * low, S.y - 0.34 * k + 0.04 * k * low, S.z + 0.015 * k + hook_dz)
             hk = {"w": tgt, "pole": V(1.0, 0.25, 0.15).lerp(V(0.7, 0.35, -0.6), low), "fingers": V(-1.0, -0.35, 0.0),
                   "palm": V(0.0, 0.1, -1.0).lerp(V(0.0, 0.3, 1.0), 0.6 * low)}
-            res["L"] = mix_arm(gl, hk, smooth(hh))
+            res["L"] = mix_arm(gl, hk, hh)
             res["L"]["w"] = gl["w"].lerp(tgt, hh) + V(0.10 * k * math.sin(math.pi * hh), 0, 0.02 * k * math.sin(math.pi * hh))   # swings out and round
         return res
     sp["arms"] = arms
@@ -944,9 +976,9 @@ def _punch_curve(t, start, out, hold, back):
         return 1.0
     t -= hold
     u = max(0.0, min(1.0, t / back))
-    # quick but eased return: the old curve left the hold at full speed in one frame (QC: a visible snap, hand jerk of
-    # ~3-4 cm on the male coach)
-    return 1.0 - smooth(u) ** 0.75
+    # eased both ends. (smooth(u) ** 0.75 started the return with infinite acceleration -- QC: the elbow stopped dead
+    # and left at full speed within a frame, jerk ~1000 m/s3 in every punch; before that a plain cut was a 3-4 cm snap)
+    return 1.0 - smooth(u)
 
 
 def stance(r, st):
@@ -1110,26 +1142,27 @@ def _lunge_pose(r, st, geo, back, step, u, t):
     bg = 1.0 if back == "L" else -1.0
     w = 0.095 * k * st["stance"]
     home = r.foot(back, bg * w, r.ankle0[back].y, bg * 6.0)
-    g = math.sin(math.pi * step)
+    g = math.sin(math.pi * smoother(step))           # (a sine of the linear step left and landed with a jolt)
     ball = home[0].lerp(ball_b, smoother(step)) + V(0, 0, 0.05 * k * g)
-    yaw = lerp(home[1], bg * 4.0, step)
+    yaw = lerp(home[1], bg * 4.0, smoother(step))      # (eased: the step and depth arrive linear; used raw, the knee
+                                                       # direction, foot turn and lean stopped dead -- QC knee jerk)
     feet = {front: ff, back: (ball, yaw, pitch * smooth(min(1.0, step * 1.3)))}
     b = breath(t, 4.3, 0.0)
     # the hips travel back partly with the step and the rest while lowering, as in a real lunge
     hy = 0.6 * smoother(step) + 0.4 * smoother(u)
-    sp = torso_spec(V(0, lerp(r.P0.y + 0.004 * k, pos_b.y, hy), 0), pitch=lerp(1.5, lean, u), spine=0.5, chest=-1.0,
-                    head_pitch=1.5 + 3.0 * u, br=b * 0.6)
+    sp = torso_spec(V(0, lerp(r.P0.y + 0.004 * k, pos_b.y, hy), 0), pitch=lerp(1.5, lean, smoother(u)), spine=0.5, chest=-1.0,
+                    head_pitch=1.5 + 3.0 * smoother(u), br=b * 0.6)
     sp["feet"] = feet
-    sp["kpole"] = {front: V(0, -1, 0), back: V(0, -1, -0.6 * step)}
+    sp["kpole"] = {front: V(0, -1, 0), back: V(0, -1, -0.6 * smoother(step))}
     # pelvis height: a smooth blend between standing tall and the split-stance top (fitting it frame by frame while the
     # foot travels gives a kink where the rear leg becomes the limiting one)
     probe = dict(sp)
     probe["pos"] = V(0, r.P0.y + 0.004 * k, 0)
     probe["feet"] = {front: ff, back: home}
-    z_stand = r.fit_z(probe, 0.992)
+    z_stand = r.fit_z(probe, 0.982)
     probe["pos"] = V(0, lerp(r.P0.y + 0.004 * k, pos_b.y, 0.6), 0)
     probe["feet"] = {front: ff, back: (ball_b, bg * 4.0, pitch)}
-    z_split = r.fit_z(probe, 0.992)
+    z_split = r.fit_z(probe, 0.982)
     z_top = lerp(z_stand, z_split, smoother(step))
     sp["pos"].z = lerp(z_top, pos_b.z, smoother(u))
     sp["arms"] = lambda pts: {s: hang(r, pts, s, sg, out=st["arm_out"] + 0.01, fwd=0.03) for s, sg in SIDES}
@@ -1223,7 +1256,7 @@ def step_jack(r, st):
         sp = torso_spec(V(cx * 0.8, r.P0.y + 0.004 * k, 0), pitch=1.0, spine=0.5, chest=-1.5 - 2.0 * e, head_pitch=0.5, br=b * 0.5)
         sp["feet"] = feet
         sp["kpole"] = {s: V(sg * 0.15, -1, 0) for s, sg in SIDES}
-        r.fit_z(sp, 0.990)
+        r.fit_z(sp, 0.975)
 
         def arms(pts, e=e):
             res = {}
@@ -1380,7 +1413,8 @@ def _phases(t, segs):
     acc = 0.0
     for d, a, b in segs:
         if t <= acc + d:
-            return lerp(a, b, smoother((t - acc) / d)) if d > 0 else b
+            # clamped to the segment's range (rounding can land a hair outside it; u ** 0.8 of -1e-17 is complex)
+            return max(min(a, b), min(max(a, b), lerp(a, b, smoother((t - acc) / d)))) if d > 0 else b
         acc += d
     return segs[-1][2]
 
@@ -1430,7 +1464,7 @@ def _side_lunge_pose(r, st, side, u, t):
                     head_pitch=1.5 + lean * 0.7, roll=-sg_b * 3.0 * u, br=b * 0.5)
     sp["feet"] = feet
     sp["kpole"] = {s: V(sg * 0.35, -1, 0) for s, sg in SIDES}
-    r.fit_z(sp, 0.994, sides=(straight,))                       # the long leg sets the height; the bent leg follows
+    r.fit_z(sp, 0.985, sides=(straight,))                       # the long leg sets the height; the bent leg follows
     sp["arms"] = lambda pts: {s: {"w": (pts["S_L"] + pts["S_R"]) / 2 + V(sg * 0.035 * k, -0.25 * k, -0.20 * k),
                                   "pole": V(sg * 0.6, 0.5, -1.0), "fingers": V(-sg * 0.3, -0.2, 1.0), "palm": V(-sg, 0, 0)} for s, sg in SIDES}
     return sp
@@ -1454,7 +1488,7 @@ def side_lunge(r, st):
 def high_knee_march(r, st):
     # thigh up to about level. QC: with the warm-up march's timing the knee shot up at ~3.8 m/s and dropped straight
     # back (jerky); now a longer, evenly paced lift
-    return march(r, st, step_s=1.10, lift_m=0.46, fwd_m=0.24, swing=1.25, win=(0.05, 0.90), soft=True)
+    return march(r, st, step_s=1.10, lift_m=0.46, fwd_m=0.24, swing=1.25, win=(0.05, 0.90), soft=True, arm_out=0.24)
 
 
 def arm_circles(r, st):
@@ -1598,17 +1632,22 @@ def bird_dog(r, st):
             # leg in one frame -- QC)
             sp["kpole"] = {s: (V(0, -0.3, -1).lerp(V(0, 0.2, -1), smooth(e / 0.15)) if s == leg else V(0, -0.3, -1)) for s, _ in SIDES}
 
-            def arms(pts, e=e):
+            def arms(pts, e=e, arm_side=arm_side):   # (bound now: read late, both reps used the last side -- QC)
                 res = _hands_on_floor(wrists)
                 S = pts["S_" + arm_side]
                 sg = 1.0 if arm_side == "L" else -1.0
                 fwd = S + V(sg * 0.03 * k, -0.985 * r.la, 0.0)
                 # the hand peels straight up off the floor first, then reaches forward (it used to slide forward while
                 # still low, so the planted-hand pin held it back and let go with a jump -- QC)
-                ef = smooth((e - 0.15) / 0.85)
-                up = 0.07 * k * smooth(e / 0.15) * (1.0 - ef)
-                res[arm_side] = {"w": wrists[arm_side].lerp(fwd, ef) + V(0, 0, up), "pole": V(sg * 0.4, 0.6, -0.5).lerp(V(sg * 0.2, 0, -1), e),
-                                 "fingers": V(-sg * 0.1, -1, 0), "palm": V(-sg * e, 0, -(1 - e) - 0.2)}
+                ef = smooth((e - 0.25) / 0.75)
+                up = 0.07 * k * smooth(e / 0.25) * (1.0 - ef)       # (over 0.15 the male hand left in a burst -- QC)
+                # at rest the lifting arm is exactly the planted arm (its own pole bent it and held the male hand 2.5 cm
+                # up, and the elbow switched direction where the sides change -- QC); the lift pose blends in as it peels
+                pl = _hands_on_floor(wrists)[arm_side]
+                g = smooth(e / 0.25)
+                res[arm_side] = {"w": wrists[arm_side].lerp(fwd, ef) + V(0, 0, up),
+                                 "pole": pl["pole"].lerp(V(sg * 0.4, 0.6, -0.5), g).lerp(V(sg * 0.2, 0, -1), ef),
+                                 "fingers": V(-sg * 0.1, -1, 0), "palm": V(0, 0, -1).lerp(V(-sg, 0, -0.2), ef)}
                 return res
             sp["arms"] = arms
             out.append(sp)
@@ -1658,7 +1697,7 @@ def knee_pushup(r, st):
         return (lo + hi) / 2
     dx = 0.105 * k
     # soft elbows at the top, as in the push-up (0.9965 was locked: elbow jitter / male hands sliding -- QC)
-    th_top = solve(wrist_h + math.sqrt((st.get("top_reach", 0.985) * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
+    th_top = solve(wrist_h + math.sqrt((st.get("top_reach", TOP_REACH) * r.la) ** 2 - dx ** 2 - (0.03 * k) ** 2))
     th_bot = solve(wrist_h + 0.215 * k)                           # chest a fist above the floor, elbows clear of it
     _, top = r.torso(_kneeling_line(r, st, th_top, knee_y))
     wrist = {s: V(top["S_" + s].x + sg * dx, top["S_" + s].y + 0.03 * k, wrist_h) for s, sg in SIDES}
@@ -1677,11 +1716,21 @@ def knee_pushup(r, st):
     return down, up
 
 
+def _soft_len(d, dmax, knee=0.04):
+    """Length d limited softly to dmax: unchanged below dmax * (1 - knee), then easing into dmax with no corner (a hard
+    clamp, or none, left a leg locked straight and unlocking in a frame -- QC mountain climber)."""
+    d0 = dmax * (1.0 - knee)
+    if d <= d0:
+        return d
+    w = dmax - d0
+    return d0 + w * (1.0 - math.exp(-(d - d0) / w))
+
+
 def mountain_climber_slow(r, st):
     """High plank (push-up top); one knee drives toward the chest and returns, then the other. Slow, controlled."""
     k = r.k
     st = dict(st)
-    st["leg_ext"] = 0.990          # the support leg keeps a hint of bend: locked straight, its knee jittered as the hips rose
+    st["leg_ext"] = 0.972          # the support leg keeps a bend (at 0.990 it was stretched past full length as the hips rose and unlocked in one frame -- QC)
     geo = _pushup_geometry(r, st)
     body, phi_top, phi_bot, wrist, blades = geo
     segs = [(0.3, 0, 0), (1.3 * st["tempo"], 0, 1), (0.3, 1, 1), (1.2 * st["tempo"], 1, 0), (0.2, 0, 0)]
@@ -1708,7 +1757,7 @@ def mountain_climber_slow(r, st):
             feet, _ = body(phi_top)
             other = "L" if side == "R" else "R"
             ob, oy, op = feet[other]
-            feet[other] = (ob, oy, op + 1.2 * dl)            # the support heel rises as the hips do (no over-reach)
+            feet[other] = (ob, oy, op + 1.5 * dl)            # the support heel rises as the hips do (no over-reach)
             ball, yaw, pitch = feet[side]
             Hj = sp["pos"] + sp["pel"] @ r.hj[side]
             K_in = Hj + V(0, -0.36 * k, -0.05 * k)           # knee drives up toward the chest
@@ -1731,6 +1780,8 @@ def mountain_climber_slow(r, st):
             A = A0.lerp(A, smooth(e / 0.08))                # starts exactly at the planted ankle (no step at the side switch)
             A.x = lerp(A0.x, A_in.x, es)
             A.z = max(A.z, lerp(A0.z, 0.11 * k, smooth(min(1.0, e / 0.25))))     # the foot never brushes the floor
+            # (the limit starts above the planted length 0.972, so the planted leg is untouched and both sides join)
+            A = Hj + (A - Hj) * (_soft_len((A - Hj).length, 0.994 * r.leg, knee=0.018) / max((A - Hj).length, 1e-6))
             d0 = (r.foot_q(side, yaw, pitch) @ r.fv[side]).normalized()
             feet[side] = r.foot_toward(side, A, d0.lerp(V(0, 0.5, -1.0).normalized(), smooth(e)), yaw=yaw)
             sp["feet"] = feet
@@ -1781,7 +1832,7 @@ def dead_bug(r, st):
             sp["feet"] = feet
             sp["kpole"] = poles
 
-            def arms(pts, e=e):
+            def arms(pts, e=e, arm_side=arm_side):   # (bound now: read late, both reps used the last side -- QC)
                 res = {}
                 for s, sg in SIDES:
                     S = pts["S_" + s]
@@ -2092,24 +2143,24 @@ def _forward_lunge_pose(r, st, geo, back, step, u, t):
     home_b = r.foot(back, bg * w, r.ankle0[back].y, bg * 6.0)
     D = ball_b - home_b[0]                                          # how far the back foot travels in the reverse lunge
     D.z = 0.0
-    g = math.sin(math.pi * step)
+    g = math.sin(math.pi * smoother(step))           # (a sine of the linear step left and landed with a jolt)
     fball = ff[0] - D * smoother(step) + V(0, 0, 0.05 * k * g)
-    feet = {front: (fball, ff[1], 0.0), back: (home_b[0], lerp(home_b[1], bg * 4.0, step), pitch * smooth(min(1.0, step * 1.3)))}
+    feet = {front: (fball, ff[1], 0.0), back: (home_b[0], lerp(home_b[1], bg * 4.0, smoother(step)), pitch * smooth(min(1.0, step * 1.3)))}
     b = breath(t, 4.3, 0.0)
     # the hips travel forward with the step and settle between the feet while lowering
     hy = 0.6 * smoother(step) + 0.4 * smoother(u)
     end_y = pos_b.y - D.y
-    sp = torso_spec(V(0, lerp(r.P0.y + 0.004 * k, end_y, hy), 0), pitch=lerp(1.5, lean, u), spine=0.5, chest=-1.0,
-                    head_pitch=1.5 + 3.0 * u, br=b * 0.6)
+    sp = torso_spec(V(0, lerp(r.P0.y + 0.004 * k, end_y, hy), 0), pitch=lerp(1.5, lean, smoother(u)), spine=0.5, chest=-1.0,
+                    head_pitch=1.5 + 3.0 * smoother(u), br=b * 0.6)
     sp["feet"] = feet
-    sp["kpole"] = {front: V(0, -1, 0.2 * step), back: V(0, -1, -0.6 * step)}
+    sp["kpole"] = {front: V(0, -1, 0.2 * smoother(step)), back: V(0, -1, -0.6 * smoother(step))}
     probe = dict(sp)
     probe["pos"] = V(0, r.P0.y + 0.004 * k, 0)
     probe["feet"] = {front: ff, back: home_b}
-    z_stand = r.fit_z(probe, 0.992)
+    z_stand = r.fit_z(probe, 0.982)
     probe["pos"] = V(0, lerp(r.P0.y + 0.004 * k, end_y, 0.6), 0)
     probe["feet"] = {front: (ff[0] - D, ff[1], 0.0), back: (home_b[0], bg * 4.0, pitch)}
-    z_split = r.fit_z(probe, 0.992)
+    z_split = r.fit_z(probe, 0.982)
     z_top = lerp(z_stand, z_split, smoother(step))
     sp["pos"].z = lerp(z_top, pos_b.z, smoother(u))
     sp["arms"] = lambda pts: {s: hang(r, pts, s, sg, out=st["arm_out"] + 0.01, fwd=0.03) for s, sg in SIDES}
@@ -2269,8 +2320,8 @@ def knee_crunch(r, st):
         sp["kpole"] = {s: V(sg * 0.10, -1, 0) for s, sg in SIDES}
         stand = "R" if up_side == "L" else "L"
         other = up_side
-        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
-        z_other = r.fit_z(sp, 0.996, sides=(other,))
+        z_stand = r.fit_z(sp, 0.985, sides=(stand,))
+        z_other = r.fit_z(sp, 0.985, sides=(other,))
         ws = 0.5 + 0.5 * math.sin(math.pi * u)
         sp["pos"].z = min(z_stand, lerp(z_other, z_stand, ws)) - 0.005 * r.k
 
@@ -2352,8 +2403,8 @@ def jab_jab_cross(r, st):
     out = []
     for i in range(n):
         t = T * i / (n - 1)
-        j = max(_punch_curve(t, 0.30, 0.38, 0.08, 0.36), _punch_curve(t, 0.95, 0.38, 0.10, 0.40))
-        jh = max(_punch_curve(t + 0.05, 0.30, 0.38, 0.08, 0.36), _punch_curve(t + 0.05, 0.95, 0.38, 0.10, 0.40))
+        j = min(1.0, _punch_curve(t, 0.30, 0.38, 0.08, 0.36) + _punch_curve(t, 0.95, 0.38, 0.10, 0.40))
+        jh = min(1.0, _punch_curve(t + 0.05, 0.30, 0.38, 0.08, 0.36) + _punch_curve(t + 0.05, 0.95, 0.38, 0.10, 0.40))
         c = _punch_curve(t, 1.62, 0.42, 0.12, 0.50)
         out.append(_stance_pose(r, st, t, e_jab=j, e_cross=c, loop=T,
                                 hip={"e_jab": jh, "e_cross": _punch_curve(t + 0.08, 1.62, 0.42, 0.12, 0.50)}))
@@ -2420,8 +2471,8 @@ def oblique_crunch(r, st):
         # leg about its axis in one frame (glitch at the change of side)
         sp["kpole"] = {s: V(sg * 0.10, -1, 0).lerp(V(sg * 0.65, -0.55, 0.55), gs if s == up_side else 0.0) for s, sg in SIDES}
         stand = "R" if up_side == "L" else "L"
-        z_stand = r.fit_z(sp, 0.996, sides=(stand,))
-        z_other = r.fit_z(sp, 0.996, sides=(up_side,))
+        z_stand = r.fit_z(sp, 0.985, sides=(stand,))
+        z_other = r.fit_z(sp, 0.985, sides=(up_side,))
         ws = 0.5 + 0.5 * math.sin(math.pi * u)
         sp["pos"].z = min(z_stand, lerp(z_other, z_stand, ws)) - 0.005 * r.k
 
@@ -2444,8 +2495,9 @@ def double_jab(r, st):
     out = []
     for i in range(n):
         t = T * i / (n - 1)
-        j = max(_punch_curve(t, 0.30, 0.36, 0.08, 0.34), _punch_curve(t, 0.92, 0.36, 0.10, 0.40))
-        jh = max(_punch_curve(t + 0.05, 0.30, 0.36, 0.08, 0.34), _punch_curve(t + 0.05, 0.92, 0.36, 0.10, 0.40))
+        # (summed, not max(): the max of two overlapping curves has a corner where they cross -- QC: hand jerk ~1500)
+        j = min(1.0, _punch_curve(t, 0.30, 0.36, 0.08, 0.34) + _punch_curve(t, 0.92, 0.36, 0.10, 0.40))
+        jh = min(1.0, _punch_curve(t + 0.05, 0.30, 0.36, 0.08, 0.34) + _punch_curve(t + 0.05, 0.92, 0.36, 0.10, 0.40))
         out.append(_stance_pose(r, st, t, e_jab=j, loop=T, hip={"e_jab": jh}))
     return out
 
@@ -2643,7 +2695,7 @@ STYLE = {
     # the two coaches perform the same technique; only build-related details differ
     "coach_f": {"stance": 1.0, "sway": 1.0, "arm_out": 0.085, "tempo": 1.0, "swing": 1.0, "wrist_h": 0.050},
     "coach_m": {"stance": 1.06, "sway": 0.8, "arm_out": 0.105, "tempo": 1.04, "swing": 0.9, "wrist_h": 0.050, "kb_lean": 64.0,
-                "mc_lift": 17.0, "top_reach": 0.972},   # (0.985: the male's longer mesh arms could not reach -- hands slid)   # longer arms: the hips sit higher in the plank, less lift needed (24 over-reached 5.7 cm)
+                "mc_lift": 17.0, "top_reach": 0.958},   # (0.985: the male's longer mesh arms could not reach -- hands slid)   # longer arms: the hips sit higher in the plank, less lift needed (24 over-reached 5.7 cm)
 }
 
 
