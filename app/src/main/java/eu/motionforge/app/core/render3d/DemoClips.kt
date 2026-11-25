@@ -152,6 +152,21 @@ enum class ViewAngle(val label: String, val yawDegrees: Float) {
     BACK("Back", 180f),
 }
 
+/**
+ * Camera angles that show the coach for this clip sequence. A wall prop hides the coach from the side it stands on:
+ * the wall push-up faces its wall (front and ¾ looked at the back of the wall only), the wall sit leans on one (back).
+ */
+fun viewAngles(sequence: List<String>): List<ViewAngle> {
+    val wallInFront = sequence.any { it in WALL_IN_FRONT }
+    val wallBehind = sequence.any { it in WALL_BEHIND }
+    return ViewAngle.entries.filter {
+        !(wallInFront && (it == ViewAngle.FRONT || it == ViewAngle.THREE_QUARTER)) && !(wallBehind && it == ViewAngle.BACK)
+    }
+}
+
+private val WALL_IN_FRONT = setOf("wall_pushup")
+private val WALL_BEHIND = setOf("wall_sit")
+
 /** Best starting camera for a lesson, from its recommended view (side-on movements start side-on). */
 fun defaultViewAngle(recommendedView: String?): ViewAngle = when (recommendedView) {
     "side" -> ViewAngle.SIDE

@@ -1191,3 +1191,16 @@ tests):
 - Any failed scene creation or load now retries twice with a fresh scene (350 / 700 ms) before the fallback shows;
   the reason is logged. Scenes that never reached a window are destroyed (engine leak).
 Test: `GlbBytesTest` (shared, direct, independent read positions, glTF header).
+
+**Visual review of all 118 lessons, both coaches** (8 frames each, ¾ and side views): every lesson performs its
+exercise. Found and fixed:
+- **Cat-cow did the opposite of itself**: the back sagged while the head tucked ("cat") and humped while the head
+  lifted ("cow"). The pelvis / spine / chest signs are flipped (16° each way); the back now rounds with the head down
+  and sinks with the gaze up (±3–4 cm, both coaches).
+- **Wall push-up**: from Front or ¾ the wall hid the coach completely (the camera looked at the back of the wall); the
+  wall sit's wall hid her from Back. Those angles are no longer offered for these lessons (`viewAngles`, tested).
+- **Kneeling clips** (cat-cow, child's pose, donkey kick, fire hydrant, knee push-ups) now get the same reach guard as
+  the planks, tipping about the knees: the female cow pose locked both arms straight and lifted the hands 1.5 cm.
+  Clips where a hand lifts on purpose (bird dog) are left out: tipping the body as its hand landed dropped the hand
+  2.7 cm in a frame.
+Studies re-rendered for those 5 lessons.
