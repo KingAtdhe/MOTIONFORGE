@@ -52,11 +52,13 @@ import java.time.Duration
 @Config(sdk = [35], qualifiers = "w411dp-h891dp-xhdpi")
 class AppFlowTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @get:Rule val testName = org.junit.rules.TestName()
 
     private val app get() = ApplicationProvider.getApplicationContext<MotionForgeApplication>()
 
     @org.junit.Before
     fun freshInstall() {
+        tlog("---- " + testName.methodName)
         // the workout-notification permission dialog has no answer under Robolectric: granted up front
         org.robolectric.Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
         // DataStore and the database are process-wide: every test starts from a fresh install
@@ -69,7 +71,18 @@ class AppFlowTest {
     }
 
     // ------------------------------------------------------------------------------------------------ helpers
-    private fun pump(ms: Long = 200, sleep: Long = 30) {
+    private val t0 = System.nanoTime()
+    private fun tlog(msg: String) {
+        File("build/flowtimings.txt").appendText("%8.2f %s\n".format((System.nanoTime() - t0) / 1e9, msg))
+    }
+    private inline fun <T> timed(what: String, f: () -> T): T {
+        val s = System.nanoTime(); val r = f(); val d = (System.nanoTime() - s) / 1e6
+        if (d > 500) tlog("SLOW %.0f ms  %s".format(d, what))
+        return r
+    }
+
+    private fun pump(ms: Long = 200, sleep: Long = 30) = timed("pump($ms)") { pump0(ms, sleep) }
+    private fun pump0(ms: Long, sleep: Long) {
         compose.mainClock.autoAdvance = false
         var left = ms
         while (left > 0) {
@@ -82,11 +95,11 @@ class AppFlowTest {
         ShadowLooper.idleMainLooper()
     }
 
-    private fun exists(text: String, substring: Boolean = false) =
-        compose.onAllNodesWithText(text, substring = substring, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+    private fun exists(text: String, substring: Boolean = false) = timed("exists '$text'") {
+        compose.onAllNodesWithText(text, substring = substring, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
 
-    private fun existsDesc(desc: String) =
-        compose.onAllNodesWithContentDescription(desc, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+    private fun existsDesc(desc: String) = timed("existsDesc '$desc'") {
+        compose.onAllNodesWithContentDescription(desc, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
 
     private fun waitFor(what: String, timeoutMs: Long = 8000, check: () -> Boolean) {
         var t = 0L
@@ -100,6 +113,7 @@ class AppFlowTest {
     private fun waitForText(text: String, substring: Boolean = false) = waitFor("'$text'") { exists(text, substring) }
 
     private fun click(text: String, substring: Boolean = false) {
+        tlog("click '$text'")
         waitForText(text, substring)
         val node = compose.onAllNodesWithText(text, substring = substring)[0]
         if (runCatching { node.performScrollTo() }.isFailure) {
@@ -113,7 +127,7 @@ class AppFlowTest {
             pump(1500, 50)
         }
         pump(100)
-        node.performClick()
+        timed("performClick '$text'") { node.performClick() }
         pump()
     }
 
