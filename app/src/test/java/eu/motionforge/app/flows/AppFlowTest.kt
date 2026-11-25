@@ -106,14 +106,16 @@ class AppFlowTest {
         // ~11 minutes for an internal timeout each time a button sat below the fold (the save button under a long
         // session summary, "Reset app data" on the profile) -- two flow tests took ~17 min each in CI.
         var tries = 0
-        while (!onScreen(node) && tries++ < 4) {
+        while (!onScreen(node) && tries++ < 8) {
             // scroll the node's own scroll container towards it (synchronous semantics action; no gestures, which
             // would wait on the hand-driven clock)
             runCatching {
                 val n = node.fetchSemanticsNode()
                 val sc = scrollerOf(n)
                 if (sc != null) {
-                    val dy = n.boundsInRoot.center.y - sc.boundsInRoot.center.y
+                    // a lazy-list row prefetched below the fold is in the tree but not placed (zero bounds): scroll down
+                    val dy = if (n.boundsInRoot.height <= 0f) sc.boundsInRoot.height * 0.7f
+                    else n.boundsInRoot.center.y - sc.boundsInRoot.center.y
                     compose.runOnUiThread { sc.config[androidx.compose.ui.semantics.SemanticsActions.ScrollBy].action?.invoke(0f, dy); Unit }
                 }
             }
