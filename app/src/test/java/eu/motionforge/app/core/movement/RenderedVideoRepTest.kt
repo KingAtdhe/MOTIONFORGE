@@ -17,12 +17,19 @@ import java.util.zip.GZIPInputStream
  * through exactly what the session does: the full-body tracking gate, then the rep counter or boxing monitor.
  * Negative fixtures (marching, holding the stance) must count nothing.
  *
- * pose_fixtures/expected.txt: name|exercise id|expected count[|expected cues]  (for boxing_jab the count is jabs).
+ * pose_fixtures/expected.txt: name|exercise id|expected count[|expected cues]  (for boxing_jab the count is jabs; for a
+ * held position ([HoldCheck]) it is the whole seconds held in position). Lessons with the guard check
+ * ([BoxingDrill.GUARD_CHECKED]) run the stance rules too: on a correct demo no cue may fire.
  * Without cues the video is a correct demo and must get no correction. With cues (videos rendered with a deliberate
  * fault, tools/pose_tests/faults.py), each listed cue must appear — a rep cue on at least two thirds of the reps — and
  * nothing outside the list.
  */
 class RenderedVideoRepTest {
+    private companion object {
+        /** Held positions: the whole seconds in position may differ from the expected value by this much (the hold
+         *  only starts once the position has been seen for most of a second). */
+        const val HOLD_TOLERANCE = 1
+    }
 
     private fun frames(name: String): List<PoseFrame?> {
         val stream = javaClass.classLoader!!.getResourceAsStream("pose_fixtures/$name.lm.gz") ?: error("missing fixture $name")
@@ -40,7 +47,7 @@ class RenderedVideoRepTest {
         val name: String, val exercise: String, val expected: Int, val got: Int, val detail: String,
         val wantCues: Set<String>, val repCues: Map<String, Int>, val formCues: Set<String>,
     ) {
-        val countOk get() = got == expected
+        val countOk get() = if (HoldCheck.forExercise(exercise) != null && CountedMove.forExercise(exercise) == null) kotlin.math.abs(got - expected) <= HOLD_TOLERANCE else got == expected
         val cuesOk: Boolean get() {
             val seen = repCues.keys + formCues
             if (wantCues.isEmpty()) return seen.isEmpty()
@@ -53,8 +60,13 @@ class RenderedVideoRepTest {
         val fs = frames(name)
         val gate = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
         val counter = CountedMove.counterFor(exercise)
-        val drill = when (exercise) { "boxing_jab" -> BoxingDrill.JAB; "boxing_cross" -> BoxingDrill.CROSS; "boxing_stance" -> BoxingDrill.STANCE; else -> null }
+        val drill = when (exercise) {
+            "boxing_jab" -> BoxingDrill.JAB; "boxing_cross" -> BoxingDrill.CROSS; "boxing_stance" -> BoxingDrill.STANCE
+            in BoxingDrill.GUARD_CHECKED -> BoxingDrill.STANCE
+            else -> null
+        }
         val monitor = drill?.let { BoxingFormMonitor(it) }
+        val holdMonitor = HoldCheck.forExercise(exercise)?.let { HoldMonitor(it) }
         var tracked = 0
         val events = mutableListOf<String>()
         val cues = mutableSetOf<String>()
@@ -74,9 +86,11 @@ class RenderedVideoRepTest {
                     }
                 }
                 monitor?.update(f, ok)?.let { fb -> if (fb is FormFeedback.Cue) cues += fb.issue.name }
+                holdMonitor?.update(f, ok)?.let { fb -> if (fb is HoldFeedback.Cue) cues += fb.issue.name }
             }
         }
-        val got = counter?.repetitions ?: monitor?.jabs ?: -1
+        // holds: whole seconds held in position (the expected value is checked within HOLD_TOLERANCE)
+        val got = counter?.repetitions ?: holdMonitor?.let { (it.heldMs / 1000).toInt() } ?: monitor?.jabs ?: -1
         return Result(name, exercise, expected, got, "tracked $tracked/${fs.size} ${events.joinToString(" ")} ${cues.joinToString(",", "cues[", "]")}", wantCues, repCues, cues)
     }
 

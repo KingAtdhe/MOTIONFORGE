@@ -4,6 +4,8 @@ import eu.motionforge.app.core.coaching.CuePriority
 import eu.motionforge.app.core.coaching.VoiceCoach
 import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.core.movement.FormFeedback
+import eu.motionforge.app.core.movement.HoldCheck
+import eu.motionforge.app.core.movement.HoldFeedback
 import eu.motionforge.app.core.movement.JabResult
 import eu.motionforge.app.core.movement.CountedMove
 import eu.motionforge.app.core.movement.RepEvent
@@ -67,6 +69,7 @@ object SessionNarrator {
         is SessionStep.Work -> {
             val extra = when {
                 camera && step.countsReps -> " I'll count your reps and check each one."
+                camera && step.holdCheck != null -> " I'll time your hold while you're in position."
                 camera && step.formDrill != null -> " I'll watch your guard."
                 else -> ""
             }
@@ -111,13 +114,38 @@ object SessionNarrator {
         return CoachLine(now.issue.spoken, CuePriority.CORRECTION)
     }
 
-    fun boxingCard(form: FormFeedback, drill: BoxingDrill, cleanJabs: Int): LiveCoaching {
+    fun boxingCard(form: FormFeedback, drill: BoxingDrill, cleanJabs: Int, reps: Int? = null): LiveCoaching {
         val title = if (drill == BoxingDrill.JAB) "Form check (experimental) · ${form.jabs} jabs, $cleanJabs clean"
-            else if (drill == BoxingDrill.CROSS) "Form check (experimental) · ${form.jabs} crosses, $cleanJabs clean" else "Form check (experimental)"
+            else if (drill == BoxingDrill.CROSS) "Form check (experimental) · ${form.jabs} crosses, $cleanJabs clean"
+            else if (reps != null) "Guard check (experimental) · $reps counted"
+            else "Form check (experimental)"
         return when (form) {
             is FormFeedback.NotAssessing -> LiveCoaching(title, "Form check paused — keep your whole body, hands and feet in view.", CoachTone.PAUSED)
             is FormFeedback.Steady -> LiveCoaching(title, "No adjustments spotted. Keep it up.", CoachTone.GOOD)
             is FormFeedback.Cue -> LiveCoaching(title, form.issue.message, CoachTone.ADJUST)
+        }
+    }
+
+    /** Seconds held, cue-free, before the coach says so once per step. */
+    const val HOLD_PRAISE_AFTER_MS = 10_000L
+    const val HOLD_PRAISE = "Good. Holding steady."
+
+    /** Spoken line when a hold check changes state: a new adjustment, or losing / finding the position. */
+    fun holdLine(previous: HoldFeedback?, now: HoldFeedback): CoachLine? = when {
+        now is HoldFeedback.Cue && !(previous is HoldFeedback.Cue && previous.issue == now.issue) -> CoachLine(now.issue.spoken, CuePriority.CORRECTION)
+        now is HoldFeedback.OutOfPosition && (previous is HoldFeedback.Holding || previous is HoldFeedback.Cue) ->
+            CoachLine("Timer paused. Back into position when you're ready.", CuePriority.INFO)
+        else -> null
+    }
+
+    fun holdCard(check: HoldCheck, hold: HoldFeedback): LiveCoaching {
+        val t = hold.heldMs / 1000
+        val title = "${check.checkName} (experimental) · ${t / 60}:${(t % 60).toString().padStart(2, '0')} held"
+        return when (hold) {
+            is HoldFeedback.NotAssessing -> LiveCoaching(title, "Timer paused — ${check.framing.replaceFirstChar { it.lowercase() }}", CoachTone.PAUSED)
+            is HoldFeedback.OutOfPosition -> LiveCoaching(title, check.waiting, CoachTone.NEUTRAL)
+            is HoldFeedback.Holding -> LiveCoaching(title, check.holding, CoachTone.GOOD)
+            is HoldFeedback.Cue -> LiveCoaching(title, hold.issue.message, CoachTone.ADJUST)
         }
     }
 }

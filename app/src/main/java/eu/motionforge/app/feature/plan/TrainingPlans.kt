@@ -163,6 +163,7 @@ object PlanSessions {
                         ex.id, ex.name, PlanProgression.capSeconds(item, target),
                         countsReps = CountedMove.forExercise(ex.id) != null,
                         formDrill = SessionPlanner.drillFor(ex.id),
+                        holdCheck = eu.motionforge.app.core.movement.HoldCheck.forExercise(ex.id),
                         targetReps = target,
                     ),
                 )

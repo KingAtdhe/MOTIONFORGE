@@ -80,7 +80,8 @@ class ExerciseCatalogParserTest {
     @Test
     fun unvalidatedMovementsDoNotAllowLiveCues() {
         val byId = ExerciseCatalogParser.parse(bundled).associateBy { it.id }
-        assertFalse(byId.getValue("forearm_plank").analysisMode.allowsLiveCues)
+        // the plank got its hold check once it was checked on rendered videos (2026-11-25); footwork never does
+        assertTrue(byId.getValue("forearm_plank").analysisMode.allowsLiveCues)
         assertFalse(byId.getValue("footwork_lateral").analysisMode.allowsLiveCues)
     }
 
@@ -128,10 +129,14 @@ class ExerciseCatalogParserTest {
             "standing_mobility_warmup", "bodyweight_squat", "hip_hinge", "push_up", "boxing_stance", "boxing_jab", "boxing_cross",
             "boxing_guard_return", "footwork_forward_backward",
         )
-        // only lessons with a camera rule (a rep counter checked on rendered videos, or the MVP set) may show cues,
-        // and every counted lesson says so
+        // only lessons with a camera rule (a rep counter, hold check or guard check, each checked on rendered videos,
+        // or the MVP set) may show cues, and every checked lesson says so
         byId.values.filter { it.id !in mvp }.forEach {
-            assertEquals(it.id, eu.motionforge.app.core.movement.CountedMove.forExercise(it.id) != null, it.analysisMode.allowsLiveCues)
+            assertEquals(it.id, eu.motionforge.app.core.movement.LiveChecks.has(it.id), it.analysisMode.allowsLiveCues)
+        }
+        // footwork is a guided drill, never scored (spec), and the bodyweight hinge stays instructional
+        byId.values.filter { it.id.startsWith("footwork_") || it.id == "hip_hinge" || it.id == "standing_mobility_warmup" }.forEach {
+            assertFalse(it.id, eu.motionforge.app.core.movement.LiveChecks.has(it.id))
         }
     }
 

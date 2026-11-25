@@ -43,8 +43,16 @@ class RepCountingTest {
             "boxing_one_two_uppercut", "boxing_uppercuts").forEach { assertTrue(it, CountedMove.counterFor(it) is ComboRepCounter) }
         listOf("boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot").forEach { assertTrue(it, CountedMove.counterFor(it) is PunchRepCounter) }
         assertTrue(CountedMove.counterFor("boxing_jab_slip") is SlipRepCounter)
-        listOf("boxing_parry", "boxing_catch", "boxing_high_block", "boxing_duck", "boxing_slip_cross", "crunch", "kettlebell_swing",
-            "wall_sit", "footwork_circle_left").forEach { assertNull(it, CountedMove.counterFor(it)) }
+        // guard-only or held positions, and footwork (a guided drill, never scored): not counted
+        listOf("boxing_parry", "boxing_catch", "boxing_high_block", "boxing_pull_back", "wall_sit", "forearm_plank", "hip_hinge",
+            "footwork_circle_left", "footwork_forward_backward", "standing_mobility_warmup").forEach { assertNull(it, CountedMove.counterFor(it)) }
+        // 2026-11-25: the rest of the catalogue, each checked on rendered videos
+        assertTrue(CountedMove.counterFor("boxing_duck") is LevelChangeRepCounter)
+        assertNull(CountedMove.counterFor("boxing_slip_cross"))   // guard check only: the cross at the phone barely lifts the elbow
+        assertTrue(CountedMove.counterFor("kettlebell_swing") is SignalRepCounter)
+        assertTrue(CountedMove.counterFor("calf_raise") is CalfRaiseRepCounter)
+        listOf("crunch", "dead_bug", "bird_dog", "slow_mountain_climber", "wall_push_up").forEach { assertTrue(it, CountedMove.counterFor(it) is SignalRepCounter) }
+        assertTrue(CountedMove.counterFor("standing_side_bend") is TwoSidedRepCounter)
     }
 
     /** Standing person bending and straightening both elbows (a curl): must never count as push-ups. */

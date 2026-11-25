@@ -293,7 +293,7 @@
     "level": "beginner",
     "durationSeconds": 30,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "plank_hold",
     "purpose": "Practise holding a straight, steady body position on your forearms and toes.",
     "space": "A mat-sized area of clear floor.",
@@ -327,7 +327,7 @@
         "adjustment": "Breathe slowly in and out through the hold."
       }
     ],
-    "limitations": "The camera does not assess this hold in this version. The timer counts the hold; no form is scored.",
+    "limitations": "The camera times your hold only while you're in the position (body long and level, elbows under your shoulders), and may suggest lifting or lowering your hips into one line; it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -376,7 +376,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "calf_raise",
     "purpose": "Practise rising onto the balls of the feet and lowering with control.",
     "space": "A small area of stable floor, next to a wall or chair you can touch for balance.",
@@ -405,7 +405,7 @@
         "adjustment": "Pause with your heels down before the next rise."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version.",
+    "limitations": "The camera counts each raise (your heel lifting above your toes); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Filmed from the front the heel is hidden and nothing is counted. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -567,7 +567,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "mountain_climber_slow",
     "purpose": "Practise moving one leg at a time while holding a steady high plank.",
     "space": "A mat-sized area of clear floor.",
@@ -596,7 +596,7 @@
         "adjustment": "Pause in the plank between each knee drive."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each knee drive (the knee coming in toward your chest from the plank); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -606,7 +606,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "dead_bug",
     "purpose": "Practise moving opposite arm and leg while keeping your trunk still, lying on your back.",
     "space": "A mat-sized area of clear floor.",
@@ -635,7 +635,7 @@
         "adjustment": "Breathe out as you reach, in as you return."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each leg reach (the knee straightening as the leg reaches long); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -645,7 +645,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "bird_dog",
     "purpose": "Practise reaching one arm forward and the opposite leg back while keeping your back steady on all fours.",
     "space": "A mat-sized area of clear floor.",
@@ -674,7 +674,7 @@
         "adjustment": "Reach long instead of high."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each reach (the back leg straightening); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -684,7 +684,7 @@
     "level": "beginner",
     "durationSeconds": 30,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "superman",
     "purpose": "Practise lifting the arms, chest and legs a few centimetres while lying face down.",
     "space": "A mat-sized area of clear floor.",
@@ -713,7 +713,7 @@
         "adjustment": "A few centimetres is enough."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each lift (your feet lifting off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. A person lying face down can take the camera a moment to find. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -797,7 +797,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "arm_circles",
     "purpose": "A shoulder warm-up: small circles with the arms out to the sides, forward then backward.",
     "space": "Room to reach both arms out to the sides.",
@@ -820,7 +820,7 @@
         "adjustment": "Relax the shoulders down while the arms circle."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Use the demonstration and the cues; nothing is scored.",
+    "limitations": "The camera times your hold only while you're in the position (both arms out at shoulder height); it does not judge effort or how long you should hold. Face the phone with your upper body and both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -830,7 +830,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "cat_cow",
     "purpose": "A gentle spine mobility drill on all fours: round the back, then let the chest sink.",
     "space": "A mat-sized area of clear floor.",
@@ -855,7 +855,7 @@
         "adjustment": "Make the movement smaller and smoother."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each round (your head lowering and lifting with your back); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1566,7 +1566,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_guard_return",
     "purpose": "Build the habit of bringing your hands back to a relaxed guard after each movement.",
     "space": "About 2 × 2 m of clear floor. Nothing and nobody within reach.",
@@ -1592,7 +1592,7 @@
         "adjustment": "Breathe out and let the shoulders relax."
       }
     ],
-    "limitations": "Guided practice. Return-to-guard cues will only be enabled after validation.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -1876,7 +1876,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_roll",
     "purpose": "Practise moving your head under an imaginary punch with a small U-shaped bend of the knees.",
     "space": "Clear space around you of at least an arm's length. Nothing and nobody within reach.",
@@ -1903,7 +1903,7 @@
         "adjustment": "Keep your eyes forward."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each roll from your shoulders dipping and coming back up; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2180,7 +2180,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_pull_back",
     "purpose": "Practise leaning back just out of reach of a straight punch while keeping your hands up and eyes forward.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -2207,7 +2207,7 @@
         "adjustment": "Keep the chin tucked and look at your target."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2254,7 +2254,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "good_morning",
     "purpose": "Practise the hip hinge with the arms folded: the hips go back while the back stays long.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2281,7 +2281,7 @@
         "adjustment": "Keep the knees only slightly bent and send the hips back."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each hinge (your chest tipping forward and coming back up); it does not judge technique beyond that. Side-on or at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2330,7 +2330,7 @@
     "level": "beginner",
     "durationSeconds": 50,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "squat_calf_raise",
     "purpose": "A squat followed by a rise onto the toes, for the legs and ankles.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2359,7 +2359,7 @@
         "adjustment": "Press through the big toes as you rise."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each squat (your knees bending and straightening); it does not judge technique beyond that. Keep your whole body in view, side-on or facing the phone. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2369,7 +2369,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "single_leg_balance",
     "purpose": "Balance on one leg with the other knee lifted, for ankle and hip control.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2398,7 +2398,7 @@
         "adjustment": "Keep a tiny bend in the standing knee."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera times your hold only while you're in the position (one foot clearly off the floor); it does not judge effort or how long you should hold. Face the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2408,7 +2408,7 @@
     "level": "beginner",
     "durationSeconds": 50,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "single_leg_rdl",
     "purpose": "A one-leg hip hinge without weights, for balance and the back of the legs.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2437,7 +2437,7 @@
         "adjustment": "Stop higher, with the back long."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each hinge (your chest tipping forward and coming back up); it does not judge technique beyond that. Side-on or at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2447,7 +2447,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "side_leg_raise",
     "purpose": "Lift the leg out to the side, for the outer hips and balance.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2476,7 +2476,7 @@
         "adjustment": "Keep the toes pointing forward."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each raise (the working leg swinging out from vertical); it does not judge technique beyond that. Face the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2486,7 +2486,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "glute_kickback",
     "purpose": "Sweep the straight leg back from the hip, for the glutes.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2515,7 +2515,7 @@
         "adjustment": "Move slowly and pause at the back."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each kickback (the working leg swinging back from vertical); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2525,7 +2525,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "butt_kicks",
     "purpose": "Walk on the spot bringing each heel toward the seat, to warm up.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2554,7 +2554,7 @@
         "adjustment": "Keep the thigh pointing down; only the heel lifts."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each kick (the heel rising up behind toward the knee); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2564,7 +2564,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "torso_twist",
     "purpose": "A gentle turning warm-up for the upper back.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2591,7 +2591,7 @@
         "adjustment": "Let the hips stay mostly still."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each twist (your hands, together at your chest, turning to each side); it does not judge technique beyond that. Face the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2601,7 +2601,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "side_bend",
     "purpose": "Reach up and over, to stretch the sides of the body.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2628,7 +2628,7 @@
         "adjustment": "Reach up and over rather than down."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each bend (your shoulders leaning to the side over your hips); it does not judge technique beyond that. Face the phone with your upper body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2638,7 +2638,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "skater_step",
     "purpose": "Step side to side with the back foot sweeping behind, for the legs and balance.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2667,7 +2667,7 @@
         "adjustment": "Keep the knee in line with the toes."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each skate (your hips travelling side to side); it does not judge technique beyond that. Face the phone with your whole body in view. Leave room to step. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2677,7 +2677,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "wall_pushup",
     "purpose": "An easier push-up against a wall, for the chest, shoulders and arms.",
     "space": "A clear wall with space to stand an arm's length away.",
@@ -2704,7 +2704,7 @@
         "adjustment": "Bring the elbows a little closer to the body."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each rep (your elbows bending and straightening); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2714,7 +2714,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "wall_sit",
     "purpose": "Hold a seated position against a wall, for the thighs.",
     "space": "A clear, smooth wall and non-slip floor.",
@@ -2741,7 +2741,7 @@
         "adjustment": "Breathe slowly and evenly."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera times your hold only while you're in the position (back upright, knees bent), and may suggest sliding a little lower toward a right angle; it does not judge effort or how long you should hold. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2790,7 +2790,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_floor_press",
     "purpose": "A chest press lying on the floor, for the chest, shoulders and arms.",
     "space": "A mat-sized area of clear floor.",
@@ -2820,7 +2820,7 @@
         "adjustment": "Keep them at about 45 degrees."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each press (your hands pressing up from your shoulders); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2830,7 +2830,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_shrug",
     "purpose": "Lift the shoulders straight up, for the upper back and neck muscles.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2859,7 +2859,7 @@
         "adjustment": "Keep the arms long and let the shoulders do the work."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each shrug (your shoulders lifting toward your ears); it does not judge technique beyond that. Face the phone with your head and shoulders in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2869,7 +2869,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "db_calf_raise",
     "purpose": "Rise onto the toes holding dumbbells, for the calves.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -2898,7 +2898,7 @@
         "adjustment": "Lower slowly and pause at the bottom."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each raise (your heel lifting above your toes); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Filmed from the front the heel is hidden and nothing is counted. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2908,7 +2908,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "kb_swing",
     "purpose": "A two-hand swing driven by the hips, for the glutes, hamstrings and back.",
     "space": "About 2 × 3 m of clear floor, nothing in front or behind you.",
@@ -2937,7 +2937,7 @@
         "adjustment": "Send the hips back with a soft knee."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each swing (your hips folding and snapping open); it does not judge technique beyond that. Side-on or at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2947,7 +2947,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "bench_dip",
     "purpose": "Lower and press the body with the hands on a bench behind you, for the triceps.",
     "space": "A sturdy bench or chair that will not slide.",
@@ -2976,7 +2976,7 @@
         "adjustment": "Keep them pressed down."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version; follow the demonstration.",
+    "limitations": "The camera counts each dip (your elbows bending and straightening); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -2986,7 +2986,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "crunch",
     "purpose": "Curl the head and shoulders off the floor, for the stomach muscles.",
     "space": "A mat-sized area of clear floor.",
@@ -3015,7 +3015,7 @@
         "adjustment": "Lift only the head and shoulders."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each crunch (your shoulders curling up off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3025,7 +3025,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "heel_taps",
     "purpose": "Reach side to side toward the heels, for the sides of the stomach.",
     "space": "A mat-sized area of clear floor.",
@@ -3054,7 +3054,7 @@
         "adjustment": "Look at the ceiling, chin slightly tucked."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each tap (your hand reaching toward your heel); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3064,7 +3064,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "reverse_crunch",
     "purpose": "Curl the hips off the floor toward the chest, for the lower stomach muscles.",
     "space": "A mat-sized area of clear floor.",
@@ -3093,7 +3093,7 @@
         "adjustment": "Let the stomach do the work."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each rep (your knees coming in toward your chest); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3103,7 +3103,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "toe_taps",
     "purpose": "Lower one foot at a time to tap the floor, for stomach control.",
     "space": "A mat-sized area of clear floor.",
@@ -3132,7 +3132,7 @@
         "adjustment": "Lower slowly and with control."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each tap (one foot lowering toward the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3142,7 +3142,7 @@
     "level": "beginner",
     "durationSeconds": 30,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "high_plank",
     "purpose": "Hold a straight line from head to heels on straight arms, for the trunk and shoulders.",
     "space": "A mat-sized area of clear floor.",
@@ -3171,7 +3171,7 @@
         "adjustment": "Lower the hips into line."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera times your hold only while you're in the position (body long and level, hands under your shoulders), and may suggest lifting or lowering your hips into one line; it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3181,7 +3181,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "shoulder_taps",
     "purpose": "Tap each shoulder from a high plank without letting the hips rock.",
     "space": "A mat-sized area of clear floor.",
@@ -3210,7 +3210,7 @@
         "adjustment": "Keep one straight line."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each tap (one hand lifting off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level in front of you or at an angle, both hands in view; side-on, the far hand is hidden and its taps are missed. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3220,7 +3220,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "single_leg_bridge",
     "purpose": "A glute bridge on one leg, for the glutes and hamstrings.",
     "space": "A mat-sized area of clear floor.",
@@ -3249,7 +3249,7 @@
         "adjustment": "Stop when shoulders, hips and knee are in line."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each lift (your hips rising); it does not judge technique beyond that. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3259,7 +3259,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "donkey_kick",
     "purpose": "On all fours, lift one bent leg back to hip height, for the glutes.",
     "space": "A mat-sized area of clear floor.",
@@ -3288,7 +3288,7 @@
         "adjustment": "Keep both hips facing the floor."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each lift (the working knee rising off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3298,7 +3298,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "fire_hydrant",
     "purpose": "On all fours, lift one bent knee out to the side, for the outer hips.",
     "space": "A mat-sized area of clear floor.",
@@ -3327,7 +3327,7 @@
         "adjustment": "Pause at the top."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera counts each lift (the working knee rising off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3337,7 +3337,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "childs_pose",
     "purpose": "A resting stretch for the back, hips and shoulders.",
     "space": "A mat-sized area of clear floor.",
@@ -3366,7 +3366,7 @@
         "adjustment": "Breathe slowly into the back."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera times your hold only while you're in the position (hips back toward your heels, chest folded down); it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3376,7 +3376,7 @@
     "level": "beginner",
     "durationSeconds": 30,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "bear_hold",
     "purpose": "On all fours with the knees hovering just off the floor, for the trunk and shoulders.",
     "space": "A mat-sized area of clear floor.",
@@ -3405,7 +3405,7 @@
         "adjustment": "Breathe slowly."
       }
     ],
-    "limitations": "The camera does not assess this movement in this version. Floor positions are hard to track from a phone; use the demonstration.",
+    "limitations": "The camera times your hold only while you're in the position (on hands and feet with the knees bent and hovering); it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3563,7 +3563,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_body_head_jab",
     "purpose": "Change levels with two jabs: the first to the body, the second to the head.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3590,7 +3590,7 @@
         "adjustment": "Keep it at the chin."
       }
     ],
-    "limitations": "The camera does not assess this movement. It does not judge power or accuracy.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each body-and-head pair from the jabbing elbow coming up and back to guard; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3600,7 +3600,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_parry",
     "purpose": "Practise tapping an imaginary jab aside with the rear hand.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3627,7 +3627,7 @@
         "adjustment": "Tap across, not down."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3637,7 +3637,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_catch",
     "purpose": "Practise catching an imaginary jab with the rear palm.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3664,7 +3664,7 @@
         "adjustment": "Keep the lead glove up."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3674,7 +3674,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_high_block",
     "purpose": "Cover up with both gloves to the temples and the elbows in.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3701,7 +3701,7 @@
         "adjustment": "Squeeze them in to protect the body."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3711,7 +3711,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_body_block",
     "purpose": "Drop the lead elbow to protect the ribs, with a small bend toward that side.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3738,7 +3738,7 @@
         "adjustment": "Keep the bend small."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3748,7 +3748,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_duck",
     "purpose": "Lower under an imaginary punch by bending the knees.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3775,7 +3775,7 @@
         "adjustment": "Drop only a little below the imaginary punch."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each duck from your shoulders dipping and coming back up; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3785,7 +3785,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_block_cross",
     "purpose": "Cover up, then answer with the cross.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3812,7 +3812,7 @@
         "adjustment": "Keep it at the chin."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3859,7 +3859,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_slip_cross",
     "purpose": "Slip to the outside, then throw the cross as the head comes back.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3886,7 +3886,7 @@
         "adjustment": "Keep it at the chin."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3896,7 +3896,7 @@
     "level": "beginner",
     "durationSeconds": 50,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_roll_hook",
     "purpose": "Roll under an imaginary hook, then answer with the lead hook.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3923,7 +3923,7 @@
         "adjustment": "Keep the eyes forward."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each roll-and-hook from the hooking elbow coming up and back to guard; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3933,7 +3933,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "demo_guided_initially",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_pull_counter",
     "purpose": "Lean back out of range, then come forward with the cross.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3960,7 +3960,7 @@
         "adjustment": "Keep both gloves up."
       }
     ],
-    "limitations": "The camera does not assess this movement. No timing or reaction scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4192,7 +4192,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_stance_bounce",
     "purpose": "Light rhythm on the balls of the feet in your stance.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -4221,7 +4221,7 @@
         "adjustment": "Keep your stance width."
       }
     ],
-    "limitations": "The camera does not assess this movement. No rhythm scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4231,7 +4231,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "guided_limited_feedback",
     "demoAnimation": "boxing_fist_rolls",
     "purpose": "Roll the fists around each other in front of the chest, for shoulder endurance and rhythm.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -4258,7 +4258,7 @@
         "adjustment": "Relax the shoulders down."
       }
     ],
-    "limitations": "The camera does not assess this movement. No rhythm scoring.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

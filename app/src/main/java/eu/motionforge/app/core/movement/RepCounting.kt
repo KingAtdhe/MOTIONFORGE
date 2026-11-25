@@ -43,7 +43,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     SQUAT("Squat check", "Keep your whole body in view, side-on or facing the phone.",
         "Lower with control. Each rep is checked when you stand up.",
         "That dip didn't reach counting depth. Go a little lower if it's comfortable."),
-    PUSH_UP("Push-up check", "Put the phone on the floor side-on or at an angle, whole body in view.",
+    PUSH_UP("Push-up check", "Put the phone at floor level, side-on or at an angle, whole body in view.",
         "Lower with control. Each rep is checked when your arms are straight again.",
         "That one didn't reach counting depth. Lower your chest a little more if it's comfortable."),
     LUNGE("Lunge check", "Keep your whole body in view, side-on or facing the phone.",
@@ -76,7 +76,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     SLIP("Slip check", "Face the phone with your head and upper body in view.",
         "Each slip is counted when your head comes back to the middle.",
         "That one was small. Move your head a little further off the line if it's comfortable."),
-    CALF_RAISE("Calf raise check", "Keep your whole body, feet included, in view.",
+    CALF_RAISE("Calf raise check", "Stand side-on to the phone with your whole body, feet included, in view.",
         "Each rep is counted when your heels come back down.",
         "That one didn't go the full way."),
     KNEE_LIFT("Knee check", "Keep your whole body in view, facing the phone or side-on.",
@@ -88,6 +88,70 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     OVERHEAD("Triceps check", "Keep your upper body and arms in view, hands visible above your head.",
         "Each rep is counted when your arms are straight overhead again.",
         "That one didn't go the full way."),
+    // ---- added 2026-11-25: each checked on rendered videos of both coaches (RenderedVideoRepTest) ----
+    CLIMBER("Climber check", "Put the phone at floor level, side-on, whole body in view.",
+        "Drive one knee in at a time. Each knee drive is counted when the foot goes back.",
+        "That knee didn't come in far. Bring it a little closer to your chest if it's comfortable."),
+    DEAD_BUG("Dead bug check", "Put the phone at floor level, side-on, whole body in view.",
+        "Reach long and slow. Each leg reach is counted when it comes back.",
+        "That reach was short. Lengthen the leg a little more if it's comfortable."),
+    BIRD_DOG("Bird dog check", "Put the phone at floor level, side-on, whole body in view.",
+        "Reach long and slow. Each reach is counted when the knee comes back down.",
+        "That reach was short. Lengthen the leg a little more if it's comfortable."),
+    SUPERMAN("Superman check", "Put the phone at floor level, side-on, whole body in view.",
+        "Lift gently and lower. Each lift is counted when you're back down.",
+        "That lift was small. Lift a little more if it's comfortable."),
+    CAT_COW("Cat-cow check", "Put the phone at floor level, side-on, whole body in view.",
+        "Move slowly with your breath. Each round is counted when the head comes back down.",
+        "That round was small. Move a little further if it's comfortable."),
+    LEG_SWING("Leg check", "Keep your whole body in view: side-on for kickbacks, facing the phone for side raises.",
+        "Lift with control. Each lift is counted when the foot comes back down.",
+        "That lift was small. Lift a little more if it's comfortable."),
+    BUTT_KICK("Butt kick check", "Stand side-on to the phone with your whole body in view.",
+        "Bring the heel up behind you. Each kick is counted when the foot comes back down.",
+        "That kick was low. Bring the heel a little higher if it's comfortable."),
+    TWIST("Twist check", "Face the phone with your whole body in view, hands together at your chest.",
+        "Turn from the middle. Each twist is counted when you're back facing the phone.",
+        "That twist was small. Turn a little further if it's comfortable."),
+    SIDE_BEND("Side bend check", "Face the phone with your upper body in view.",
+        "Bend to the side and come back up. Each bend is counted when you're upright again.",
+        "That bend was small. Reach a little further if it's comfortable."),
+    SKATE("Skater check", "Face the phone with your whole body in view, with room to step side to side.",
+        "Step wide side to side. Each skate is counted when you land.",
+        "That step was short. Go a little wider if it's comfortable."),
+    WALL_PUSH_UP("Wall push-up check", "Stand side-on to the phone, whole body and the wall in view.",
+        "Lower your chest toward the wall. Each rep is counted when your arms are straight again.",
+        "That one didn't reach counting depth. Bring your chest a little closer to the wall if it's comfortable."),
+    FLOOR_PRESS("Press check", "Put the phone at floor level, side-on, whole body in view.",
+        "Press up and lower with control. Each press is counted when the weights come back down.",
+        "That press didn't go the full way."),
+    DIP("Dip check", "Put the phone side-on, whole body and the bench in view.",
+        "Lower with control. Each dip is counted when your arms are straight again.",
+        "That dip was shallow. Lower a little more if it's comfortable."),
+    CRUNCH("Crunch check", "Put the phone at floor level, side-on, whole body in view.",
+        "Curl up and lower slowly. Each crunch is counted when your shoulders come back down.",
+        "That crunch was small. Curl a little more if it's comfortable."),
+    KNEES_IN("Knee check", "Put the phone at floor level, side-on, whole body in view.",
+        "Bring the knees in and lower slowly. Each rep is counted when the legs go back out.",
+        "That one was small. Bring the knees in a little more if it's comfortable."),
+    TOE_TAP("Toe tap check", "Put the phone at floor level, side-on, whole body in view.",
+        "Lower one foot to tap and bring it back. Each tap is counted when the leg is back up.",
+        "That tap didn't go far down."),
+    HEEL_TAP("Heel tap check", "Put the phone at floor level, side-on, whole body in view.",
+        "Reach side to side toward your heels. Each tap is counted when you're back in the middle.",
+        "That reach was small. Reach a little further if it's comfortable."),
+    SHOULDER_TAP("Shoulder tap check", "Put the phone at floor level in front of you or at an angle, both hands in view — side-on, the far hand is hidden.",
+        "Lift one hand to the other shoulder. Each tap is counted when the hand is back down.",
+        "That tap was small."),
+    SWING("Swing check", "Stand side-on to the phone with your whole body in view.",
+        "Hinge and snap the hips through. Each swing is counted when you stand tall.",
+        "That one was small. Hinge a little deeper if it's comfortable."),
+    SHRUG("Shrug check", "Face the phone with your head and shoulders in view.",
+        "Lift the shoulders toward your ears and lower slowly. Each shrug is counted when they're back down.",
+        "That shrug was small. Lift a little higher if it's comfortable."),
+    KICK_BACK("Leg lift check", "Put the phone at floor level at an angle (a front corner), whole body in view — side-on, the far leg is hidden.",
+        "Lift the leg with control. Each lift is counted when the knee comes back down.",
+        "That lift was small. Lift a little more if it's comfortable."),
     ;
 
     companion object {
@@ -103,7 +167,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "dumbbell_bent_over_row", "dumbbell_reverse_fly" -> ROW
             "band_pull_apart" -> BAND
             // the bodyweight hip hinge stays instructional only (spec); the loaded hinges are counted, never judged
-            "dumbbell_romanian_deadlift", "kettlebell_deadlift" -> HINGE
+            "dumbbell_romanian_deadlift", "kettlebell_deadlift", "good_morning", "single_leg_rdl" -> HINGE
             "glute_bridge" -> BRIDGE
             "boxing_lead_hook", "boxing_rear_hook", "boxing_lead_uppercut", "boxing_rear_uppercut",
             "boxing_one_two", "boxing_one_two_hook", "boxing_step_jab",
@@ -115,6 +179,32 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "high_knee_march", "standing_knee_crunch" -> KNEE_LIFT
             "standing_oblique_crunch" -> SIDE_KNEE_LIFT
             "boxing_slip", "boxing_jab_slip" -> SLIP
+            "calf_raise", "dumbbell_calf_raise" -> CALF_RAISE
+            "squat_calf_raise" -> SQUAT
+            "boxing_roll", "boxing_duck" -> LEVEL
+            "slow_mountain_climber" -> CLIMBER
+            "dead_bug" -> DEAD_BUG
+            "bird_dog" -> BIRD_DOG
+            "superman" -> SUPERMAN
+            "cat_cow" -> CAT_COW
+            "glute_kickback", "side_leg_raise" -> LEG_SWING
+            "butt_kicks" -> BUTT_KICK
+            "standing_torso_twist" -> TWIST
+            "standing_side_bend" -> SIDE_BEND
+            "skater_step" -> SKATE
+            "wall_push_up" -> WALL_PUSH_UP
+            "dumbbell_floor_press" -> FLOOR_PRESS
+            "bench_dip" -> DIP
+            "crunch" -> CRUNCH
+            "reverse_crunch" -> KNEES_IN
+            "tabletop_toe_taps" -> TOE_TAP
+            "plank_shoulder_taps" -> SHOULDER_TAP
+            "heel_taps" -> HEEL_TAP
+            "donkey_kick", "fire_hydrant" -> KICK_BACK
+            "dumbbell_shrug" -> SHRUG
+            "kettlebell_swing" -> SWING
+            "single_leg_glute_bridge" -> BRIDGE
+            "boxing_roll_hook", "boxing_body_head_jab" -> COMBO
             else -> null
         }
 
@@ -143,6 +233,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             SIDE_KNEE_LIFT -> KneeLiftRepCounter(travel = 0.38)
             OVERHEAD -> OverheadDropRepCounter()
             null -> null
+            else -> MoreMoves.counterFor(forExercise(id)!!)
         }
     }
 }

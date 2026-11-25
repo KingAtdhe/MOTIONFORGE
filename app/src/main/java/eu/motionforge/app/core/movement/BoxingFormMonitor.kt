@@ -7,7 +7,18 @@ import kotlin.math.hypot
 
 /** Which beginner boxing drill is being watched. CROSS uses the jab rules on the rear hand: the punching arm is
  *  whichever arm extends at shoulder height, and the other hand must stay up. */
-enum class BoxingDrill { STANCE, JAB, CROSS }
+enum class BoxingDrill {
+    STANCE, JAB, CROSS;
+
+    companion object {
+        /** Lessons besides the stance that get the stance rules (hands up by the face, feet balanced): defence, combos
+         *  and drills where both hands come back to the guard. Each is checked on rendered videos of the coaches
+         *  doing the move correctly (RenderedVideoRepTest): no cue may fire on a correct demo. */
+        val GUARD_CHECKED: Set<String> = setOf(
+            "boxing_one_two", "boxing_one_two_hook", "boxing_jab_jab_cross", "boxing_guard_return", "boxing_lead_hook", "boxing_slip", "boxing_rear_uppercut", "boxing_lead_uppercut", "boxing_rear_hook", "boxing_roll", "boxing_double_jab", "boxing_body_jab", "boxing_cross_hook", "boxing_pull_back", "boxing_step_jab", "boxing_body_cross", "boxing_body_hook", "boxing_rear_body_hook", "boxing_jab_body_cross", "boxing_body_head_jab", "boxing_parry", "boxing_catch", "boxing_high_block", "boxing_body_block", "boxing_duck", "boxing_block_cross", "boxing_jab_slip", "boxing_slip_cross", "boxing_roll_hook", "boxing_pull_counter", "boxing_jab_uppercut", "boxing_uppercut_hook", "boxing_hook_cross", "boxing_cross_hook_cross", "boxing_one_two_uppercut", "boxing_uppercuts", "boxing_stance_bounce", "boxing_fist_rolls", "boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot",
+        )
+    }
+}
 
 /** [message] is shown on screen, [spoken] is the short version the voice coach says. */
 enum class FormIssue(val message: String, val spoken: String) {
