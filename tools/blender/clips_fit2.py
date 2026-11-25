@@ -829,7 +829,7 @@ def reverse_crunch(r, st):
             res = {}
             for s, sg in SIDES:
                 S = pts["S_" + s]
-                wz = 0.085 * k
+                wz = 0.097 * k          # (at 0.085 the forearm skin pressed ~1 cm into the floor -- QC)
                 dx = sg * 0.12 * k
                 dy = -math.sqrt(max((0.985 * r.la) ** 2 - dx * dx - (S.z - wz) ** 2, 1e-6))
                 res[s] = {"w": V(S.x + dx, S.y + dy, wz), "pole": V(sg * 0.4, 0, -1.0), "fingers": V(sg * 0.1, -1, 0), "palm": V(0, 0, -1)}
@@ -888,7 +888,7 @@ def toe_taps(r, st):
             res = {}
             for s, sg in SIDES:
                 S = pts["S_" + s]
-                wz = 0.085 * k
+                wz = 0.097 * k          # (at 0.085 the forearm skin pressed ~1 cm into the floor -- QC)
                 dx = sg * 0.12 * k
                 dy = -math.sqrt(max((0.985 * r.la) ** 2 - dx * dx - (S.z - wz) ** 2, 1e-6))
                 res[s] = {"w": V(S.x + dx, S.y + dy, wz), "pole": V(sg * 0.4, 0, -1.0), "fingers": V(sg * 0.1, -1, 0), "palm": V(0, 0, -1)}
@@ -945,7 +945,7 @@ def shoulder_taps(r, st):
             # one smooth arc on one parameter: off the floor, up and across to the shoulder, back the same way (the lift
             # bump on its own, faster parameter dropped the hand the last 9 cm in a few frames -- QC: landing at 8 cm a
             # frame, elbow jerk ~2000 m/s3)
-            ex = smoother(e)
+            ex = e      # (e is already eased by _phases: smoother(e) on top packed the tap into a few 8 cm/frame frames -- QC)
             w = wrist[side].lerp(tap, ex) + V(0, 0, 0.10 * k * math.sin(math.pi * ex) * (1.0 - 0.3 * ex))
             # the elbow, fingers and palm turn with the hand's own progress (turning on smooth(e) ran ahead of the hand:
             # the elbow swung at 11 cm a frame -- QC)
@@ -1030,7 +1030,7 @@ def single_leg_bridge(r, st):
             res = {}
             for s, sg in SIDES:
                 S = pts["S_" + s]
-                wz = 0.085 * k
+                wz = 0.097 * k          # (at 0.085 the forearm skin pressed ~1 cm into the floor -- QC)
                 dx = sg * 0.11 * k
                 dy = -math.sqrt(max((0.985 * r.la) ** 2 - dx * dx - (S.z - wz) ** 2, 1e-6))
                 res[s] = {"w": V(S.x + dx, S.y + dy, wz), "pole": V(sg * 0.4, 0, -1.0), "fingers": V(sg * 0.1, -1, 0), "palm": V(0, 0, -1)}
@@ -1064,10 +1064,10 @@ def donkey_kick(r, st):
     """Quadruped glute kickback ("donkey kick"): on all fours, one knee stays bent at 90 degrees as the thigh lifts back
     to hip height, sole toward the ceiling; lower with control; other side. No arching."""
     def fn(side, e, t):
-        a = math.radians(-90.0 + 90.0 * smooth(e))
+        a = math.radians(-90.0 + 90.0 * e)    # (e already eased; no second easing)
         thigh = V(0, math.cos(a), math.sin(a))
         shin = V(0, math.cos(a + math.pi / 2), math.sin(a + math.pi / 2))
-        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25).lerp(V(0, 1.0, 0.1), smooth(e)), smooth(min(1.0, e / 0.4)))
+        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25).lerp(V(0, 1.0, 0.1), e), e)
         sp["kpole"] = dict(sp["kpole"])
         sp["kpole"][side] = V(0, -0.3, -1).lerp(thigh.normalized(), smooth(min(1.0, e / 0.15)))   # knee where the thigh points
         sp["arms"] = _hands_on_floor(wrists)
@@ -1080,10 +1080,10 @@ def fire_hydrant(r, st):
     lower with control; other side. Hips stay square."""
     def fn(side, e, t):
         sg = 1.0 if side == "L" else -1.0
-        b = math.radians(62.0 * smooth(e))
+        b = math.radians(62.0 * e)          # (e already eased; no second easing)
         thigh = V(sg * math.sin(b), 0.0, -math.cos(b))
         shin = V(0, 1.0, -0.06)
-        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25), smooth(min(1.0, e / 0.4)))
+        sp, wrists = _quad_leg(r, st, side, thigh, shin, V(0, 1.0, -0.25), e)   # (blend done at e=0.4 while the lift went on: the leg stopped and restarted mid-move -- QC)
         sp["kpole"] = dict(sp["kpole"])
         sp["kpole"][side] = V(0, -0.3, -1).lerp(thigh.normalized(), smooth(min(1.0, e / 0.15)))
         sp["pel"] = Ry(-sg * 3.0 * e) @ sp["pel"]

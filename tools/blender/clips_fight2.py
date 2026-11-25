@@ -262,8 +262,10 @@ def fist_rolls(r, st):
 
 # ---------------------------------------------------------------------------------------------- footwork
 def _push_steps(t, start=0.20):
-    first = smooth((t - start) / 0.30)
-    second = smooth((t - start - 0.26) / 0.30)
+    # quintic, slightly longer: the cubic started and stopped each 18 cm step with a jolt (QC: circle footwork knee jerk
+    # ~730 m/s3 at the first frame of the step)
+    first = smoother((t - start) / 0.38)
+    second = smoother((t - start - 0.26) / 0.38)
     body = smoother((t - start + 0.02) / 0.60)
     return first, second, body, math.sin(math.pi * first), math.sin(math.pi * second)
 
@@ -379,8 +381,8 @@ def shuffle(r, st):
                 if (rep or direction < 0) and i == 0:
                     continue
                 t = T1 * i / (n - 1)
-                first = smooth((t - 0.10) / 0.24)
-                second = smooth((t - 0.30) / 0.24)
+                first = smoother((t - 0.10) / 0.28)
+                second = smoother((t - 0.30) / 0.28)
                 body = smoother((t - 0.08) / 0.50)
                 g1, g2 = math.sin(math.pi * first), math.sin(math.pi * second)
                 tg = (rep * 2 + (0 if direction > 0 else 1)) * T1 + t
