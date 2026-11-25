@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,7 @@ import com.google.android.filament.LightManager
 import com.google.android.filament.utils.ModelViewer
 import com.google.android.filament.utils.Utils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -93,7 +95,20 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
     var clips: List<AnimationClip> = emptyList()
         private set
 
+    /**
+     * True once the view has left its window: ModelViewer then destroys itself *and its engine* (Filament's own detach
+     * listener), so this scene can never draw or load again and must be replaced. Reusing it was one way the lesson
+     * screen ended up on "3D isn't available" (QC).
+     */
+    var dead = false
+        private set
+
     init {
+        // added after ModelViewer's own listener, so it runs after the engine is gone
+        textureView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) = Unit
+            override fun onViewDetachedFromWindow(v: View) { dead = true }
+        })
         if (allowOrbit) {
             textureView.setOnTouchListener { _, event ->
                 viewer.onTouchEvent(event)
@@ -170,6 +185,7 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
     var loadedPath: String? = null
 
     fun load(buffer: ByteBuffer) {
+        check(!dead) { "3D scene already destroyed" }
         viewer.loadModelGlb(buffer)
         viewer.transformToUnitCube()
         val asset = viewer.asset ?: error("GLB parsed but produced no asset")
@@ -194,6 +210,13 @@ private class FilamentScene(context: Context, allowOrbit: Boolean, lit: Boolean,
 
     private companion object {
         const val MODEL_ZOOM = 1.62f
+    }
+
+    /** Frees a scene that never reached a window (its engine would otherwise leak; attached scenes free on detach). */
+    fun destroyIfNeverShown() {
+        if (dead || textureView.isAttachedToWindow) return
+        dead = true
+        runCatching { viewer.destroy() }
     }
 
     fun applyYaw(yawDegrees: Float) {
@@ -224,7 +247,12 @@ fun GlbModelView(
     transparent: Boolean = false,
 ) {
     val context = LocalContext.current
-    val sceneResult: Result<FilamentScene> = remember {
+    // A fresh scene (new engine) is made when the old one died with its view, or after a failed load (up to
+    // MAX_RETRIES times, then the caller's fallback shows). Transient failures -- low memory right after leaving
+    // another lesson, an engine still being torn down -- no longer leave the lesson on the fallback for good.
+    var generation by remember { mutableIntStateOf(0) }
+    var retries by remember(assetPath) { mutableIntStateOf(0) }
+    val sceneResult: Result<FilamentScene> = remember(generation) {
         FilamentRuntime.initResult.fold(
             onSuccess = { runCatching { FilamentScene(context, allowOrbit, lit, backgroundRgb, transparent) } },
             onFailure = { Result.failure(it) },
@@ -233,40 +261,58 @@ fun GlbModelView(
     val scene = sceneResult.getOrNull()
     if (scene == null) {
         LaunchedEffect(sceneResult) {
-            // the technical reason goes to the log; people get a plain sentence
-            android.util.Log.w("MotionForge3D", "3D renderer unavailable", sceneResult.exceptionOrNull())
-            playback.loadState = GlbLoadState.Failed("The 3D coach can't be shown on this device.")
+            android.util.Log.w("MotionForge3D", "3D renderer unavailable (try ${retries + 1})", sceneResult.exceptionOrNull())
+            if (FilamentRuntime.initResult.isSuccess && retries < MAX_RETRIES) {
+                retries++
+                playback.loadState = GlbLoadState.Loading
+                delay(RETRY_DELAY_MS * retries)
+                generation++
+            } else {
+                // the technical reason goes to the log; people get a plain sentence
+                playback.loadState = GlbLoadState.Failed("The 3D coach can't be shown on this device.")
+            }
         }
         return
     }
+    DisposableEffect(scene) { onDispose { scene.destroyIfNeverShown() } }
 
     // Keyed on the playback too: in a workout the view stays while the exercise (and its playback) changes. Keyed on
     // the scene alone, the render loop kept driving the first exercise's playback and the coach went on showing it.
     LaunchedEffect(scene, assetPath, playback) {
-        if (scene.loadedPath == assetPath) {
+        if (scene.loadedPath == assetPath && !scene.dead) {
             playback.loadState = GlbLoadState.Loaded(scene.clips)
             return@LaunchedEffect
         }
         playback.loadState = GlbLoadState.Loading
-        val buffer = try {
-            withContext(Dispatchers.IO) { readAsset(context, assetPath) }
-        } catch (e: Exception) {
-            playback.loadState = GlbLoadState.Failed("3D model file could not be read (${e.message}).")
-            return@LaunchedEffect
-        }
-        playback.loadState = try {
+        val failure: Throwable? = try {
+            val buffer = withContext(Dispatchers.IO) { GlbBytes.get(context, assetPath) }
             scene.load(buffer)
             scene.loadedPath = assetPath
-            GlbLoadState.Loaded(scene.clips)
+            null
         } catch (t: Throwable) {
-            GlbLoadState.Failed("3D model could not be loaded (${t.message ?: t.javaClass.simpleName}).")
+            t
+        }
+        if (failure == null) {
+            playback.loadState = GlbLoadState.Loaded(scene.clips)
+            return@LaunchedEffect
+        }
+        android.util.Log.w("MotionForge3D", "3D model load failed (try ${retries + 1})", failure)
+        if (retries < MAX_RETRIES) {
+            retries++
+            delay(RETRY_DELAY_MS * retries)
+            generation++                                  // new scene, new engine
+        } else {
+            playback.loadState = GlbLoadState.Failed("3D model could not be loaded (${failure.message ?: failure.javaClass.simpleName}).")
         }
     }
 
     val loop = remember(scene, playback) { RenderLoop(scene, playback) }
     DisposableEffect(loop) {
         val listener = object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) = loop.start()
+            override fun onViewAttachedToWindow(v: View) {
+                // back in a window after leaving it: the old engine is gone, build a new scene
+                if (scene.dead) generation++ else loop.start()
+            }
             override fun onViewDetachedFromWindow(v: View) = loop.stop()
         }
         scene.textureView.addOnAttachStateChangeListener(listener)
@@ -277,10 +323,29 @@ fun GlbModelView(
         }
     }
 
-    AndroidView(
-        factory = { scene.textureView },
-        modifier = modifier.semantics { this.contentDescription = contentDescription },
-    )
+    key(generation) {
+        AndroidView(
+            factory = { scene.textureView },
+            modifier = modifier.semantics { this.contentDescription = contentDescription },
+        )
+    }
+}
+
+private const val MAX_RETRIES = 2
+private const val RETRY_DELAY_MS = 350L
+
+/**
+ * The coach GLB bytes, read once per file and shared by every 3D view (read-only duplicates). Reading 11 MB twice
+ * (byte array + direct buffer) on every lesson opened piled up garbage on smaller phones.
+ */
+internal object GlbBytes {
+    private val cache = HashMap<String, ByteBuffer>()
+
+    @Synchronized
+    fun get(context: Context, path: String): ByteBuffer {
+        val b = cache.getOrPut(path) { readAsset(context, path) }
+        return b.duplicate().order(ByteOrder.nativeOrder()).also { it.rewind() }
+    }
 }
 
 private fun readAsset(context: Context, path: String): ByteBuffer {
@@ -313,6 +378,7 @@ private class RenderLoop(
 
     override fun doFrame(frameTimeNanos: Long) {
         if (!running) return
+        if (scene.dead) { running = false; return }        // engine destroyed with the view: never touch it again
         choreographer.postFrameCallback(this)
         val dt = if (lastFrameNanos == 0L) 0.0 else (frameTimeNanos - lastFrameNanos) / 1_000_000_000.0
         lastFrameNanos = frameTimeNanos

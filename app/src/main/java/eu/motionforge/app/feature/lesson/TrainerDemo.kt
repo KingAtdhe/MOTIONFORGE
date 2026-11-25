@@ -56,6 +56,7 @@ import eu.motionforge.app.core.model.Coach
 import eu.motionforge.app.core.render3d.GlbModelView
 import eu.motionforge.app.core.render3d.GlbPlayback
 import eu.motionforge.app.core.render3d.ViewAngle
+import eu.motionforge.app.core.render3d.viewAngles
 import eu.motionforge.app.core.render3d.defaultViewAngle
 
 private sealed interface DemoAvailability {
@@ -187,10 +188,11 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     compact = true,
                 )
             }
+            val angles = remember(sequence) { viewAngles(sequence) }
             SegmentedPill(
-                options = ViewAngle.entries.map { it.label },
-                selectedIndex = ViewAngle.entries.indexOf(playback.viewAngle),
-                onSelect = { playback.viewAngle = ViewAngle.entries[it] },
+                options = angles.map { it.label },
+                selectedIndex = angles.indexOf(playback.viewAngle).coerceAtLeast(0),
+                onSelect = { playback.viewAngle = angles[it] },
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 compact = true,
             )

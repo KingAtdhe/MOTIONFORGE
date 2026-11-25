@@ -181,4 +181,12 @@ class DemoClipsTest {
             }
         }
     }
+
+    @Test
+    fun wallLessonsNeverOfferAnAngleBehindTheWall() {
+        assertEquals(listOf(ViewAngle.SIDE, ViewAngle.BACK), viewAngles(listOf("wall_pushup")))
+        assertEquals(listOf(ViewAngle.FRONT, ViewAngle.THREE_QUARTER, ViewAngle.SIDE), viewAngles(listOf("wall_sit")))
+        assertEquals(ViewAngle.entries.toList(), viewAngles(listOf("squat_down", "squat_up")))
+        assertTrue(defaultViewAngle("side") in viewAngles(listOf("wall_pushup")))
+    }
 }

@@ -777,7 +777,9 @@ def settle_contacts(arm, mesh, scene, names):
                 ref = {"kneel": ("shin", "thigh"), "prone": ("torso", "thigh")}.get(mode)
                 drop = min(z[R[k], 2].min() for k in ref) if ref else 0.0
                 raw.append(drop)
-                if mode == "hands":
+                if mode in ("hands", "kneel") and n not in LIFTING_HANDS:
+                    # (not where a hand lifts and lands on purpose: tipping the body as the bird dog's hand came down
+                    # dropped it 2.7 cm in a frame -- QC; its planted arms never came near locking)
                     # how far each arm would have to stretch past 98.5 % of its length to put its palm on the floor (the
                     # deforming arms are shorter than the authoring rig's: in the mountain climber the left arm locked
                     # straight and the hand left the floor -- QC)
@@ -786,6 +788,8 @@ def settle_contacts(arm, mesh, scene, names):
                         S_ = "Left" if s == "L" else "Right"
                         ua_, fa_, hd_ = (arm.pose.bones[P + S_ + nm] for nm in ("Arm", "ForeArm", "Hand"))
                         Sh_, El_, Wr_ = (_world(arm, x).translation for x in (ua_, fa_, hd_))
+                        # (a hand above the floor here is one the short arm could not reach: the female cow pose left
+                        # both 3-4 cm up -- it must count, not be skipped)
                         Wf = Wr_ - Vector((0, 0, z[R["hand" + s], 2].min()))
                         need = max(need, (Wf - Sh_).length - 0.985 * ((El_ - Sh_).length + (Wr_ - El_).length))
                     reach_raw.append(max(0.0, need))
@@ -809,6 +813,8 @@ def settle_contacts(arm, mesh, scene, names):
                 sm = [sum(kw * mx[min(len(mx) - 1, max(0, i + j - 3))] for j, kw in enumerate(ker)) / 16.0 for i in range(len(mx))]
                 sm[0], sm[-1] = mx[0], mx[-1]
                 reach_drop = {f: v * 1.25 for f, v in zip(range(a, b + 1), sm)}
+                if os.environ.get("MF_DEBUG_PIN") == n:
+                    print("REACHDBG", n, " ".join("%d:%.1f" % (f, v * 100) for f, v in zip(range(a, b + 1), reach_raw) if v > 0.0005))
             # a hand's resting height is where it spends most of its time on the floor (25th percentile), not its single
             # lowest frame: a brief authored dip 1.5 cm into the floor made the male bird dog's resting right hand count as
             # half-lifted, so the pin held it 2.5 cm up the whole clip -- QC
@@ -860,8 +866,9 @@ def settle_contacts(arm, mesh, scene, names):
                 _key(hips, loc=True)
                 z = _skin_z(mesh)
             # plank: where an arm would lock, the body tips down about the toes (as a real plank does) by the smoothed need
-            if mode == "hands" and reach_drop.get(f, 0.0) > 0.0005:
-                balls = [_world(arm, arm.pose.bones[P + sd + "Foot"]).translation.copy() for sd in ("Left", "Right")]
+            # (kneeling: about the knees -- QC: the female cow pose lifted a hand 1.5 cm)
+            if mode in ("hands", "kneel") and reach_drop.get(f, 0.0) > 0.0005:
+                balls = [_world(arm, arm.pose.bones[P + sd + ("Foot" if mode == "hands" else "Leg")]).translation.copy() for sd in ("Left", "Right")]
                 Pv = (balls[0] + balls[1]) / 2
                 Sm_ = sum((_world(arm, arm.pose.bones[P + sd + "Arm"]).translation for sd in ("Left", "Right")), Vector()) / 2
                 v_ = Sm_ - Pv

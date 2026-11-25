@@ -1581,7 +1581,7 @@ def cat_cow(r, st):
     base, wrists, pitch0 = _quadruped_base(r, st)
 
     def shoulders(x):
-        sp, _, _ = _quadruped_base(r, st, spine=-14.0 * x, chest=-14.0 * x, head=24.0 * x, pel_extra=14.0 * x, pitch_fixed=pitch0)
+        sp, _, _ = _quadruped_base(r, st, spine=16.0 * x, chest=16.0 * x, head=24.0 * x, pel_extra=-16.0 * x, pitch_fixed=pitch0)
         _, pts = r.torso(sp)
         return pts
     # plant the hands under where the shoulders are midway between full cat and full cow, so both ends stay in reach
@@ -1593,7 +1593,8 @@ def cat_cow(r, st):
         x = _phases(t, [(0.4, 0, 0), (1.6, 0, 1), (0.6, 1, 1), (1.6, 1, -1), (0.6, -1, -1), (1.2, -1, 0)])   # +1 cat, -1 cow
         # the spine curves between hips and shoulders: the pelvis tilts one way, the upper back the other, so the shoulders
         # stay over the hands (cat: tail tucks, back rounds up, head drops; cow: tail lifts, chest sinks, gaze lifts)
-        sp, _, _ = _quadruped_base(r, st, spine=-14.0 * x, chest=-14.0 * x, head=24.0 * x, pel_extra=14.0 * x, pitch_fixed=pitch0)
+        # (the signs used to be reversed: the back sagged in "cat" while the head tucked -- QC, both coaches)
+        sp, _, _ = _quadruped_base(r, st, spine=16.0 * x, chest=16.0 * x, head=24.0 * x, pel_extra=-16.0 * x, pitch_fixed=pitch0)
         for _ in range(6):                                       # if the rounded back lifts the shoulders out of reach,
             _, pts = r.torso(sp)                                 # the hips settle a little lower
             gap = max((pts["S_" + s_] - wrists[s_]).length for s_, _ in SIDES) - 0.985 * r.la
