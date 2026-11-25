@@ -22,7 +22,8 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
     PLANK("Plank check", "Put the phone side-on at floor level, whole body in view.",
         "Get into your plank. The timer runs while you hold the position.", "Holding — steady breathing."),
     BEAR("Bear hold check", "Put the phone side-on at floor level, whole body in view.",
-        "Hands and knees, then lift the knees a little. The timer runs while you hold.", "Holding — knees hovering."),
+        "Hands under shoulders, knees under hips. The timer runs while you're on all fours.",
+        "On all fours — keep the knees hovering just off the floor. (A lift that small can't be seen; the timer only checks the position.)"),
     WALL_SIT("Wall sit check", "Put the phone side-on, whole body in view.",
         "Slide down the wall. The timer runs while you hold the sit.", "Holding — back on the wall."),
     BALANCE("Balance check", "Face the phone with your whole body, feet included, in view.",
@@ -210,9 +211,9 @@ class HoldMonitor(
         return true to issue
     }
 
-    /** Bear hold: on hands and feet, knees bent and hovering — torso near horizontal, knees bent (hip–knee–ankle),
-     *  hands under the shoulders, and the knees lifted at least level with the ankles (resting on the floor, with the
-     *  toes tucked, they sit ~0.1 torso lengths below them; hovering, level: rendered videos). */
+    /** Bear hold: on all fours — torso near horizontal, knees bent (hip–knee–ankle), hands under the shoulders. The
+     *  knees hover only 2–3 cm: on the rendered videos that is 0.03–0.1 torso lengths depending on the body and the
+     *  camera, too close to landmark noise to tell hovering from resting, so only the position is checked. */
     private fun bear(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
         val tor = f.torso() ?: return null
         val left = f.leftNearer(BodyLandmark.LEFT_KNEE to BodyLandmark.RIGHT_KNEE, BodyLandmark.LEFT_ANKLE to BodyLandmark.RIGHT_ANKLE)
@@ -223,9 +224,7 @@ class HoldMonitor(
         val wr = if (left) BodyLandmark.LEFT_WRIST else BodyLandmark.RIGHT_WRIST
         val knee = f.angleAt(hp, kn, an) ?: return null
         if (!f.seen(sh, wr)) return null
-        // knees lifted at least level with the ankles (resting on the floor they sit ~0.1 torso lengths below them)
-        val hover = (f.y(an) - f.y(kn)) / tor.len
-        val inPos = tor.tilt in 55.0..125.0 && knee in 60.0..135.0 && f.y(wr) > f.y(sh) && hover > BEAR_HOVER
+        val inPos = tor.tilt in 55.0..125.0 && knee in 60.0..135.0 && f.y(wr) > f.y(sh)
         return inPos to null
     }
 
@@ -243,12 +242,16 @@ class HoldMonitor(
         return inPos to (if (inPos && knee > WALL_SIT_HIGH) HoldIssue.SIT_HIGHER_THAN_PLANNED else null)
     }
 
-    /** Single-leg balance: torso upright and one ankle clearly above the other (in torso lengths). */
+    /** Single-leg balance: torso upright and one foot clearly lifted — its ankle and knee both above the other leg's. */
     private fun balance(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
         val tor = f.torso() ?: return null
         if (f[BodyLandmark.LEFT_ANKLE].visibility < 0.5f || f[BodyLandmark.RIGHT_ANKLE].visibility < 0.5f) return null
+        if (f[BodyLandmark.LEFT_KNEE].visibility < 0.5f || f[BodyLandmark.RIGHT_KNEE].visibility < 0.5f) return null
+        // the lifted foot's knee comes up too (a staggered stance seen from the front puts the far ankle higher in the
+        // picture, ~0.2 torso lengths, but its knee only ~0.05)
         val lift = abs(f.y(BodyLandmark.LEFT_ANKLE) - f.y(BodyLandmark.RIGHT_ANKLE)) / tor.len
-        return (tor.tilt < 35.0 && lift > BALANCE_LIFT) to null
+        val knee = abs(f.y(BodyLandmark.LEFT_KNEE) - f.y(BodyLandmark.RIGHT_KNEE)) / tor.len
+        return (tor.tilt < 35.0 && lift > BALANCE_LIFT && knee > BALANCE_LIFT) to null
     }
 
     /** Child's pose: hips back over the heels and the chest folded down — the hips low (near the knees/heels) and the
@@ -265,7 +268,6 @@ class HoldMonitor(
 
     companion object {
         const val PLANK_BEND = 15.0
-        const val BEAR_HOVER = -0.04
         const val WALL_SIT_MAX_KNEE = 140.0
         const val WALL_SIT_HIGH = 125.0
         const val BALANCE_LIFT = 0.15

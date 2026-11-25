@@ -140,7 +140,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     HEEL_TAP("Heel tap check", "Put the phone at floor level, side-on, whole body in view.",
         "Reach side to side toward your heels. Each tap is counted when you're back in the middle.",
         "That reach was small. Reach a little further if it's comfortable."),
-    SHOULDER_TAP("Shoulder tap check", "Put the phone at floor level in front of you or at an angle, both hands in view — side-on, the far hand is hidden.",
+    SHOULDER_TAP("Shoulder tap check", "Put the phone at floor level at an angle (a front corner), whole body in view — side-on the far hand is hidden, head-on the legs are.",
         "Lift one hand to the other shoulder. Each tap is counted when the hand is back down.",
         "That tap was small."),
     SWING("Swing check", "Stand side-on to the phone with your whole body in view.",

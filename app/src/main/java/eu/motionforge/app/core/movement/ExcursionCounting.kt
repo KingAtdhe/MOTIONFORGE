@@ -209,7 +209,7 @@ class BandPullRepCounter(travel: Double = 0.6, private val minFrontal: Double = 
  * Seen from the side that is the torso's tilt in the image; seen from the front the torso leans toward the camera and
  * looks shorter instead, so the pitch is the larger of the tilt and acos(torso length / standing torso length).
  */
-class HingeRepCounter(travel: Double = 30.0) : ExcursionRepCounter(+1, travel) {
+class HingeRepCounter(travel: Double = 25.0) : ExcursionRepCounter(+1, travel, minRepMs = 500) {
     private var standingTorso = 0.0
     override fun reset() { super.reset(); standingTorso = 0.0 }
     override fun signal(f: PoseFrame): Double? {

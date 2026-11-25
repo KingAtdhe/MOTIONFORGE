@@ -3210,7 +3210,7 @@
         "adjustment": "Keep one straight line."
       }
     ],
-    "limitations": "The camera counts each tap (one hand lifting off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level in front of you or at an angle, both hands in view; side-on, the far hand is hidden and its taps are missed. Experimental.",
+    "limitations": "The camera counts each tap (one hand lifting off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on the far hand is hidden and its taps are missed, head-on the legs are hidden and tracking pauses. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3288,7 +3288,7 @@
         "adjustment": "Keep both hips facing the floor."
       }
     ],
-    "limitations": "The camera counts each lift (the working knee rising off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
+    "limitations": "The camera counts each lift (the working knee moving away from the other knee); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3327,7 +3327,7 @@
         "adjustment": "Pause at the top."
       }
     ],
-    "limitations": "The camera counts each lift (the working knee rising off the floor); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
+    "limitations": "The camera counts each lift (the working knee moving away from the other knee); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3405,7 +3405,7 @@
         "adjustment": "Breathe slowly."
       }
     ],
-    "limitations": "The camera times your hold only while you're in the position (on hands and feet with the knees bent and hovering); it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
+    "limitations": "The camera times your hold only while you're in the position (on all fours, hands under the shoulders; the 2–3 cm knee hover itself is too small to see); it does not judge effort or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

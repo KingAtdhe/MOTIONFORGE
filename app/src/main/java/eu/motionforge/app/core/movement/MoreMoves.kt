@@ -32,7 +32,7 @@ object MoreMoves {
             if (!r.torsoIn(60.0, 120.0)) null else r.sides { s -> r.above(s.ankle, s.hip) }.maxOrNull()
         }
         // all fours: the head drops with the rounded back (cat) and lifts with the arched back (cow), ~0.2 torso lengths
-        CountedMove.CAT_COW -> SignalRepCounter(+1, travel = 0.12, minRepMs = 800) { r ->
+        CountedMove.CAT_COW -> SignalRepCounter(+1, travel = 0.12, minRepMs = 400) { r ->
             val t = r.torso
             if (t == null || !r.torsoIn(60.0, 120.0) || !r.seen(BodyLandmark.NOSE)) null else (t.sy - r.y(BodyLandmark.NOSE)) / t.len
         }
@@ -43,7 +43,7 @@ object MoreMoves {
         }
         // standing: the heel comes up behind — the knee bends (hip–knee–ankle) from ~165° to ~110–130° in a quick kick
         CountedMove.BUTT_KICK -> SignalRepCounter(-1, travel = 25.0, minRepMs = 150, smoothingWindow = 2) { r ->
-            if (!r.torsoIn(0.0, 35.0)) null else r.sides { s -> r.angle(s.hip, s.knee, s.ankle, 0.4f) }.minOrNull()
+            if (!r.torsoIn(0.0, 35.0)) null else r.sides { s -> r.angle(s.hip, s.knee, s.ankle, 0.3f) }.minOrNull()
         }
         // facing the phone, hands together at the chest: turning carries the hands to either side of the hips
         CountedMove.TWIST -> TwoSidedRepCounter(travel = 0.12, minRepMs = 400) { r ->
@@ -55,11 +55,17 @@ object MoreMoves {
         CountedMove.SIDE_BEND -> TwoSidedRepCounter(travel = 10.0, minRepMs = 500) { r -> r.torso?.takeIf { r.frontal()?.let { f -> f > 0.35 } == true }?.lean }
         // facing the phone: the hips travel sideways, to either side of the middle
         CountedMove.SKATE -> ZigZagRepCounter(travel = 0.35) { r -> r.torso?.let { t -> t.hx / t.len } }
-        // standing, hands on the wall at about shoulder height: the elbows bend
+        // standing side-on, hands on the wall at about shoulder height: the elbows bend
         CountedMove.WALL_PUSH_UP -> SignalRepCounter(-1, travel = 30.0, minRepMs = 500) { r ->
             if (!r.torsoIn(0.0, 45.0)) null
             else {
-                val arms = r.sides { s -> if (r.seen(s.shoulder, s.elbow, s.wrist) && kotlin.math.abs(r.above(s.wrist, s.shoulder) ?: 9.0) < 0.5) r.angle(s.shoulder, s.elbow, s.wrist) else null }
+                // hands on the wall: about shoulder height and reaching forward of the shoulder (an arm swinging by the
+                // side, as in a march, never reads)
+                val arms = r.sides { s ->
+                    if (r.seen(s.shoulder, s.elbow, s.wrist) && kotlin.math.abs(r.above(s.wrist, s.shoulder) ?: 9.0) < 0.5 &&
+                        kotlin.math.abs(r.x(s.wrist) - r.x(s.shoulder)) / (r.torso?.len ?: 1.0) > 0.25
+                    ) r.angle(s.shoulder, s.elbow, s.wrist) else null
+                }
                 arms.takeIf { it.isNotEmpty() }?.average()
             }
         }
@@ -86,7 +92,7 @@ object MoreMoves {
         }
         // lying with the shoulders curled up, filmed side-on: the near hand slides toward its heel, then away as the
         // body reaches to the far side (distance hand to heel, in torso lengths; each reach to either side is a tap)
-        CountedMove.HEEL_TAP -> TwoSidedRepCounter(travel = 0.07, minRepMs = 400) { r ->
+        CountedMove.HEEL_TAP -> TwoSidedRepCounter(travel = 0.045, minRepMs = 400) { r ->
             val t = r.torso
             if (t == null || !r.torsoIn(55.0, 120.0)) null
             else { val s = r.nearer({ it.wrist }, { it.ankle }); if (r.seenAt(0.4f, s.wrist, s.ankle)) r.dist(s.wrist, s.ankle) / t.len else null }
@@ -102,15 +108,19 @@ object MoreMoves {
         CountedMove.SWING -> SignalRepCounter(-1, travel = 45.0, minRepMs = 300) { r ->
             if (!r.torsoIn(0.0, 70.0)) null else r.sides { s -> r.angle(s.shoulder, s.hip, s.knee, 0.4f) }.minOrNull()
         }
-        // standing, facing the phone: the shoulders rise toward the ears (the nose gets closer above them), ~0.07 torso
+        // standing, facing the phone: the shoulders rise toward the ears (the nose gets closer above them), 0.05–0.07 torso
         // lengths on the rendered videos
-        CountedMove.SHRUG -> SignalRepCounter(-1, travel = 0.045, minRepMs = 500) { r ->
+        CountedMove.SHRUG -> SignalRepCounter(-1, travel = 0.04, minRepMs = 500) { r ->
             val t = r.torso
             if (t == null || t.tilt > 25.0 || !r.seen(BodyLandmark.NOSE)) null else (t.sy - r.y(BodyLandmark.NOSE)) / t.len
         }
-        // on all fours: the working knee lifts off the floor (back for donkey kicks, out to the side for hydrants)
-        CountedMove.KICK_BACK -> SignalRepCounter(+1, travel = 0.20, minRepMs = 500) { r ->
-            if (!r.torsoIn(55.0, 125.0)) null else r.sides { s -> if (r.seenAt(0.3f, s.knee, s.hip)) r.above(s.knee, s.hip) else null }.maxOrNull()
+        // on all fours, filmed from a front corner: the working knee moves away from the other knee — back and up for
+        // donkey kicks, out to the side for fire hydrants (distance between the knees, ~0.1–0.4 torso lengths resting,
+        // 0.8–1.1 lifted). Reads the same for both legs, while the far knee's height does not (perspective).
+        CountedMove.KICK_BACK -> SignalRepCounter(+1, travel = 0.25, minRepMs = 500) { r ->
+            val t = r.torso
+            if (t == null || !r.torsoIn(55.0, 125.0) || !r.seenAt(0.3f, Side.LEFT.knee, Side.RIGHT.knee)) null
+            else r.dist(Side.LEFT.knee, Side.RIGHT.knee) / t.len
         }
         else -> null
     }
