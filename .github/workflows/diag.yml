@@ -21,7 +21,7 @@ jobs:
           path: ~/.m2/repository/org/robolectric/android-all-instrumented
           key: robolectric-android-all-15-robolectric-13954326-i7
       - name: Flow tests with timings
-        run: timeout 40m ./gradlew --no-daemon testDebugUnitTest --tests "eu.motionforge.app.flows.AppFlowTest" || true
+        run: set +e; timeout 40m ./gradlew --no-daemon testDebugUnitTest --tests "eu.motionforge.app.flows.AppFlowTest" ; echo EXIT=$?
       - name: Timings
         if: always()
-        run: grep -v "SLOW [5-9][0-9][0-9] ms  pump" app/build/flowtimings.txt | head -400; echo; grep -c SLOW app/build/flowtimings.txt || true
+        run: ls app/build/test-results/testDebugUnitTest | head; grep -h -o "testcase name=\"[^\"]*\" classname=\"[^\"]*\" time=\"[^\"]*\"" app/build/test-results/testDebugUnitTest/*.xml; grep -h -A3 "<failure" app/build/test-results/testDebugUnitTest/*.xml | head -40
