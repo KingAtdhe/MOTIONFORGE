@@ -25,7 +25,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       # Robolectric downloads its Android jar from Maven Central at test time; that download has failed now and then
       # and taken whole test classes down. Cache it and fetch it up front with retries.
