@@ -646,6 +646,7 @@ if RIGGED:
     if not LEGACY_MOCAP:
         rc.settle_contacts(mx_arm, mx_mesh, sc, names)
         rc.smooth_toes(mx_arm)
+        rc.toe_floor(mx_arm, mx_mesh, sc, names)
     # training equipment (dumbbells, kettlebell, band, bench), shown only in the clips that use it
     if not LEGACY_MOCAP:
         import coach_props  # noqa: E402

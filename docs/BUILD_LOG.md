@@ -1204,3 +1204,21 @@ exercise. Found and fixed:
   Clips where a hand lifts on purpose (bird dog) are left out: tipping the body as its hand landed dropped the hand
   2.7 cm in a frame.
 Studies re-rendered for those 5 lessons.
+
+## 2026-11-25 (4) — Shoe tips out of the floor; flow tests 35 → few minutes
+
+- **Shoe tips** (`rigged_coach.toe_floor`, after the contact pass and toe smoothing, clips with hands or knees down):
+  tips still dipped into the floor for a few frames where a foot rolls over its toes — bear hold tuck/untuck 1.1–1.4 cm,
+  mountain climber landing 0.4–1.1 cm, fire hydrant 0.4–0.7 cm, small ones in bird dog / donkey kick. Bending the toes
+  was tried first and made the bear hold worse (−2.2 cm): which way lifts the tip flips as the toes go from their tops
+  onto their pads. The foot is now raised by the dip (leg two-bone, foot orientation kept), eased over time (largest
+  need within ±2 frames, then a 5-tap kernel; loop ends exact). Scan of every clip, both coaches: no tip lower than
+  −0.1 cm (was 3 + 4 clips past −0.4 cm). Mesh jerk unchanged (medians 264 F / 308 M; top of both lists still punches).
+  Studies re-rendered for bear plank hold, fire hydrant, slow mountain climber.
+- **CI flow tests**: two Robolectric flows (`skipping_through_every_step…`, `reset_app_data…`) took 16–17 min each.
+  Timing probes in a throwaway CI run showed every minute went into `performScrollTo()`: with the hand-driven frame
+  clock its animated scroll never settles, so it sat ~11 min in an internal wait whenever a button was below the fold
+  (the save button under the long "Session complete" summary, "Reset app data" on the profile). The test helper now
+  checks whether the node is inside its scroll container's viewport and, if not, scrolls that container towards it
+  with the synchronous ScrollBy action and lets it settle (a lazy-list row prefetched below the fold has zero bounds:
+  scroll down). Throwaway CI run of `AppFlowTest`: all 8 pass, the two slow ones now 2.4 s and 3.4 s (were 16–17 min).
