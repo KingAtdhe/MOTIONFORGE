@@ -52,4 +52,19 @@ class ProgressStatsTest {
         )
         assertEquals(setOf(java.time.DayOfWeek.MONDAY, java.time.DayOfWeek.WEDNESDAY), s.trainedDaysThisWeek)
     }
+
+    @Test
+    fun holdTrendsKeepHeldSecondsPerExercise() {
+        fun plank(t: Long, held: Int?) = SessionRecord(
+            t, "s", TrainingCategory.FITNESS, t, 60, null, true,
+            listOf(ExerciseRecord("forearm_plank", "Forearm Plank", 40, null, "good", held), ExerciseRecord("bodyweight_squat", "Squat", 20, 8, "good")),
+        )
+        val trends = ProgressStats.holdTrends(listOf(plank(1, 20), plank(2, null), plank(3, 0), plank(4, 35)))
+        assertEquals(1, trends.size)
+        assertEquals(listOf(20, 35), trends.single().recent)
+        assertEquals(35, trends.single().best)
+        assertEquals(true, trends.single().newBest)
+        // reps are not holds
+        assertEquals(listOf("bodyweight_squat"), ProgressStats.repTrends(listOf(plank(1, 20))).map { it.exerciseId })
+    }
 }

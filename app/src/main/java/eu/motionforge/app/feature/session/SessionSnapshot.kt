@@ -80,6 +80,7 @@ data class SessionSnapshot(
             put("stepElapsed", st.stepElapsed)
             put("stepTracked", st.stepTracked)
             put("stepReps", st.stepReps)
+            put("stepHeld", st.stepHeld)
             put("endedEarly", st.endedEarly)
             put("results", buildJsonArray {
                 st.results.forEach { r ->
@@ -91,6 +92,7 @@ data class SessionSnapshot(
                         r.repetitions?.let { put("reps", it) }
                         put("quality", r.trackingQuality.wireName)
                         r.targetReps?.let { put("targetReps", it) }
+                        r.heldSeconds?.let { put("held", it) }
                     })
                 }
             })
@@ -132,6 +134,7 @@ data class SessionSnapshot(
                     repetitions = r["reps"]?.jsonPrimitive?.intOrNull,
                     trackingQuality = TrackingQuality.entries.first { it.wireName == r.str("quality") },
                     targetReps = r["targetReps"]?.jsonPrimitive?.intOrNull,
+                    heldSeconds = r["held"]?.jsonPrimitive?.intOrNull,
                 )
             }
             val state = SessionState(
@@ -144,12 +147,13 @@ data class SessionSnapshot(
                 stepElapsed = o.int("stepElapsed"),
                 stepTracked = o.int("stepTracked"),
                 stepReps = o.int("stepReps"),
+                stepHeld = o["stepHeld"]?.jsonPrimitive?.intOrNull ?: 0,
                 results = results,
                 endedEarly = o.getValue("endedEarly").jsonPrimitive.boolean,
             )
             require(state.stepIndex in plan.steps.indices)
             require(state.remainingInStep in 0..plan.steps[state.stepIndex].durationSeconds)
-            require(state.elapsedTotal >= 0 && state.stepElapsed >= 0 && state.stepTracked in 0..state.stepElapsed && state.stepReps >= 0)
+            require(state.elapsedTotal >= 0 && state.stepElapsed >= 0 && state.stepTracked in 0..state.stepElapsed && state.stepReps >= 0 && state.stepHeld >= 0)
             SessionSnapshot(o.str("planKey"), state, o.getValue("startedAt").jsonPrimitive.long, o.getValue("savedAt").jsonPrimitive.long)
         }.getOrNull()
 

@@ -40,6 +40,8 @@ data class SessionExerciseEntity(
     @ColumnInfo(name = "duration_seconds") val durationSeconds: Int,
     @ColumnInfo(name = "repetition_count") val repetitionCount: Int?,
     @ColumnInfo(name = "tracking_quality") val trackingQuality: String,
+    /** Seconds held in position (hold checks), null when not measured. Added in version 2. */
+    @ColumnInfo(name = "held_seconds") val heldSeconds: Int? = null,
 )
 
 @Dao
@@ -67,7 +69,16 @@ abstract class SessionDao {
     abstract suspend fun deleteAll()
 }
 
-@Database(entities = [SessionEntity::class, SessionExerciseEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SessionEntity::class, SessionExerciseEntity::class], version = 2, exportSchema = false)
 abstract class SessionDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
+
+    companion object {
+        /** 1 → 2: hold time per exercise (nullable, old rows stay null). Never a destructive migration: history is kept. */
+        val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE session_exercises ADD COLUMN held_seconds INTEGER")
+            }
+        }
+    }
 }

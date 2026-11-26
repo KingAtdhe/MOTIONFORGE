@@ -15,7 +15,9 @@ import kotlinx.coroutines.flow.combine
 /** Training history stored on this phone only (Room). Nothing is uploaded. */
 class SessionRepository(context: Context) {
     private val db by lazy {
-        Room.databaseBuilder(context.applicationContext, SessionDatabase::class.java, "motionforge.db").build()
+        Room.databaseBuilder(context.applicationContext, SessionDatabase::class.java, "motionforge.db")
+            .addMigrations(SessionDatabase.MIGRATION_1_2)
+            .build()
     }
     private val dao get() = db.sessionDao()
 
@@ -32,7 +34,7 @@ class SessionRepository(context: Context) {
                     perceivedEffort = s.perceivedEffort,
                     completed = s.completed,
                     exercises = bySession[s.id].orEmpty().map {
-                        ExerciseRecord(it.exerciseId, it.name, it.durationSeconds, it.repetitionCount, it.trackingQuality)
+                        ExerciseRecord(it.exerciseId, it.name, it.durationSeconds, it.repetitionCount, it.trackingQuality, it.heldSeconds)
                     },
                 )
             }
@@ -55,6 +57,7 @@ class SessionRepository(context: Context) {
                 SessionExerciseEntity(
                     sessionId = 0, exerciseId = it.exerciseId, name = it.name, sequenceNumber = it.sequence,
                     durationSeconds = it.elapsedSeconds, repetitionCount = it.repetitions, trackingQuality = it.trackingQuality.wireName,
+                    heldSeconds = it.heldSeconds,
                 )
             },
         )

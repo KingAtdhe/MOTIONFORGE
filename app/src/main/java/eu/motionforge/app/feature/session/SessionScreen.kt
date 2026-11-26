@@ -652,7 +652,8 @@ private fun SummaryStage(
                         val goal = r.targetReps?.let { t -> if (n >= t) " — target $t reached" else " of a $t target" }.orEmpty()
                         ", $n reps$goal (experimental count)"
                     }.orEmpty()
-                    Text("${r.name}, ${formatClock(r.elapsedSeconds)}$repText", style = MaterialTheme.typography.bodyLarge)
+                    val heldText = r.heldSeconds?.takeIf { it > 0 }?.let { ", held in position ${formatClock(it)} (experimental)" }.orEmpty()
+                    Text("${r.name}, ${formatClock(r.elapsedSeconds)}$repText$heldText", style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
                         Text("Tracking was mostly unavailable, so nothing was counted.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
