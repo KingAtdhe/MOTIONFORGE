@@ -217,6 +217,13 @@ class HoldMonitor(
         return (tor.tilt < 30.0 && elbowUp && handUp) to null
     }
 
+    /** Image-plane angle at [el] between the upper arm and the forearm, degrees (180 = straight). */
+    private fun elbowAngle(f: PoseFrame, sh: BodyLandmark, el: BodyLandmark, wr: BodyLandmark): Double {
+        val ax = f.x(sh) - f.x(el); val ay = f.y(sh) - f.y(el); val bx = f.x(wr) - f.x(el); val by = f.y(wr) - f.y(el)
+        val d = hypot(ax, ay) * hypot(bx, by)
+        return if (d < 1e-6) 0.0 else Math.toDegrees(acos(((ax * bx + ay * by) / d).coerceIn(-1.0, 1.0)))
+    }
+
     /** Chest opener, facing the phone: standing tall with both hands together behind the back — the wrists close to
      *  the middle of the back, at lower-back height (they read through the body at lower visibility). */
     private fun chestOpener(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
@@ -225,7 +232,13 @@ class HoldMonitor(
         if (w.any { f[it].visibility < 0.2f }) return null
         // hands drawn in behind the back, above the hips (hanging by the sides they are ~0.6 out and just below them)
         val together = w.all { abs(f.x(it) - tor.hx) / tor.len < CHEST_HANDS_X && (tor.hy - f.y(it)) / tor.len in 0.05..0.75 }
-        return (tor.tilt < 25.0 && together) to null
+        // the arms stay long: hands clasped in front of the waist bend the elbows sharply (under ~70° on the videos,
+        // ~150° in the stretch), and the model's depth can't tell front from back (it puts these wrists in front too)
+        val long = listOf(
+            Triple(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.LEFT_WRIST),
+            Triple(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_ELBOW, BodyLandmark.RIGHT_WRIST),
+        ).all { (sh, el, wr) -> f[el].visibility >= 0.2f && elbowAngle(f, sh, el, wr) > CHEST_ELBOW_MIN }
+        return (tor.tilt < 25.0 && together && long) to null
     }
 
     /** Half-kneeling hip flexor stretch, side-on: torso upright, one knee down near the floor (near the height of the
@@ -349,6 +362,7 @@ class HoldMonitor(
         const val TRICEPS_ELBOW_UP = -0.05
         const val TRICEPS_HAND_UP = 0.20
         const val CHEST_HANDS_X = 0.36
+        const val CHEST_ELBOW_MIN = 110.0
         const val HIP_KNEE_DOWN = 0.40
         const val HIP_KNEE_SPLIT = 0.30
     }

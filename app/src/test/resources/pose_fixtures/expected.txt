@@ -396,6 +396,10 @@ overhead_triceps_stretch_f_q45|cross_body_shoulder_stretch|0
 chest_opener_stretch_m_front|chest_opener_stretch|8
 chest_opener_stretch_f_front|chest_opener_stretch|8
 cross_body_shoulder_stretch_m_front|chest_opener_stretch|0
+# hands clasped in front of the chest / waist (Codex #24): bent elbows, not the stretch
+b7_curtsy_m_front|chest_opener_stretch|0
+sumo_f_front|chest_opener_stretch|0
+sidelunge_f_front|chest_opener_stretch|0
 kneeling_hip_flexor_stretch_f_sideL|kneeling_hip_flexor_stretch|8
 kneeling_hip_flexor_stretch_m_sideL|kneeling_hip_flexor_stretch|8
 march_f_front|kneeling_hip_flexor_stretch|0
