@@ -1289,8 +1289,8 @@ published debug APK's assets for the local MediaPipe runs.
   or side-on), block-cross (block-and-counter, combination counter with a lower lift). Slip-cross stays guard-only:
   the slip and the cross move the head by similar amounts in opposite directions.
 - **Punches**: every extension / return of every punch (and the slips, pulls and level changes that share the curve)
-  is 12 % longer (`PUNCH_TEMPO`): boxing mesh-jerk median 517 → ~450 (F) and 682 → ~560 (M), 33–35 clips better,
-  overall median 260 → 253 / 306 → 287. Tried first and dropped: a quintic and a bounded-jerk profile — smoother on
+  is 12 % longer (`PUNCH_TEMPO`): boxing mesh-jerk median 517 → 441 (F) and 682 → 540 (M), highest 706 → 617 /
+  920 → 777, no clip worse, overall median 260 → 253 / 306 → 287. Tried first and dropped: a quintic and a bounded-jerk profile — smoother on
   paper, but both raised the measured jerk of every punch (higher peak acceleration for the same time). The uppercut-
   hook's hook now starts once the uppercut is home (the lead arm's two poses overlapped and jumped). All loops still
   close (`loopj`).
