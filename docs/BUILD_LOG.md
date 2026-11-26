@@ -1250,7 +1250,7 @@ the bodyweight **hip hinge** (spec: instructional only until validated), the **s
   checks; catalogue `analysisMode` and camera texts updated for the 51 lessons (they name views that don't work: calf
   raise head-on, shoulder taps side-on or head-on, the far leg in fire hydrants).
 
-**Validation** (`RenderedVideoRepTest`, 333 cases): 105 new videos of both coaches (workbench renders, 12 fps, a still
+**Validation** (`RenderedVideoRepTest`, 333 cases): 106 new videos of both coaches (workbench renders, 12 fps, a still
 first pose, floor moves filmed landscape from 45 cm), every new lesson on both coaches, standing moves also from a
 front corner, plus negatives (standing still, marching, boxing stance → nothing counted or held for the new standing
 checks). Changes found on the way: portrait framing cut off the bird dog's reach (floor moves are filmed with the phone
