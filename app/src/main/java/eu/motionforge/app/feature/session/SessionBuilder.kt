@@ -96,6 +96,7 @@ object SessionBuilder {
                     shuffled(f.ids.mapNotNull { byId[it] }.filter { usable(it, p.dumbbells) }, seed + i)
                 }
                 (0 until lists.maxOf { it.size }).flatMap { i -> lists.mapNotNull { it.getOrNull(i) } }
+                    .distinctBy { it.id } // planks and the superman are in both upper body and core
             }
             SessionFocus.BOXING -> {
                 val all = catalog.filter { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS && !it.id.startsWith("footwork_") }
