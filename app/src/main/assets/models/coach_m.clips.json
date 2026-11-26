@@ -264,6 +264,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "chest_opener",
+      "durationSeconds": 7.2,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "childs_pose",
       "durationSeconds": 5.6,
       "reviewStatus": "draft_pending_coach_review"
@@ -449,6 +454,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "hip_flexor_stretch",
+      "durationSeconds": 16.733,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "hip_hinge_down",
       "durationSeconds": 1.9,
       "reviewStatus": "draft_pending_coach_review"
@@ -529,6 +539,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "quad_stretch",
+      "durationSeconds": 13.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "reverse_crunch",
       "durationSeconds": 2.533,
       "reviewStatus": "draft_pending_coach_review"
@@ -536,6 +551,11 @@
     {
       "name": "reverse_lunge",
       "durationSeconds": 7.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "shoulder_stretch",
+      "durationSeconds": 12.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -626,6 +646,11 @@
     {
       "name": "torso_twist",
       "durationSeconds": 4.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "triceps_stretch",
+      "durationSeconds": 13.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

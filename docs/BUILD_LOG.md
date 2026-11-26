@@ -1295,3 +1295,15 @@ published debug APK's assets for the local MediaPipe runs.
   hook's hook now starts once the uppercut is home (the lead arm's two poses overlapped and jumped). All loops still
   close (`loopj`).
 - Shorter card texts (bear hold, shoulder taps, donkey kick / fire hydrant framing).
+
+## 2026-11-26 (3) — Cool-down stretches, build-your-own sessions, three new plans
+
+- **5 stretch lessons** (catalogue 118 → 123), animated for both coaches with studies: standing quad stretch,
+  cross-body shoulder stretch, overhead triceps stretch, chest opener, kneeling hip-flexor stretch.
+- **Hold checks for 4 of them** (shoulder, triceps, chest opener, hip flexor), checked on rendered videos of both
+  coaches with negatives (march, stance, kneeling idle, the other stretches, child's pose). The quad stretch stays
+  guided: from a phone the folded leg behind the body is lost by the pose model, so it is not assessed.
+- **Build your own session** (Home): pick a focus (full body, legs, upper, core, boxing, stretch), 5–20 minutes and
+  whether you have dumbbells. Warm-up, day-shuffled moves (~40 s, 15 s rests), a cool-down stretch from 10 min.
+  Deterministic per day so a restart resumes the same session (`SessionBuilder`, unit-tested).
+- **3 new plans**: Core & mobility, Legs & glutes, Boxing conditioning (6 plans in total).

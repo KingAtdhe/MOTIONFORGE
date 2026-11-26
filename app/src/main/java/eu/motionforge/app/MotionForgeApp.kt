@@ -166,6 +166,10 @@ fun MotionForgeApp(
                         container.activeSession.clear()
                         navController.navigate(Routes.quickSession())
                     },
+                    onStartBuilt = { key ->
+                        container.activeSession.clear()
+                        navController.navigate(Routes.session(key))
+                    },
                     unfinished = unfinished,
                     onResumeUnfinished = { navController.navigate(Routes.session(it.planKey)) },
                     onDiscardUnfinished = {
@@ -248,8 +252,11 @@ fun MotionForgeApp(
                 // targets are fixed when the session opens: saving it must not change the steps under the screen
                 val planHistory = remember(planArg) { history.orEmpty() }
                 val plan = ready?.let { c ->
+                    val built = eu.motionforge.app.feature.session.SessionBuilder.parseKey(planArg)
                     if (planArg == "quick") {
                         SessionPlanner.quick(c.exercises, preferences.focus)
+                    } else if (built != null) {
+                        eu.motionforge.app.feature.session.SessionBuilder.build(c.exercises, built)
                     } else if (planned != null) {
                         eu.motionforge.app.feature.plan.PlanSessions.build(planned.first, planned.second, c.exercises, planHistory)
                     } else {

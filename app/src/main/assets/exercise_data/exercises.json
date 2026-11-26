@@ -4533,5 +4533,202 @@
     ],
     "limitations": "The camera counts each punch when the hand returns to guard; it does not judge power, speed, accuracy or footwork. Face the phone with both arms in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "standing_quad_stretch",
+    "name": "Standing Quad Stretch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "quad_stretch",
+    "purpose": "Stretch the front of the thigh after training, while practising balance.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [
+      "Chair or wall for balance (optional)"
+    ],
+    "safety": "Stretch gently to a mild pull, never into pain, and breathe slowly. Stop if you feel sharp pain, tingling or dizziness. Hold a chair or wall if your balance is unsteady.",
+    "instructions": [
+      "Stand tall on one leg, a hand on a chair or wall if you need it.",
+      "Bend the other knee and bring the heel up behind you toward your seat.",
+      "Hold the top of the foot with the same-side hand, knees side by side.",
+      "Hold for a few slow breaths, lower the foot, and switch sides."
+    ],
+    "commonCues": [
+      "Knees side by side.",
+      "Stand tall.",
+      "Gentle pull, no pain."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling the knee out to the side or forward",
+        "adjustment": "Keep the bent knee next to the standing knee, pointing down."
+      },
+      {
+        "mistake": "Arching the lower back",
+        "adjustment": "Tuck the hips under a little and stand tall."
+      },
+      {
+        "mistake": "Yanking the foot up",
+        "adjustment": "Ease the heel up only until you feel a mild stretch."
+      }
+    ],
+    "limitations": "The camera does not assess this stretch: seen by a phone, the folded leg behind the body is hidden and can't be measured reliably. Follow the demonstration; the timer guides the hold.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "cross_body_shoulder_stretch",
+    "name": "Cross-Body Shoulder Stretch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "shoulder_stretch",
+    "purpose": "Stretch the back of the shoulder after punching, pushing or pulling.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Stretch gently to a mild pull, never into pain, and breathe slowly. Stop if you feel sharp pain, tingling or dizziness. Keep the pressure light on the elbow.",
+    "instructions": [
+      "Stand tall, shoulders relaxed down.",
+      "Bring one arm straight across the front of your chest at shoulder height.",
+      "Hook the other forearm just above the elbow and draw the arm in gently.",
+      "Hold for a few slow breaths, release, and switch sides."
+    ],
+    "commonCues": [
+      "Shoulders down.",
+      "Arm across at chest height.",
+      "Press above the elbow, not on it."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Shrugging the shoulder up",
+        "adjustment": "Let the shoulder sink away from your ear."
+      },
+      {
+        "mistake": "Pressing on the elbow joint",
+        "adjustment": "Place the forearm just above the elbow."
+      },
+      {
+        "mistake": "Turning the whole body",
+        "adjustment": "Keep the chest facing forward."
+      }
+    ],
+    "limitations": "The camera times your stretch only while you're in the position (one arm held across the front of your chest); it does not judge how far you stretch or how long you should hold. Face the phone with your upper body and both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "overhead_triceps_stretch",
+    "name": "Overhead Triceps Stretch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 50,
+    "recommendedView": "front",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "triceps_stretch",
+    "purpose": "Stretch the back of the upper arm and the side of the shoulder.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Stretch gently to a mild pull, never into pain, and breathe slowly. Stop if you feel sharp pain, tingling or dizziness. Skip it if raising the arm overhead hurts your shoulder.",
+    "instructions": [
+      "Stand tall and reach one arm up.",
+      "Bend the elbow so the hand drops behind your head toward your upper back.",
+      "Rest the other hand on the raised elbow and draw it back gently.",
+      "Hold for a few slow breaths, release, and switch sides."
+    ],
+    "commonCues": [
+      "Elbow points up.",
+      "Head stays tall.",
+      "Gentle pressure."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pushing the head forward",
+        "adjustment": "Keep the head tall and the elbow beside it."
+      },
+      {
+        "mistake": "Arching the lower back",
+        "adjustment": "Keep the ribs down and the core lightly braced."
+      }
+    ],
+    "limitations": "The camera times your stretch only while you're in the position (one elbow raised above your head); it does not judge how far you stretch or how long you should hold. Face the phone with your upper body and both arms in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "chest_opener_stretch",
+    "name": "Chest Opener",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 45,
+    "recommendedView": "front",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "chest_opener",
+    "purpose": "Open the chest and the front of the shoulders after push-ups or boxing.",
+    "space": "About 2 × 2 m of clear, stable, non-slip floor.",
+    "equipment": [],
+    "safety": "Stretch gently to a mild pull, never into pain, and breathe slowly. Stop if you feel sharp pain, tingling or dizziness. Keep the chin level; don't push the head back.",
+    "instructions": [
+      "Stand tall with the feet hip-width apart.",
+      "Bring the hands together behind your lower back.",
+      "Draw the shoulders back and down and let the chest lift a little.",
+      "Hold for a few slow breaths, then release."
+    ],
+    "commonCues": [
+      "Shoulders back and down.",
+      "Chest lifts.",
+      "Chin level."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back from the lower back",
+        "adjustment": "Lift the chest instead and keep the ribs down."
+      },
+      {
+        "mistake": "Shrugging the shoulders up",
+        "adjustment": "Let them sink away from the ears."
+      }
+    ],
+    "limitations": "The camera times your stretch only while you're in the position (standing tall with both hands together behind you); it does not judge how far you stretch or how long you should hold. Face the phone with your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "kneeling_hip_flexor_stretch",
+    "name": "Kneeling Hip Flexor Stretch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 60,
+    "recommendedView": "side",
+    "analysisMode": "limited_rule_based",
+    "demoAnimation": "hip_flexor_stretch",
+    "purpose": "Stretch the front of the hip, which gets tight from sitting and from lunges and squats.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat or folded towel under the knee (recommended)"
+    ],
+    "safety": "Stretch gently to a mild pull, never into pain, and breathe slowly. Stop if you feel sharp pain, tingling or dizziness. Pad the back knee; skip it if kneeling hurts.",
+    "instructions": [
+      "Step one foot back and lower gently onto the back knee, on a mat or towel.",
+      "Front knee above the ankle, chest tall, hands on the front thigh.",
+      "Tuck the hips under a little and press them gently forward until you feel the front of the back hip stretch.",
+      "Hold for a few slow breaths, come up, and switch sides."
+    ],
+    "commonCues": [
+      "Hips tuck under.",
+      "Chest tall.",
+      "Small forward press."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Arching the lower back to go further",
+        "adjustment": "Tuck the hips under; a small press is enough."
+      },
+      {
+        "mistake": "Front knee far past the toes",
+        "adjustment": "Move the front foot a little further forward."
+      }
+    ],
+    "limitations": "The camera times your stretch only while you're in the position (kneeling on one knee with the chest tall); it does not judge how far you stretch or how long you should hold. Turn the phone sideways and put it at floor level, side-on, with your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

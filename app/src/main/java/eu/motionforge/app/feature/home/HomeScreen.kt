@@ -101,6 +101,8 @@ fun HomeScreen(
     onStartPlanSession: () -> Unit = {},
     onChoosePlan: (String) -> Unit = {},
     onLeavePlan: () -> Unit = {},
+    /** Start a session built from a focus, a length and the equipment (a [SessionBuilder] key). */
+    onStartBuilt: (String) -> Unit = {},
 ) {
     val coach = preferences.coach
     val side = Modifier.padding(horizontal = 16.dp)
@@ -158,6 +160,7 @@ fun HomeScreen(
                         TodayPlate(quick, coach, active, start, side, eyebrow = planLabel ?: "Today", heading = planHeading ?: quick.title)
                         Filmstrip(quick, coach, active, side)
                         PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
+                        BuildYourOwn(exercises, onStartBuilt, side)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -404,6 +407,49 @@ private fun PlanSection(
                     Text("Start", style = MaterialTheme.typography.labelLarge)
                 }
             }
+        }
+    }
+}
+
+
+/** Build your own session: what to train, how long, and whether there are dumbbells; the moves change every day. */
+@Composable
+private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>, onStart: (String) -> Unit, modifier: Modifier) {
+    var focus by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
+    var minutes by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(1) }
+    var dumbbells by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    val day = remember { LocalDate.now().toEpochDay() }
+    val params = eu.motionforge.app.feature.session.SessionBuilder.Params(
+        eu.motionforge.app.feature.session.SessionFocus.entries[focus], eu.motionforge.app.feature.session.SessionBuilder.MINUTES[minutes], dumbbells, day,
+    )
+    val plan = remember(exercises, params) { eu.motionforge.app.feature.session.SessionBuilder.build(exercises, params) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionHeader("Build your own", trailing = "new moves every day")
+        eu.motionforge.app.core.design.SegmentedPill(
+            options = eu.motionforge.app.feature.session.SessionFocus.entries.map { it.label },
+            selectedIndex = focus, onSelect = { focus = it },
+            modifier = Modifier.horizontalScroll(rememberScrollState()), compact = true,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            eu.motionforge.app.core.design.SegmentedPill(
+                options = eu.motionforge.app.feature.session.SessionBuilder.MINUTES.map { "$it min" },
+                selectedIndex = minutes, onSelect = { minutes = it }, compact = true,
+            )
+            if (params.focus != eu.motionforge.app.feature.session.SessionFocus.BOXING && params.focus != eu.motionforge.app.feature.session.SessionFocus.STRETCH) {
+                eu.motionforge.app.core.design.ChoiceButton("Dumbbells", dumbbells, onClick = { dumbbells = !dumbbells })
+            }
+        }
+        if (plan != null) {
+            val moves = plan.steps.filterIsInstance<SessionStep.Work>()
+            Text(
+                moves.joinToString(" · ") { it.name },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            eu.motionforge.app.core.design.SecondaryButton(
+                "Start ${params.focus.label.lowercase()}, ${formatClock(plan.totalSeconds)}",
+                onClick = { onStart(eu.motionforge.app.feature.session.SessionBuilder.key(params.focus, params.minutes, params.dumbbells, day)) },
+            )
         }
     }
 }
