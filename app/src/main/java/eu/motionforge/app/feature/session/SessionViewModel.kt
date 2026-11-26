@@ -145,7 +145,11 @@ class SessionViewModel(
             hold = holdCheck?.let { eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(0) }
             holdPraised = false
         }
-        if (after.phase != SessionPhase.RUNNING) holdMonitor?.reset()
+        if (after.phase != SessionPhase.RUNNING) {
+            holdMonitor?.reset()
+            // paused or finished: the card must say the timer is paused, not keep the last "Holding" / cue
+            if (hold != null) hold = eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(holdMonitor?.heldMs ?: 0)
+        }
         refreshCoachingCard(after)
         val step = after.currentStep
         val live = after.cameraUsed && step is SessionStep.Work && step.liveChecked

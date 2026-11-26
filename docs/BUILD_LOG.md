@@ -1269,3 +1269,5 @@ one shrug. All thresholds are first hypotheses for coach review; none was checke
 Robolectric flows and lint in CI. New: `HoldMonitorTest`, narrator hold/guard cards, snapshot round trip with a hold.
 **Tooling note**: the pose model isn't downloadable here (storage.googleapis.com blocked); it was taken from the
 published debug APK's assets for the local MediaPipe runs.
+- Review fix (#21, Codex P2): pausing a hold step left the card on "Holding" / the last cue; it now shows the timer
+  as paused.
