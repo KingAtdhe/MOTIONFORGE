@@ -965,10 +965,17 @@ def _stance_pose(r, st, t, e_jab=0.0, e_cross=0.0, travel=0.0, lead_step=0.0, re
     return sp
 
 
+PUNCH_TEMPO = 1.12   # every extension and return 12 % longer (2026-11-26: punches were the highest-jerk clips; jerk ~ 1/time^3)
+
+
 def _punch_curve(t, start, out, hold, back):
+    out *= PUNCH_TEMPO
+    back *= PUNCH_TEMPO
     if t < start:
         return 0.0
     t -= start
+    # cubic ease both ways. (Tried 2026-11-26: the quintic and a bounded-jerk profile, smoother on paper, both raised
+    # the measured mesh jerk of every punch -- their higher peak acceleration outweighs the cubic's softer ends.)
     if t < out:
         return smooth(t / out)
     t -= out

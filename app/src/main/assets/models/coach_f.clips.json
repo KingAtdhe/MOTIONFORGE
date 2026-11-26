@@ -30,42 +30,42 @@
     },
     {
       "name": "boxing_back_jab",
-      "durationSeconds": 2.1,
+      "durationSeconds": 2.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_block_cross",
-      "durationSeconds": 2.1,
+      "durationSeconds": 2.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_body_block",
-      "durationSeconds": 1.5,
+      "durationSeconds": 1.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_body_cross",
-      "durationSeconds": 1.967,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_body_head_jab",
       "durationSeconds": 2.0,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_body_head_jab",
+      "durationSeconds": 2.033,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_body_hook",
-      "durationSeconds": 2.067,
+      "durationSeconds": 2.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_body_jab",
-      "durationSeconds": 1.9,
+      "durationSeconds": 1.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_catch",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -75,22 +75,22 @@
     },
     {
       "name": "boxing_cross_hook",
-      "durationSeconds": 1.9,
+      "durationSeconds": 1.933,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_cross_hook_cross",
-      "durationSeconds": 2.6,
+      "durationSeconds": 2.633,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_double_jab",
-      "durationSeconds": 1.733,
+      "durationSeconds": 1.767,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_duck",
-      "durationSeconds": 1.4,
+      "durationSeconds": 1.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -100,32 +100,32 @@
     },
     {
       "name": "boxing_guard_return",
-      "durationSeconds": 3.0,
+      "durationSeconds": 3.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_high_block",
-      "durationSeconds": 1.5,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_hook_cross",
-      "durationSeconds": 1.967,
-      "reviewStatus": "draft_pending_coach_review"
-    },
-    {
-      "name": "boxing_jab",
       "durationSeconds": 1.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_hook_cross",
+      "durationSeconds": 2.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "boxing_jab",
+      "durationSeconds": 1.567,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_jab_body_cross",
-      "durationSeconds": 2.233,
+      "durationSeconds": 2.3,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab_jab_cross",
-      "durationSeconds": 2.4,
+      "durationSeconds": 2.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -135,67 +135,67 @@
     },
     {
       "name": "boxing_jab_slip",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_jab_uppercut",
-      "durationSeconds": 1.933,
+      "durationSeconds": 1.967,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lateral_jab",
-      "durationSeconds": 2.067,
+      "durationSeconds": 2.1,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lead_hook",
-      "durationSeconds": 1.567,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_lead_uppercut",
-      "durationSeconds": 1.533,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_one_two",
-      "durationSeconds": 1.933,
+      "durationSeconds": 1.967,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_one_two_hook",
-      "durationSeconds": 2.567,
+      "durationSeconds": 2.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_one_two_uppercut",
-      "durationSeconds": 2.533,
+      "durationSeconds": 2.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_parry",
-      "durationSeconds": 1.867,
+      "durationSeconds": 1.9,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_pull_back",
-      "durationSeconds": 2.233,
+      "durationSeconds": 2.3,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_pull_counter",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_rear_body_hook",
-      "durationSeconds": 2.033,
+      "durationSeconds": 2.067,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_rear_hook",
-      "durationSeconds": 1.567,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -210,17 +210,17 @@
     },
     {
       "name": "boxing_roll_hook",
-      "durationSeconds": 2.267,
+      "durationSeconds": 2.3,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_slip",
-      "durationSeconds": 2.367,
+      "durationSeconds": 2.433,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
       "name": "boxing_slip_cross",
-      "durationSeconds": 1.8,
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -235,7 +235,7 @@
     },
     {
       "name": "boxing_step_jab",
-      "durationSeconds": 2.1,
+      "durationSeconds": 2.133,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

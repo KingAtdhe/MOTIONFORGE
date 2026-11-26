@@ -23,7 +23,7 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
         "Get into your plank. The timer runs while you hold the position.", "Holding — steady breathing."),
     BEAR("Bear hold check", "Put the phone side-on at floor level, whole body in view.",
         "Hands under shoulders, knees under hips. The timer runs while you're on all fours.",
-        "On all fours — keep the knees hovering just off the floor. (A lift that small can't be seen; the timer only checks the position.)"),
+        "On all fours — keep the knees just off the floor."),
     WALL_SIT("Wall sit check", "Put the phone side-on, whole body in view.",
         "Slide down the wall. The timer runs while you hold the sit.", "Holding — back on the wall."),
     BALANCE("Balance check", "Face the phone with your whole body, feet included, in view.",
@@ -268,7 +268,7 @@ class HoldMonitor(
 
     companion object {
         const val PLANK_BEND = 15.0
-        const val WALL_SIT_MAX_KNEE = 140.0
+        const val WALL_SIT_MAX_KNEE = 150.0
         const val WALL_SIT_HIGH = 125.0
         const val BALANCE_LIFT = 0.15
         const val CHILD_KNEE = 70.0

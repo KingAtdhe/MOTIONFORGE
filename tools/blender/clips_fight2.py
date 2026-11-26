@@ -190,7 +190,9 @@ def jab_uppercut(r, st):
 
 def uppercut_hook(r, st):
     """Lead uppercut, then lead hook off the same hand (5-3)."""
-    return _combo(r, st, 3.2, [("e_lup", 0.30, 0.46, 0.12, 0.45), ("e_hook", 1.32, 0.45, 0.18, 0.55)])
+    # the hook starts once the uppercut is home: both use the lead arm, and the hook's arm pose replaces the uppercut's
+    # (overlapping them made the arm jump -- QC: forearm jerk ~1900 once the punch tempo was slowed)
+    return _combo(r, st, 3.2, [("e_lup", 0.30, 0.46, 0.12, 0.45), ("e_hook", 1.47, 0.45, 0.18, 0.55)])
 
 
 def hook_cross(r, st):

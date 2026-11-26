@@ -243,7 +243,7 @@ class BridgeRepCounter(travel: Double = 20.0) : ExcursionRepCounter(+1, travel) 
  * (rendered videos: ~0.04 flat, ~0.13 at the top). Only while standing upright with straight knees (a squat's heel
  * shift never reads as a raise). From the front the heel hides behind the foot: the card asks for a side view.
  */
-class CalfRaiseRepCounter(travel: Double = 0.05) : ExcursionRepCounter(+1, travel) {
+class CalfRaiseRepCounter(travel: Double = 0.05) : ExcursionRepCounter(+1, travel, returnFraction = 0.7, minRepMs = 400) {
     override fun signal(f: PoseFrame): Double? {
         val r = PoseReader(f, minVisibility)
         val t = r.torso ?: return null

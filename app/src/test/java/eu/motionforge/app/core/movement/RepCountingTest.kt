@@ -29,7 +29,7 @@ class RepCountingTest {
         assertTrue(CountedMove.counterFor("boxing_cross_hook") is ComboRepCounter)
         assertTrue(CountedMove.counterFor("boxing_body_jab") is LevelChangeRepCounter)
         assertTrue(CountedMove.counterFor("boxing_step_jab") is PunchRepCounter)
-        assertNull(CountedMove.counterFor("boxing_pull_back"))
+        assertTrue(CountedMove.counterFor("boxing_pull_back") is TwoSidedRepCounter)
         assertTrue(CountedMove.counterFor("standing_oblique_crunch") is KneeLiftRepCounter)
         assertTrue(CountedMove.counterFor("dumbbell_squat") is SquatRepCounter)
         assertTrue(CountedMove.counterFor("dumbbell_reverse_lunge") is LungeRepCounter)
@@ -44,7 +44,7 @@ class RepCountingTest {
         listOf("boxing_back_jab", "boxing_lateral_jab", "boxing_jab_pivot").forEach { assertTrue(it, CountedMove.counterFor(it) is PunchRepCounter) }
         assertTrue(CountedMove.counterFor("boxing_jab_slip") is SlipRepCounter)
         // guard-only or held positions, and footwork (a guided drill, never scored): not counted
-        listOf("boxing_parry", "boxing_catch", "boxing_high_block", "boxing_pull_back", "wall_sit", "forearm_plank", "hip_hinge",
+        listOf("boxing_parry", "boxing_catch", "boxing_high_block", "wall_sit", "forearm_plank", "hip_hinge",
             "footwork_circle_left", "footwork_forward_backward", "standing_mobility_warmup").forEach { assertNull(it, CountedMove.counterFor(it)) }
         // 2026-11-25: the rest of the catalogue, each checked on rendered videos
         assertTrue(CountedMove.counterFor("boxing_duck") is LevelChangeRepCounter)

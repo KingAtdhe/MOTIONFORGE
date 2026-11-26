@@ -214,7 +214,6 @@ dead_bug_f_sideL|dead_bug|4
 superman_f_sideL|superman|2
 cat_cow_f_sideL|cat_cow|3
 bird_dog_m_sideL|bird_dog|4
-boxing_pull_back_f_side|boxing_pull_back|0
 squat_calf_raise_f_side|squat_calf_raise|2
 single_leg_balance_m_front|single_leg_balance|5
 side_leg_raise_m_front|side_leg_raise|4
@@ -247,9 +246,7 @@ boxing_catch_m_q45|boxing_catch|0
 boxing_high_block_f_q45|boxing_high_block|0
 boxing_body_block_m_q45|boxing_body_block|0
 boxing_duck_f_q45|boxing_duck|3
-boxing_block_cross_m_q45|boxing_block_cross|0
 boxing_slip_cross_f_q45|boxing_slip_cross|0
-boxing_pull_counter_f_q45|boxing_pull_counter|0
 boxing_roll_hook_m_q45|boxing_roll_hook|2
 boxing_fist_rolls_f_q45|boxing_fist_rolls|0
 boxing_stance_bounce_m_q45|boxing_stance_bounce|0
@@ -260,7 +257,6 @@ dead_bug_m_sideL|dead_bug|4
 superman_m_sideL|superman|3
 bird_dog_f_sideL|bird_dog|4
 boxing_guard_return_f_q45|boxing_guard_return|0
-boxing_pull_back_m_q45|boxing_pull_back|0
 boxing_roll_m_front|boxing_roll|6
 squat_calf_raise_m_q45|squat_calf_raise|2
 cat_cow_m_sideL|cat_cow|3
@@ -337,7 +333,6 @@ boxing_body_head_jab_f_q45|boxing_body_head_jab|2
 boxing_catch_f_q45|boxing_catch|0
 boxing_body_block_f_q45|boxing_body_block|0
 donkey_kick_m_q45L|donkey_kick|4
-boxing_block_cross_f_q45|boxing_block_cross|0
 bear_plank_hold_f_sideL|bear_plank_hold|8
 bear_plank_hold_m_sideL|bear_plank_hold|8
 # (bear hold: the whole clip is on all fours; the knee hover itself is not measured)
@@ -347,8 +342,37 @@ boxing_stance_bounce_f_q45|boxing_stance_bounce|0
 boxing_high_block_m_q45|boxing_high_block|0
 boxing_duck_m_q45|boxing_duck|3
 boxing_slip_cross_m_q45|boxing_slip_cross|0
-boxing_pull_counter_m_q45|boxing_pull_counter|0
 boxing_fist_rolls_m_q45|boxing_fist_rolls|0
 # fire hydrant, male coach from a front corner: the far leg's lift is hidden behind the body, only the near leg's 2 lifts are seen and counted (the lesson text says to turn the working leg toward the phone); head-on and from behind tracking fails on all fours
 fire_hydrant_m_q45L|fire_hydrant|2
 fire_hydrant_m_frontL|fire_hydrant|0
+boxing_pull_back_f_side|boxing_pull_back|6
+boxing_pull_back_m_q45|boxing_pull_back|6
+boxing_pull_counter_f_q45|boxing_pull_counter|3
+boxing_pull_counter_m_q45|boxing_pull_counter|3
+boxing_block_cross_f_q45|boxing_block_cross|2
+boxing_block_cross_m_q45|boxing_block_cross|2
+stance_m_front|boxing_pull_back|0
+neg_idle_knee_m_front|boxing_pull_back|0|HANDS_LOW
+stance_m_front|boxing_block_cross|0
+neg_idle_knee_m_front|boxing_block_cross|0|HANDS_LOW
+# harder conditions for the new checks (st_*): dim grainy room, cluttered room, 4.5 m away, camera on the floor, faster tempo, other angles
+st_dim_crunch|crunch|3
+st_busy_twist|standing_torso_twist|4
+st_far_skater|skater_step|6
+st_fast_climber|slow_mountain_climber|6
+st_dim_calf|calf_raise|3
+st_busy_deadbug|dead_bug|4
+# plank filmed from 4.5 m at floor level: the pose model finds no person at all; the timer never runs (setup text asks for ~2 m)
+st_far_plank|forearm_plank|0
+st_fast_buttkick|butt_kicks|12
+st_dim_kbswing|kettlebell_swing|4
+st_q45_wallsit|wall_sit|7
+st_busy_sidebend|standing_side_bend|4
+st_low_floorpress|dumbbell_floor_press|3
+st_fast_shrug|dumbbell_shrug|3
+st_dim_birddog|bird_dog|4
+st_far_glutekick|glute_kickback|4
+st_busy_duck|boxing_duck|3
+st_dim_guard|boxing_parry|0
+st_q45_dip|bench_dip|3
