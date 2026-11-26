@@ -1305,5 +1305,6 @@ published debug APK's assets for the local MediaPipe runs.
   guided: from a phone the folded leg behind the body is lost by the pose model, so it is not assessed.
 - **Build your own session** (Home): pick a focus (full body, legs, upper, core, boxing, stretch), 5–20 minutes and
   whether you have dumbbells. Warm-up, day-shuffled moves (~40 s, 15 s rests), a cool-down stretch from 10 min.
-  Deterministic per day so a restart resumes the same session (`SessionBuilder`, unit-tested).
+  A short list is gone through again in rounds (never the same move back to back). Deterministic per day so a
+  restart resumes the same session (`SessionBuilder`, unit-tested).
 - **3 new plans**: Core & mobility, Legs & glutes, Boxing conditioning (6 plans in total).

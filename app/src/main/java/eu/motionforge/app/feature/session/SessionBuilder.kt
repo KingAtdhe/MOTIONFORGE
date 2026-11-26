@@ -16,6 +16,7 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     )),
     UPPER("upper", "Upper body", TrainingCategory.FITNESS, listOf(
         "knee_push_up", "incline_push_up", "wall_push_up", "push_up", "bench_dip", "plank_shoulder_taps", "arm_circles",
+        "high_plank", "bear_plank_hold", "superman",
         "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "dumbbell_bent_over_row",
         "dumbbell_hammer_curl", "dumbbell_front_raise", "dumbbell_reverse_fly", "dumbbell_overhead_triceps_extension",
         "dumbbell_floor_press", "dumbbell_shrug",
@@ -120,12 +121,15 @@ object SessionBuilder {
         } else emptyList()
         val coolDownTime = coolDown.size * (45 + rest)
         val each = if (stretching) 50 else 40
-        for (e in pool) {
-            if (total + rest + each + coolDownTime > target + 20) break
-            add(e, each)
+        // a short list is gone through again in rounds (never the same move twice in a row)
+        var last: String? = null
+        rounds@ for (round in 0 until 4) for (e in pool) {
+            if (total + rest + each + coolDownTime > target + 20) break@rounds
+            if (e.id == last) continue
+            add(e, each); last = e.id
         }
         // a short session still gets at least two moves
-        if (steps.count { it is SessionStep.Work } < 2) pool.drop(steps.count { it is SessionStep.Work }).take(1).forEach { add(it, each) }
+        if (steps.count { it is SessionStep.Work } < 2) pool.firstOrNull { it.id != last }?.let { add(it, each) }
         coolDown.forEach { add(it, 45) }
         return SessionPlan("${p.focus.label}, ${p.minutes} min", p.focus.category, steps)
     }

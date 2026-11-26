@@ -17,7 +17,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun bundledCatalogParses() {
         val exercises = ExerciseCatalogParser.parse(bundled)
-        assertEquals(118, exercises.size)
+        assertEquals(123, exercises.size)
         assertTrue(exercises.any { it.category == TrainingCategory.FITNESS })
         assertTrue(exercises.any { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS })
     }

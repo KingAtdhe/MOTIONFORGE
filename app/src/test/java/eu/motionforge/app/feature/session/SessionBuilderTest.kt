@@ -13,6 +13,8 @@ import java.io.File
 class SessionBuilderTest {
     private val catalog = ExerciseCatalogParser.parse(File("src/main/assets/${ExerciseCatalogParser.ASSET_PATH}").readText())
     private val byId = catalog.associateBy { it.id }
+    private val COOL_DOWN = setOf("standing_quad_stretch", "cross_body_shoulder_stretch", "kneeling_hip_flexor_stretch",
+        "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose")
 
     private fun build(f: SessionFocus, min: Int, db: Boolean = false, day: Long = 20_000) =
         SessionBuilder.build(catalog, SessionBuilder.Params(f, min, db, day))!!
@@ -25,7 +27,12 @@ class SessionBuilderTest {
             assertTrue("$f $m: ${works.size} moves", works.size >= 2)
             assertTrue("$f $m lasts ${p.totalSeconds}", p.totalSeconds in (m * 60 - 120)..(m * 60 + 60))
             assertTrue("$f $m starts with a move", p.steps.first() is SessionStep.Work)
-            assertEquals("no move twice", works.size, works.map { it.exerciseId }.toSet().size)
+            assertTrue("$f $m: a move back to back", works.zipWithNext().none { (a, b) -> a.exerciseId == b.exerciseId })
+            // every move of the day's list comes before any repeat
+            val main = works.map { it.exerciseId }.filter { it != "standing_mobility_warmup" }
+                .let { ids -> if (f == SessionFocus.STRETCH) ids else ids.filter { it !in COOL_DOWN } }
+            val distinct = main.distinct().size
+            assertEquals("$f $m: repeats before the list is used", distinct, main.take(distinct).toSet().size)
             works.forEach { assertNotNull(it.exerciseId, byId[it.exerciseId]) }
         }
     }
