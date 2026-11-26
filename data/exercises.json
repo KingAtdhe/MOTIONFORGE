@@ -3327,7 +3327,7 @@
         "adjustment": "Pause at the top."
       }
     ],
-    "limitations": "The camera counts each lift (the working knee moving away from the other knee); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at an angle (from a front corner), whole body in view; side-on, the far leg is hidden and its lifts are missed. Experimental.",
+    "limitations": "The camera counts each lift (the working knee moving away from the other knee); it does not judge technique beyond that. Turn the phone sideways and put it at floor level at a front corner on the side of the working leg, whole body in view; the leg further from the phone can be hidden behind the body and its lifts missed. Head-on, tracking fails on all fours. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

@@ -344,3 +344,11 @@ bear_plank_hold_m_sideL|bear_plank_hold|8
 boxing_roll_hook_f_q45|boxing_roll_hook|2
 boxing_parry_m_q45|boxing_parry|0
 boxing_stance_bounce_f_q45|boxing_stance_bounce|0
+boxing_high_block_m_q45|boxing_high_block|0
+boxing_duck_m_q45|boxing_duck|3
+boxing_slip_cross_m_q45|boxing_slip_cross|0
+boxing_pull_counter_m_q45|boxing_pull_counter|0
+boxing_fist_rolls_m_q45|boxing_fist_rolls|0
+# fire hydrant, male coach from a front corner: the far leg's lift is hidden behind the body, only the near leg's 2 lifts are seen and counted (the lesson text says to turn the working leg toward the phone); head-on and from behind tracking fails on all fours
+fire_hydrant_m_q45L|fire_hydrant|2
+fire_hydrant_m_frontL|fire_hydrant|0

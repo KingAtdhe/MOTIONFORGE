@@ -149,7 +149,7 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     SHRUG("Shrug check", "Face the phone with your head and shoulders in view.",
         "Lift the shoulders toward your ears and lower slowly. Each shrug is counted when they're back down.",
         "That shrug was small. Lift a little higher if it's comfortable."),
-    KICK_BACK("Leg lift check", "Put the phone at floor level at an angle (a front corner), whole body in view — side-on, the far leg is hidden.",
+    KICK_BACK("Leg lift check", "Put the phone at floor level at a front corner on the working leg's side, whole body in view — the far leg can be hidden.",
         "Lift the leg with control. Each lift is counted when the knee comes back down.",
         "That lift was small. Lift a little more if it's comfortable."),
     ;
