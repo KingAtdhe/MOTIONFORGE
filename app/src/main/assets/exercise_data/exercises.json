@@ -2180,7 +2180,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_limited_feedback",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_pull_back",
     "purpose": "Practise leaning back just out of reach of a straight punch while keeping your hands up and eyes forward.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -2207,7 +2207,7 @@
         "adjustment": "Keep the chin tucked and look at your target."
       }
     ],
-    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each pull-back from your head moving back off its line (best from a front corner); it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3785,7 +3785,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_limited_feedback",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_block_cross",
     "purpose": "Cover up, then answer with the cross.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3812,7 +3812,7 @@
         "adjustment": "Keep it at the chin."
       }
     ],
-    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each block-and-cross from the blocking elbow coming up and both hands back in guard; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -3933,7 +3933,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
-    "analysisMode": "guided_limited_feedback",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "boxing_pull_counter",
     "purpose": "Lean back out of range, then come forward with the cross.",
     "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
@@ -3960,7 +3960,7 @@
         "adjustment": "Keep both gloves up."
       }
     ],
-    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments; it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
+    "limitations": "The camera watches your guard (hands up by your face) and stance width and suggests simple adjustments, and counts each pull-and-counter from your head moving back off its line (best from a front corner); it does not judge timing, power or technique. Face the phone or stand at an angle, whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {

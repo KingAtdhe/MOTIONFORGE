@@ -123,6 +123,16 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
                 }
             }
         }
+        val holds = remember(history) { ProgressStats.holdTrends(history) }
+        if (holds.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                eu.motionforge.app.core.design.SectionHeader("Holds", trailing = "time in position")
+                holds.forEachIndexed { i, t ->
+                    if (i > 0) eu.motionforge.app.core.design.ThinRule()
+                    RepTrendRow(t, seconds = true)
+                }
+            }
+        }
 
         eu.motionforge.app.core.design.SectionHeader("History")
         val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE d MMMM, HH:mm") }
@@ -155,20 +165,22 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
 
 /** One exercise: its last sets as bars (the latest in ink, a new best in yellow), last and best counts. */
 @Composable
-private fun RepTrendRow(t: RepTrend) {
+private fun RepTrendRow(t: RepTrend, seconds: Boolean = false) {
+    fun fmt(v: Int) = if (seconds) formatClock(v) else "$v"
     Row(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .semantics(mergeDescendants = true) {
-                contentDescription = "${t.name}: last ${t.last} reps, best ${t.best}" + if (t.newBest) ", a new best" else ""
+                contentDescription = if (seconds) "${t.name}: last hold ${t.last} seconds, best ${t.best} seconds" + (if (t.newBest) ", a new best" else "")
+                    else "${t.name}: last ${t.last} reps, best ${t.best}" + if (t.newBest) ", a new best" else ""
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(t.name, style = MaterialTheme.typography.titleMedium)
             Text(
-                if (t.newBest) "New best" else "Best ${t.best}",
+                if (t.newBest) "New best" else "Best ${fmt(t.best)}",
                 style = MaterialTheme.typography.labelMedium,
                 color = if (t.newBest) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -191,6 +203,6 @@ private fun RepTrendRow(t: RepTrend) {
             }
         }
         Spacer(Modifier.width(12.dp))
-        Text("${t.last}", style = eu.motionforge.app.core.design.MfType.NumeralSmall)
+        Text(fmt(t.last), style = eu.motionforge.app.core.design.MfType.NumeralSmall)
     }
 }

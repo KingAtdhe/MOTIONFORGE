@@ -106,6 +106,8 @@ data class StepResult(
     val trackingQuality: TrackingQuality,
     /** The plan's rep target for this step, if any. */
     val targetReps: Int? = null,
+    /** Seconds held in position (hold checks), null when not measured or tracking was mostly unavailable. */
+    val heldSeconds: Int? = null,
 )
 
 data class SessionState(
@@ -118,6 +120,8 @@ data class SessionState(
     val stepElapsed: Int = 0,
     val stepTracked: Int = 0,
     val stepReps: Int = 0,
+    /** Whole seconds held in position in the current step (hold checks; camera only). */
+    val stepHeld: Int = 0,
     val results: List<StepResult> = emptyList(),
     val endedEarly: Boolean = false,
 ) {
@@ -143,6 +147,9 @@ sealed interface SessionEvent {
     data object Skip : SessionEvent
     data object Stop : SessionEvent
     data object RepCounted : SessionEvent
+
+    /** The hold check has seen [seconds] whole seconds in position in this step (never decreases). */
+    data class HoldProgress(val seconds: Int) : SessionEvent
 }
 
 /** Pure session state machine: timer, step sequence, rests, pause/skip/stop, per-exercise results. */
@@ -158,6 +165,12 @@ object SessionEngine {
                 val counted = s.copy(stepReps = s.stepReps + 1)
                 // target reached: the set is done, move on (the time cap no longer matters)
                 if (step.targetReps != null && counted.stepReps >= step.targetReps) advance(counted) else counted
+            } else s
+        }
+        is SessionEvent.HoldProgress -> {
+            val step = s.currentStep
+            if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.holdCheck != null && e.seconds > s.stepHeld) {
+                s.copy(stepHeld = minOf(e.seconds, s.stepElapsed + 1))
             } else s
         }
         is SessionEvent.Tick -> if (s.phase != SessionPhase.RUNNING) s else {
@@ -184,7 +197,8 @@ object SessionEngine {
         if (step !is SessionStep.Work || s.stepElapsed <= 0) return s
         val quality = TrackingQuality.of(s.cameraUsed, s.stepTracked, s.stepElapsed)
         val reps = if (step.countsReps && (quality == TrackingQuality.GOOD || quality == TrackingQuality.PARTIAL)) s.stepReps else null
-        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality, step.targetReps))
+        val held = if (step.holdCheck != null && s.cameraUsed && (quality == TrackingQuality.GOOD || quality == TrackingQuality.PARTIAL)) s.stepHeld else null
+        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality, step.targetReps, held))
     }
 
     private fun advance(s: SessionState): SessionState {
@@ -193,7 +207,7 @@ object SessionEngine {
         return if (next >= s.plan.steps.size) {
             closed.copy(phase = SessionPhase.FINISHED, remainingInStep = 0)
         } else {
-            closed.copy(stepIndex = next, remainingInStep = s.plan.steps[next].durationSeconds, stepElapsed = 0, stepTracked = 0, stepReps = 0)
+            closed.copy(stepIndex = next, remainingInStep = s.plan.steps[next].durationSeconds, stepElapsed = 0, stepTracked = 0, stepReps = 0, stepHeld = 0)
         }
     }
 }

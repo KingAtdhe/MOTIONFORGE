@@ -110,7 +110,7 @@ object MoreMoves {
         }
         // standing, facing the phone: the shoulders rise toward the ears (the nose gets closer above them), 0.05–0.07 torso
         // lengths on the rendered videos
-        CountedMove.SHRUG -> SignalRepCounter(-1, travel = 0.04, minRepMs = 500) { r ->
+        CountedMove.SHRUG -> SignalRepCounter(-1, travel = 0.04, minRepMs = 300) { r ->
             val t = r.torso
             if (t == null || t.tilt > 25.0 || !r.seen(BodyLandmark.NOSE)) null else (t.sy - r.y(BodyLandmark.NOSE)) / t.len
         }
@@ -122,6 +122,15 @@ object MoreMoves {
             if (t == null || !r.torsoIn(55.0, 125.0) || !r.seenAt(0.3f, Side.LEFT.knee, Side.RIGHT.knee)) null
             else r.dist(Side.LEFT.knee, Side.RIGHT.knee) / t.len
         }
+        // boxing pull-back, from a front corner: the head moves back off its line over the stance (nose relative to the
+        // hips, in torso lengths, ~0.2 on the rendered videos); each pull to either side of the learnt middle is one
+        CountedMove.PULL_BACK -> TwoSidedRepCounter(travel = 0.12, minRepMs = 250) { r ->
+            val t = r.torso
+            if (t == null || t.tilt > 40.0 || !r.seen(BodyLandmark.NOSE)) null else (r.x(BodyLandmark.NOSE) - t.hx) / t.len
+        }
+        // block then cross: counted once per block-and-counter like the combinations, with a lower lift (the block
+        // raises the elbow 0.18–0.24 torso lengths, the cross at the phone less)
+        CountedMove.BLOCK_COUNTER -> ComboRepCounter(travel = 0.15)
         else -> null
     }
 

@@ -7,7 +7,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 
-data class ExerciseRecord(val exerciseId: String, val name: String, val durationSeconds: Int, val repetitions: Int?, val trackingQuality: String)
+data class ExerciseRecord(
+    val exerciseId: String, val name: String, val durationSeconds: Int, val repetitions: Int?, val trackingQuality: String,
+    /** Seconds held in position (hold checks), null when not measured. */
+    val heldSeconds: Int? = null,
+)
 
 data class SessionRecord(
     val id: Long,
@@ -53,6 +57,17 @@ object ProgressStats {
         return sets.groupBy { it.first.exerciseId }.map { (id, list) ->
             val reps = list.map { it.second }
             RepTrend(id, list.last().first.name, reps.takeLast(RECENT), reps.max(), list.last().third)
+        }.sortedByDescending { it.lastAtMillis }
+    }
+
+    /** Like [repTrends] for held positions: seconds held in position per set (sets with nothing held are left out). */
+    fun holdTrends(records: List<SessionRecord>): List<RepTrend> {
+        val sets = records.sortedBy { it.startedAtMillis }.flatMap { s ->
+            s.exercises.filter { (it.heldSeconds ?: 0) > 0 }.map { Triple(it, it.heldSeconds!!, s.startedAtMillis) }
+        }
+        return sets.groupBy { it.first.exerciseId }.map { (id, list) ->
+            val v = list.map { it.second }
+            RepTrend(id, list.last().first.name, v.takeLast(RECENT), v.max(), list.last().third)
         }.sortedByDescending { it.lastAtMillis }
     }
 

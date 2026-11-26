@@ -29,6 +29,7 @@ create table if not exists public.session_exercises (
   duration_seconds integer not null default 0 check (duration_seconds >= 0),
   repetition_count integer check (repetition_count is null or repetition_count >= 0),
   tracking_quality text check (tracking_quality in ('good', 'partial', 'unavailable', 'not_used')),
+  held_seconds integer check (held_seconds is null or held_seconds >= 0),
   created_at timestamptz not null default now()
 );
 

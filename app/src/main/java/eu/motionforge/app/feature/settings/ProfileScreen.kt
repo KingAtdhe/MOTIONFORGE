@@ -112,7 +112,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
                 Column(Modifier.weight(1f)) {
                     Text("Spoken cues during sessions", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "The coach announces each exercise, counts squats and says form adjustments and good reps out loud. " +
+                        "The coach announces each exercise, counts your reps, tells you when a hold timer pauses and says form adjustments out loud. " +
                             "Uses your phone's own text-to-speech voice.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

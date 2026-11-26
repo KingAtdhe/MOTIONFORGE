@@ -248,6 +248,8 @@ class SessionViewModel(
                 else -> eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(hm.heldMs)
             }
             hold = now
+            val heldSeconds = (now.heldMs / 1000).toInt()
+            if (heldSeconds > _state.value.stepHeld) onEvent(SessionEvent.HoldProgress(heldSeconds))
             SessionNarrator.holdLine(previous, now)?.let(::say)
             if (!holdPraised && now is eu.motionforge.app.core.movement.HoldFeedback.Holding && now.heldMs >= SessionNarrator.HOLD_PRAISE_AFTER_MS) {
                 holdPraised = true

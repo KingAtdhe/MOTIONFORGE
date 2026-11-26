@@ -1271,3 +1271,27 @@ Robolectric flows and lint in CI. New: `HoldMonitorTest`, narrator hold/guard ca
 published debug APK's assets for the local MediaPipe runs.
 - Review fix (#21, Codex P2): pausing a hold step left the card on "Holding" / the last cue; it now shows the timer
   as paused.
+
+## 2026-11-26 (2) — Hold history, harder camera tests, smoother punches, more counted boxing drills
+
+- **Hold times saved**: a hold step's time in position is kept with the session (`StepResult.heldSeconds`, only with
+  the camera and usable tracking), shown on the summary ("held in position 0:45") and as a new "Holds" section on
+  Progress (last sets as bars, best, new best). Database version 2 adds `session_exercises.held_seconds` with a real
+  migration (history is kept; `SessionDatabaseMigrationTest` opens a version-1 file); `database/schema.sql` mirrors it.
+- **Harder conditions for the new checks** (18 videos, `st_*` in `expected.txt`): dim grainy room (crunch, calf raise,
+  bird dog, kettlebell swing, guard), cluttered room (twist, dead bug, side bend, duck), 4.5 m away (skater, kickback,
+  plank), camera on the floor (floor press), faster tempo (climber ×1.6, butt kicks ×1.4, shrugs ×1.5), other angles
+  (wall sit and dips from a front corner). Fixes: calf raise minimum 0.7 → 0.4 s and return 0.8 → 0.7 of the travel
+  (a dim room shortened the readable top of each raise), shrug minimum 0.5 → 0.3 s, wall sit counts from a 150° knee
+  (seen from a corner the bent knee reads straighter). Found, not fixable in code: a plank filmed from 4.5 m at floor
+  level is not found by the pose model at all (nothing counted or timed; the setup asks for ~2 m).
+- **More boxing drills counted**: pull-back and pull-counter (the head moving back off its line, from a front corner
+  or side-on), block-cross (block-and-counter, combination counter with a lower lift). Slip-cross stays guard-only:
+  the slip and the cross move the head by similar amounts in opposite directions.
+- **Punches**: every extension / return of every punch (and the slips, pulls and level changes that share the curve)
+  is 12 % longer (`PUNCH_TEMPO`): boxing mesh-jerk median 517 → 441 (F) and 682 → 540 (M), highest 706 → 617 /
+  920 → 777, no clip worse, overall median 260 → 253 / 306 → 287. Tried first and dropped: a quintic and a bounded-jerk profile — smoother on
+  paper, but both raised the measured jerk of every punch (higher peak acceleration for the same time). The uppercut-
+  hook's hook now starts once the uppercut is home (the lead arm's two poses overlapped and jumped). All loops still
+  close (`loopj`).
+- Shorter card texts (bear hold, shoulder taps, donkey kick / fire hydrant framing).

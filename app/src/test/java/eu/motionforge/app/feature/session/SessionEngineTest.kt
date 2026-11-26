@@ -135,4 +135,24 @@ class SessionEngineTest {
             assertTrue(catalog.filter { it.id in ids }.none { it.needsEquipment })
         }
     }
+
+    @Test
+    fun holdTimeIsKeptOnlyWithTheCameraAndUsableTracking() {
+        val plank = catalog.first { it.id == "forearm_plank" }
+        val plan = SessionPlanner.single(plank)
+        assertTrue((plan.steps.single() as SessionStep.Work).holdCheck != null)
+        var s = SessionState(plan).on(SessionEvent.Start(true)).ticks(10, tracking = true)
+        s = s.on(SessionEvent.HoldProgress(7), SessionEvent.HoldProgress(5))      // never decreases
+        assertEquals(7, s.stepHeld)
+        s = s.on(SessionEvent.HoldProgress(99))                                    // never more than the step's time
+        assertEquals(11, s.stepHeld)
+        s = s.on(SessionEvent.Stop)
+        assertEquals(11, s.results.single().heldSeconds)
+        // without the camera nothing is measured
+        val off = SessionState(plan).on(SessionEvent.Start(false)).ticks(10).on(SessionEvent.HoldProgress(5), SessionEvent.Stop)
+        assertNull(off.results.single().heldSeconds)
+        // a counted move has no hold time
+        val sq = SessionState(SessionPlanner.single(squat)).on(SessionEvent.Start(true)).ticks(10, tracking = true).on(SessionEvent.HoldProgress(5), SessionEvent.Stop)
+        assertNull(sq.results.single().heldSeconds)
+    }
 }

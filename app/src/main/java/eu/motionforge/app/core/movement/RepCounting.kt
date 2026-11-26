@@ -140,16 +140,22 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     HEEL_TAP("Heel tap check", "Put the phone at floor level, side-on, whole body in view.",
         "Reach side to side toward your heels. Each tap is counted when you're back in the middle.",
         "That reach was small. Reach a little further if it's comfortable."),
-    SHOULDER_TAP("Shoulder tap check", "Put the phone at floor level at an angle (a front corner), whole body in view — side-on the far hand is hidden, head-on the legs are.",
+    SHOULDER_TAP("Shoulder tap check", "Phone at floor level at a front corner, whole body in view (side-on or head-on, a hand or the legs get hidden).",
         "Lift one hand to the other shoulder. Each tap is counted when the hand is back down.",
         "That tap was small."),
+    PULL_BACK("Pull-back check", "Stand at an angle to the phone (a front corner), whole body in view.",
+        "Lean back from the hips and return. Each pull-back is counted when your head is back over your stance.",
+        "That one was small. Lean back a little further if it's comfortable."),
+    BLOCK_COUNTER("Block-and-counter check", "Stand at an angle to the phone (a front corner), whole body in view.",
+        "Block, then fire the cross. Each block-and-counter is counted when both hands are back in guard.",
+        "That one was small."),
     SWING("Swing check", "Stand side-on to the phone with your whole body in view.",
         "Hinge and snap the hips through. Each swing is counted when you stand tall.",
         "That one was small. Hinge a little deeper if it's comfortable."),
     SHRUG("Shrug check", "Face the phone with your head and shoulders in view.",
         "Lift the shoulders toward your ears and lower slowly. Each shrug is counted when they're back down.",
         "That shrug was small. Lift a little higher if it's comfortable."),
-    KICK_BACK("Leg lift check", "Put the phone at floor level at a front corner on the working leg's side, whole body in view — the far leg can be hidden.",
+    KICK_BACK("Leg lift check", "Phone at floor level at a front corner on the working leg's side, whole body in view.",
         "Lift the leg with control. Each lift is counted when the knee comes back down.",
         "That lift was small. Lift a little more if it's comfortable."),
     ;
@@ -203,6 +209,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "donkey_kick", "fire_hydrant" -> KICK_BACK
             "dumbbell_shrug" -> SHRUG
             "kettlebell_swing" -> SWING
+            "boxing_pull_back", "boxing_pull_counter" -> PULL_BACK
+            "boxing_block_cross" -> BLOCK_COUNTER
             "single_leg_glute_bridge" -> BRIDGE
             "boxing_roll_hook", "boxing_body_head_jab" -> COMBO
             else -> null
