@@ -209,7 +209,7 @@ class BandPullRepCounter(travel: Double = 0.6, private val minFrontal: Double = 
  * Seen from the side that is the torso's tilt in the image; seen from the front the torso leans toward the camera and
  * looks shorter instead, so the pitch is the larger of the tilt and acos(torso length / standing torso length).
  */
-class HingeRepCounter(travel: Double = 30.0) : ExcursionRepCounter(+1, travel) {
+class HingeRepCounter(travel: Double = 25.0) : ExcursionRepCounter(+1, travel, minRepMs = 500) {
     private var standingTorso = 0.0
     override fun reset() { super.reset(); standingTorso = 0.0 }
     override fun signal(f: PoseFrame): Double? {
@@ -239,18 +239,19 @@ class BridgeRepCounter(travel: Double = 20.0) : ExcursionRepCounter(+1, travel) 
 }
 
 /**
- * Calf raise: the ankles rise above the toes. Signal: toe-to-ankle height over the shin length, averaged over the
- * visible feet. Only while standing upright.
+ * Calf raise, filmed side-on: how far the heel of the foot nearer the camera rises above its toes, in torso lengths
+ * (rendered videos: ~0.04 flat, ~0.13 at the top). Only while standing upright with straight knees (a squat's heel
+ * shift never reads as a raise). From the front the heel hides behind the foot: the card asks for a side view.
  */
-class CalfRaiseRepCounter(travel: Double = 0.07) : ExcursionRepCounter(+1, travel) {
+class CalfRaiseRepCounter(travel: Double = 0.05) : ExcursionRepCounter(+1, travel) {
     override fun signal(f: PoseFrame): Double? {
-        val (s, h, _) = f.torso() ?: return null
-        if (tilt(s, h) > 30.0) return null
-        val feet = listOf(
-            Triple(BodyLandmark.LEFT_KNEE, BodyLandmark.LEFT_ANKLE, BodyLandmark.LEFT_FOOT_INDEX),
-            Triple(BodyLandmark.RIGHT_KNEE, BodyLandmark.RIGHT_ANKLE, BodyLandmark.RIGHT_FOOT_INDEX),
-        ).filter { (k, a, t) -> f.seen(k, a, t) }.map { (k, a, t) -> (f.px(t).second - f.px(a).second) / f.dist(k, a).coerceAtLeast(1.0) }
-        return if (feet.isEmpty()) null else feet.average()
+        val r = PoseReader(f, minVisibility)
+        val t = r.torso ?: return null
+        if (t.tilt > 30.0) return null
+        val s = r.nearer({ it.heel }, { it.toe }, { it.knee })
+        val knee = r.angle(s.hip, s.knee, s.ankle) ?: return null
+        if (knee < 150.0) return null
+        return r.above(s.heel, s.toe)
     }
 }
 

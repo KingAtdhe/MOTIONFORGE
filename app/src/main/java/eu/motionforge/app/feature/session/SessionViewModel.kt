@@ -66,6 +66,9 @@ class SessionViewModel(
     /** Boxing form cues for the current step (null when the step has no form check). */
     val form: StateFlow<FormFeedback?> = _form.asStateFlow()
     private var formMonitor: BoxingFormMonitor? = null
+    private var holdMonitor: eu.motionforge.app.core.movement.HoldMonitor? = null
+    private var hold: eu.motionforge.app.core.movement.HoldFeedback? = null
+    private var holdPraised = false
 
     private val _coaching = MutableStateFlow<LiveCoaching?>(null)
     /** The coaching card for the current camera step (squat or boxing checks), or null. */
@@ -136,9 +139,16 @@ class SessionViewModel(
             stancePraised = false
         }
         if (after.phase != SessionPhase.RUNNING) formMonitor?.reset()
+        val holdCheck = (after.currentStep as? SessionStep.Work)?.holdCheck
+        if (after.stepIndex != before.stepIndex || (holdCheck != null && holdMonitor == null)) {
+            holdMonitor = holdCheck?.let { eu.motionforge.app.core.movement.HoldMonitor(it) }
+            hold = holdCheck?.let { eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(0) }
+            holdPraised = false
+        }
+        if (after.phase != SessionPhase.RUNNING) holdMonitor?.reset()
         refreshCoachingCard(after)
         val step = after.currentStep
-        val live = after.cameraUsed && step is SessionStep.Work && (step.countsReps || step.formDrill != null)
+        val live = after.cameraUsed && step is SessionStep.Work && step.liveChecked
         SessionNarrator.onTransition(before, after, tips, live).forEach(::say)
         if (after.phase != SessionPhase.READY && after != before && toPersist.value != Disk.Forget) toPersist.value = Disk.Keep(after)
         syncTicker(after.phase)
@@ -226,6 +236,20 @@ class SessionViewModel(
                 if (now is FormFeedback.Cue) stancePraised = false
             }
         }
+        val hm = holdMonitor
+        if (hm != null && s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.holdCheck != null) {
+            val previous = hold
+            val now = when (output) {
+                is PoseOutput.Detected -> hm.update(output.frame, tracking = trackingState.allowsFeedback)
+                else -> eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(hm.heldMs)
+            }
+            hold = now
+            SessionNarrator.holdLine(previous, now)?.let(::say)
+            if (!holdPraised && now is eu.motionforge.app.core.movement.HoldFeedback.Holding && now.heldMs >= SessionNarrator.HOLD_PRAISE_AFTER_MS) {
+                holdPraised = true
+                say(CoachLine(SessionNarrator.HOLD_PRAISE, eu.motionforge.app.core.coaching.CuePriority.PRAISE))
+            }
+        }
         refreshCoachingCard(s)
     }
 
@@ -234,7 +258,10 @@ class SessionViewModel(
         val drill = step?.formDrill
         _coaching.value = when {
             step == null || !s.cameraUsed -> null
-            drill != null -> _form.value?.let { SessionNarrator.boxingCard(it, drill, formMonitor?.goodJabs ?: 0) }
+            step.holdCheck != null -> hold?.let { SessionNarrator.holdCard(step.holdCheck, it) }
+            drill != null -> _form.value?.let {
+                SessionNarrator.boxingCard(it, drill, formMonitor?.goodJabs ?: 0, reps = if (step.countsReps) s.stepReps else null)
+            }
             step.countsReps -> SessionNarrator.repCard(countedMove ?: CountedMove.SQUAT, lastRepEvent, _tracking.value.allowsFeedback)
             else -> null
         }
@@ -248,6 +275,8 @@ class SessionViewModel(
         evaluator.reset()
         repCounter?.reset()
         formMonitor?.reset()
+        holdMonitor?.reset()
+        if (hold != null) hold = eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(holdMonitor?.heldMs ?: 0)
         if (_form.value != null) _form.value = FormFeedback.NotAssessing(formMonitor?.jabs ?: 0)
         _tracking.value = TrackingState.PAUSED
         refreshCoachingCard(_state.value)

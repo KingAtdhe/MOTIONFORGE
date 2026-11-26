@@ -195,7 +195,9 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             Text(
                 if (eu.motionforge.app.core.movement.CountedMove.forExercise(exercise.id) != null) {
                     "In practice with the camera on, repetitions are counted automatically, and a few simple form rules may suggest an adjustment. This is experimental — it does not judge safety."
-                } else if (exercise.id == SessionPlanner.STANCE_ID || exercise.id == SessionPlanner.JAB_ID || exercise.id == SessionPlanner.CROSS_ID) {
+                } else if (eu.motionforge.app.core.movement.HoldCheck.forExercise(exercise.id) != null) {
+                    "In practice with the camera on, it times your hold only while you're in the position, and a simple rule may suggest an adjustment. This is experimental — it does not judge safety."
+                } else if (SessionPlanner.drillFor(exercise.id) != null) {
                     "In practice with the camera on, it watches your guard and feet and suggests simple adjustments. This is experimental."
                 } else {
                     "In practice, the camera works as a mirror with a tracking skeleton. It does not assess this movement yet."

@@ -60,6 +60,7 @@ data class SessionSnapshot(
                                 put("seconds", step.durationSeconds)
                                 put("countsReps", step.countsReps)
                                 step.formDrill?.let { put("formDrill", it.name) }
+                                step.holdCheck?.let { put("holdCheck", it.name) }
                                 step.targetReps?.let { put("targetReps", it) }
                             }
                             is SessionStep.Rest -> buildJsonObject {
@@ -109,6 +110,7 @@ data class SessionSnapshot(
                         durationSeconds = so.int("seconds"),
                         countsReps = so.getValue("countsReps").jsonPrimitive.boolean,
                         formDrill = so["formDrill"]?.jsonPrimitive?.content?.let { BoxingDrill.valueOf(it) },
+                        holdCheck = so["holdCheck"]?.jsonPrimitive?.content?.let { eu.motionforge.app.core.movement.HoldCheck.valueOf(it) },
                         targetReps = so["targetReps"]?.jsonPrimitive?.intOrNull,
                     )
                     "rest" -> SessionStep.Rest(so.int("seconds"), so.str("nextName"))

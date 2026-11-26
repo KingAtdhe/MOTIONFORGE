@@ -114,4 +114,30 @@ class SessionNarratorTest {
         assertEquals("Form check (experimental) · 5 jabs, 4 clean", c.title)
         assertEquals(CoachTone.GOOD, c.tone)
     }
+
+    @Test
+    fun holdCardShowsTheTimeHeldAndTheState() {
+        val check = eu.motionforge.app.core.movement.HoldCheck.PLANK
+        val h = SessionNarrator.holdCard(check, eu.motionforge.app.core.movement.HoldFeedback.Holding(65_400))
+        assertEquals("Plank check (experimental) · 1:05 held", h.title)
+        assertEquals(CoachTone.GOOD, h.tone)
+        assertEquals(CoachTone.PAUSED, SessionNarrator.holdCard(check, eu.motionforge.app.core.movement.HoldFeedback.NotAssessing(0)).tone)
+        assertEquals(CoachTone.NEUTRAL, SessionNarrator.holdCard(check, eu.motionforge.app.core.movement.HoldFeedback.OutOfPosition(0)).tone)
+    }
+
+    @Test
+    fun holdLinesOnlyOnChanges() {
+        val cue = eu.motionforge.app.core.movement.HoldFeedback.Cue(eu.motionforge.app.core.movement.HoldIssue.HIPS_SAG, 3_000)
+        val holding = eu.motionforge.app.core.movement.HoldFeedback.Holding(3_000)
+        assertEquals(CuePriority.CORRECTION, SessionNarrator.holdLine(holding, cue)?.priority)
+        assertNull(SessionNarrator.holdLine(cue, cue.copy(heldMs = 4_000)))
+        assertTrue(SessionNarrator.holdLine(holding, eu.motionforge.app.core.movement.HoldFeedback.OutOfPosition(3_000))!!.text.startsWith("Timer paused"))
+        assertNull(SessionNarrator.holdLine(holding, holding.copy(heldMs = 4_000)))
+    }
+
+    @Test
+    fun guardCardOnACountedMoveShowsTheCount() {
+        val c = SessionNarrator.boxingCard(FormFeedback.Steady(0), BoxingDrill.STANCE, 0, reps = 3)
+        assertEquals("Guard check (experimental) · 3 counted", c.title)
+    }
 }

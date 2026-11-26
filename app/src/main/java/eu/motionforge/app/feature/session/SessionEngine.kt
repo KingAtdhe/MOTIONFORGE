@@ -3,6 +3,7 @@ package eu.motionforge.app.feature.session
 import eu.motionforge.app.core.model.Exercise
 import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.core.movement.CountedMove
+import eu.motionforge.app.core.movement.HoldCheck
 import eu.motionforge.app.core.model.TrainingCategory
 
 sealed interface SessionStep {
@@ -19,7 +20,12 @@ sealed interface SessionStep {
         /** Training-plan rep target: with the camera counting, the step ends when it is reached ([durationSeconds]
          *  is then the time cap). Without the camera it is shown as guidance. */
         val targetReps: Int? = null,
-    ) : SessionStep
+        /** Held-position check for this step (plank, wall sit...; camera only), or null. */
+        val holdCheck: HoldCheck? = null,
+    ) : SessionStep {
+        /** The camera gives this step live feedback (counting, a hold check or the guard check). */
+        val liveChecked: Boolean get() = countsReps || formDrill != null || holdCheck != null
+    }
 
     data class Rest(override val durationSeconds: Int, val nextName: String) : SessionStep
 }
@@ -44,10 +50,14 @@ object SessionPlanner {
     const val JAB_ID = "boxing_jab"
     const val CROSS_ID = "boxing_cross"
 
-    fun drillFor(id: String): BoxingDrill? = when (id) { STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; CROSS_ID -> BoxingDrill.CROSS; else -> null }
+    fun drillFor(id: String): BoxingDrill? = when (id) {
+        STANCE_ID -> BoxingDrill.STANCE; JAB_ID -> BoxingDrill.JAB; CROSS_ID -> BoxingDrill.CROSS
+        else -> if (id in BoxingDrill.GUARD_CHECKED) BoxingDrill.STANCE else null
+    }
 
     private fun work(e: Exercise) = SessionStep.Work(
         e.id, e.name, e.durationSeconds, countsReps = CountedMove.forExercise(e.id) != null, formDrill = drillFor(e.id),
+        holdCheck = HoldCheck.forExercise(e.id),
     )
 
     fun single(exercise: Exercise) = SessionPlan(exercise.name, exercise.category, listOf(work(exercise)))

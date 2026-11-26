@@ -203,6 +203,7 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
         if (needsNotify) notifyLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) else startCameraOrNot()
     }
     val hasRepCounting = plan.steps.any { it is SessionStep.Work && it.countsReps }
+    val hasHolds = plan.steps.any { it is SessionStep.Work && it.holdCheck != null }
     val work = plan.steps.filterIsInstance<SessionStep.Work>()
 
     Box(Modifier.fillMaxSize()) {
@@ -223,16 +224,21 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
                 eu.motionforge.app.core.design.SectionHeader("Set up the phone")
                 PlacementDiagram(Modifier.fillMaxWidth().height(170.dp))
                 FramingCheck()
-                val floorMoves = plan.steps.any { it is SessionStep.Work && eu.motionforge.app.core.movement.CountedMove.forExercise(it.exerciseId) == eu.motionforge.app.core.movement.CountedMove.PUSH_UP }
+                val floorMoves = plan.steps.any { it is SessionStep.Work && eu.motionforge.app.core.movement.LiveChecks.floorLevel(it.exerciseId) }
                 Text(
                     "Prop the phone at hip height, about 2 m away, turned so it sees you from a front corner. " +
                         "Your whole body, head to feet, should fit in the picture." +
-                        (if (floorMoves) " For push-ups, turn the phone sideways, set it low and to your side so it sees you from head to feet." else ""),
+                        (if (floorMoves) " For moves on the floor, turn the phone sideways, set it low and to your side so it sees you from head to feet." else ""),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
                     "With the camera on you see yourself with a tracking trace" +
-                        (if (hasRepCounting) ", and reps are counted (experimental)." else ".") +
+                        (when {
+                            hasRepCounting && hasHolds -> ", reps are counted and holds are timed (experimental)."
+                            hasRepCounting -> ", and reps are counted (experimental)."
+                            hasHolds -> ", and holds are timed while you're in position (experimental)."
+                            else -> "."
+                        }) +
                         " Images are processed on this phone, kept in memory only and never saved or uploaded." +
                         (if (Build.VERSION.SDK_INT >= 33) " Your phone may also ask to allow a notification that shows the current move while the screen is off; the workout runs either way." else ""),
                     style = MaterialTheme.typography.bodySmall,
@@ -478,7 +484,8 @@ private fun RunningStage(
                     val cues = exercisesById[step.exerciseId]?.commonCues.orEmpty()
                     when {
                         step.countsReps && cameraVisible && !tracking.allowsFeedback -> "Counting is paused until tracking is steady."
-                        cameraVisible && !step.countsReps && step.formDrill == null -> "The camera doesn't assess this move. Use it as a mirror."
+                        step.holdCheck != null && cameraVisible && !tracking.allowsFeedback -> "The hold timer is paused until tracking is steady."
+                        cameraVisible && !step.liveChecked -> "The camera doesn't assess this move. Use it as a mirror."
                         cues.isNotEmpty() -> cues[(state.stepElapsed / 8) % cues.size]
                         else -> null
                     }

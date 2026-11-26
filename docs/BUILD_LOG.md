@@ -1222,3 +1222,50 @@ Studies re-rendered for those 5 lessons.
   checks whether the node is inside its scroll container's viewport and, if not, scrolls that container towards it
   with the synchronous ScrollBy action and lets it settle (a lazy-list row prefetched below the fold has zero bounds:
   scroll down). Throwaway CI run of `AppFlowTest`: all 8 pass, the two slow ones now 2.4 s and 3.4 s (were 16–17 min).
+
+## 2026-11-26 — Live camera coaching for 109 of 118 lessons
+
+Saba asked for live coaching on every lesson. Before: 58 lessons had a camera check. Now every lesson has one except
+the bodyweight **hip hinge** (spec: instructional only until validated), the **standing warm-up** and the seven
+**footwork** drills (spec: a guided drill, never automatically scored) — enforced by `ExerciseCatalogParserTest`.
+
+- **Held positions** (new `HoldCheck` / `HoldMonitor`): forearm and high plank, bear hold, wall sit, single-leg
+  balance, child's pose, arm circles. The card shows the time held; the timer runs only while the position is seen
+  for most of the last second (never across a tracking gap). Planks (side-on) may suggest lifting / lowering the hips
+  into one line, the wall sit sliding a little lower. The bear hold only checks "on all fours": the 2–3 cm knee hover
+  is 0.03–0.1 torso lengths on the renders, too close to noise, and the card says so.
+- **New counters** (`MoreMoves`, `PoseReader` helpers, `SignalRepCounter`, `TwoSidedRepCounter`, `ZigZagRepCounter`):
+  mountain climber, dead bug, bird dog, superman, cat-cow, leg swings (kickback, side raise), butt kicks, torso twist,
+  side bend, skater step, wall push-up, floor press, bench dip, crunch, reverse crunch, heel taps, toe taps, shoulder
+  taps, donkey kick / fire hydrant, kettlebell swing, shrug; calf raises (heel over toes, side-on — the earlier
+  front-view signal was not usable); squat-to-calf-raise (squat counter), good morning and single-leg RDL (hinge
+  counter), single-leg bridge (bridge counter), duck and roll (level-change counter), roll-hook and body-head jab
+  (combination counter). Each reads one measurement only while the body is in the lesson's position.
+- **Guard check** (`BoxingDrill.GUARD_CHECKED`, the stance rules: hands up by the face, feet width) on every boxing
+  lesson besides stance / jab / cross, counted or not. Not a single cue fired on any correct boxing demo video (old
+  and new); on the marching / standing negatives it rightly asks for the hands up.
+- **App**: session steps carry the hold check (saved with an unfinished session), a hold card ("Plank check ·
+  0:23 held"), spoken cue / "timer paused" / one "Good. Holding steady." per step; boxing guard cards on counted moves
+  show the count; setup text for floor moves (phone sideways, low, side-on); lesson pages explain what the camera
+  checks; catalogue `analysisMode` and camera texts updated for the 51 lessons (they name views that don't work: calf
+  raise head-on, shoulder taps side-on or head-on, the far leg in fire hydrants).
+
+**Validation** (`RenderedVideoRepTest`, 333 cases): 106 new videos of both coaches (workbench renders, 12 fps, a still
+first pose, floor moves filmed landscape from 45 cm), every new lesson on both coaches, standing moves also from a
+front corner, plus negatives (standing still, marching, boxing stance → nothing counted or held for the new standing
+checks). Changes found on the way: portrait framing cut off the bird dog's reach (floor moves are filmed with the phone
+sideways); the hinge counter missed good mornings seen from a corner (travel 30° → 25°, minimum 0.7 → 0.5 s; the
+older hinge videos still count exactly); cat-cow and shrugs on the male coach were quicker / smaller (minimum and
+travel lowered); a staggered boxing stance seen from the front read as a single-leg balance (the lifted knee must be
+up too); marching arms counted wall push-ups (the hands must reach forward); the far leg of butt kicks needs
+visibility 0.3; heel taps side-on move only ±0.05 torso lengths (travel 0.045). Dropped: counting the pull-back,
+block-cross, slip-cross and pull-counter (the cross at the phone barely lifts the elbow; the lean flips between
+frames) — they get the guard check only.
+**Known limits** (named in the lesson texts): head-on, the pose model loses people on all fours or in a plank
+(nothing counted, tracking paused); a person lying face down can take ~1.5 s to be found; the far leg of a fire hydrant
+can be hidden from a corner (male coach: only the near leg's lifts were seen); a bouncing boxing stance can be read as
+one shrug. All thresholds are first hypotheses for coach review; none was checked on a real phone (no device here).
+**Tests**: local Kotlin compile + the JVM movement tests (53, all pass) with kotlinc and stubbed JUnit; Android build,
+Robolectric flows and lint in CI. New: `HoldMonitorTest`, narrator hold/guard cards, snapshot round trip with a hold.
+**Tooling note**: the pose model isn't downloadable here (storage.googleapis.com blocked); it was taken from the
+published debug APK's assets for the local MediaPipe runs.

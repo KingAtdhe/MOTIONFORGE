@@ -65,6 +65,24 @@ Do not implement numerical thresholds as universal biomechanical truths. Treat i
 | Guard return | Front/diagonal | Return-to-guard cue |
 | Footwork | Full body | Guided timing, no automatic form score |
 
+### Added lessons (2026-11-25)
+
+Every lesson except the bodyweight hip hinge, the standing warm-up and the footwork drills now has a live camera
+check, each checked on rendered videos of both coaches (`RenderedVideoRepTest`, `tools/pose_tests`):
+
+- **Counted** (`CountedMove` + `MoreMoves`): one plain measurement per lesson, read only while the body is in the
+  lesson's position (lying, on all fours, standing...): e.g. knee angle for dead bug / bird dog / butt kicks, hip
+  angle for climbers / reverse crunch / kettlebell swing, heel height over the toes for calf raises, torso pitch for
+  hinges, hand position for twists and heel taps, hip travel for skater steps. A rep needs the full excursion and the
+  return; a tracking gap drops it. No form judgement beyond the cues listed in the code.
+- **Held positions** (`HoldCheck` / `HoldMonitor`: planks, bear hold, wall sit, single-leg balance, child's pose,
+  arm circles): the timer runs only while the position is seen for most of the last second; planks may suggest
+  lifting / lowering the hips into one line (side-on), the wall sit sliding a little lower. Never how long to hold.
+- **Guard check** (`BoxingDrill.GUARD_CHECKED`, the stance rules): defence drills, combos, punches — "hands up by
+  your face", feet width. No cue on any correct demo video.
+- Views that cannot see the movement are named in the lesson's camera text (calf raise and dips side-on; shoulder
+  taps, donkey kicks and fire hydrants from a front corner — side-on the far limb is hidden).
+
 ## 6. Fighting safety
 
 - Only non-contact beginner fundamentals in MVP.

@@ -15,6 +15,8 @@ class SessionSnapshotTest {
             SessionStep.Work("boxing_stance", "Boxing stance", 40, countsReps = false, formDrill = BoxingDrill.STANCE),
             SessionStep.Rest(15, "Jab"),
             SessionStep.Work("bodyweight_squat", "Squat", 30, countsReps = true),
+            SessionStep.Rest(15, "Plank"),
+            SessionStep.Work("forearm_plank", "Plank", 30, countsReps = false, holdCheck = eu.motionforge.app.core.movement.HoldCheck.PLANK),
         ),
     )
 
