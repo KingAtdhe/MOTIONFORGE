@@ -2792,5 +2792,10 @@ def build_all(arm, height, name):
     RETIME.update(cfit.RETIME)
     for name, fn in cfit.CLIPS:
         r.write(name, fn(r, st))
+    # batch 8 — cool-down stretches (2026-11-26)
+    import clips_stretch as cst
+    RETIME.update(cst.RETIME)
+    for name, fn in cst.CLIPS:
+        r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

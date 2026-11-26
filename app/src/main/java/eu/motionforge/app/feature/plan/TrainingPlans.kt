@@ -104,7 +104,79 @@ object TrainingPlans {
         ),
     )
 
-    val ALL = listOf(FOUNDATIONS, BOXING_BASICS, DUMBBELL_STRENGTH)
+    val CORE_MOBILITY = TrainingPlan(
+        id = "core-mobility", name = "Core & mobility",
+        summary = "Four weeks of planks, dead bugs, bird dogs and stretches for a steadier middle and easier movement. No equipment.",
+        category = TrainingCategory.FITNESS, needsEquipment = false, weeks = 4, sessionsPerWeek = 3,
+        days = listOf(
+            PlanDay("A", listOf(
+                PlanItem("cat_cow", 45, r(5, 6, 7, 8)),
+                PlanItem("dead_bug", 60, r(6, 8, 10, 12)),
+                PlanItem("forearm_plank", 40),
+                PlanItem("bird_dog", 60, r(6, 8, 10, 12)),
+                PlanItem("kneeling_hip_flexor_stretch", 60),
+                PlanItem("childs_pose", 45),
+            )),
+            PlanDay("B", listOf(
+                PlanItem("standing_mobility_warmup", 60),
+                PlanItem("crunch", 60, r(8, 10, 12, 14)),
+                PlanItem("high_plank", 40),
+                PlanItem("superman", 60, r(6, 8, 10, 12)),
+                PlanItem("standing_side_bend", 45, r(6, 8, 8, 10)),
+                PlanItem("cross_body_shoulder_stretch", 50),
+            )),
+        ),
+    )
+
+    val LEGS_GLUTES = TrainingPlan(
+        id = "legs-glutes", name = "Legs & glutes",
+        summary = "Four weeks of squats, lunges, bridges and balance work, finishing with a stretch. No equipment.",
+        category = TrainingCategory.FITNESS, needsEquipment = false, weeks = 4, sessionsPerWeek = 3,
+        days = listOf(
+            PlanDay("A", listOf(
+                PlanItem("standing_mobility_warmup", 60),
+                PlanItem("bodyweight_squat", 60, r(10, 12, 14, 16)),
+                PlanItem("glute_bridge", 60, r(10, 12, 14, 16)),
+                PlanItem("side_lunge", 60, r(6, 8, 10, 12)),
+                PlanItem("calf_raise", 45, r(10, 12, 14, 16)),
+                PlanItem("standing_quad_stretch", 60),
+            )),
+            PlanDay("B", listOf(
+                PlanItem("standing_mobility_warmup", 60),
+                PlanItem("reverse_lunge", 60, r(6, 8, 10, 12)),
+                PlanItem("single_leg_glute_bridge", 60, r(4, 6, 8, 10)),
+                PlanItem("wall_sit", 40),
+                PlanItem("glute_kickback", 60, r(6, 8, 10, 12)),
+                PlanItem("kneeling_hip_flexor_stretch", 60),
+            )),
+        ),
+    )
+
+    val BOXING_CONDITIONING = TrainingPlan(
+        id = "boxing-conditioning", name = "Boxing conditioning",
+        summary = "Four weeks after the basics: combinations, defence and body shots, then a stretch. Three sessions a week.",
+        category = TrainingCategory.FIGHTING_FUNDAMENTALS, needsEquipment = false, weeks = 4, sessionsPerWeek = 3,
+        days = listOf(
+            PlanDay("A", listOf(
+                PlanItem("boxing_stance_bounce", 45),
+                PlanItem("boxing_jab_jab_cross", 60, r(5, 6, 8, 10)),
+                PlanItem("boxing_slip", 45, r(8, 10, 12, 14)),
+                PlanItem("boxing_body_jab", 60, r(6, 8, 10, 12)),
+                PlanItem("boxing_one_two_hook", 60, r(4, 6, 8, 10)),
+                PlanItem("cross_body_shoulder_stretch", 50),
+            )),
+            PlanDay("B", listOf(
+                PlanItem("boxing_stance_bounce", 45),
+                PlanItem("boxing_duck", 45, r(6, 8, 10, 12)),
+                PlanItem("boxing_hook_cross", 60, r(4, 6, 8, 10)),
+                PlanItem("boxing_pull_counter", 60, r(4, 6, 8, 10)),
+                PlanItem("boxing_uppercuts", 60, r(4, 6, 8, 10)),
+                PlanItem("chest_opener_stretch", 45),
+            )),
+        ),
+    )
+
+    val ALL = listOf(FOUNDATIONS, BOXING_BASICS, DUMBBELL_STRENGTH, CORE_MOBILITY, LEGS_GLUTES, BOXING_CONDITIONING)
 
     fun byId(id: String?): TrainingPlan? = ALL.firstOrNull { it.id == id }
 

@@ -30,6 +30,14 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
         "Lift one foot. The timer runs while you balance.", "Balancing — eyes on a fixed point."),
     CHILDS_POSE("Stretch check", "Put the phone side-on at floor level, whole body in view.",
         "Sit back toward your heels. The timer runs while you rest in the stretch.", "In the stretch — breathe slowly."),
+    SHOULDER_STRETCH("Stretch check", "Face the phone with your upper body and both arms in view.",
+        "Bring one arm across your chest. The timer runs while you hold the stretch.", "Stretching — shoulders down, breathe."),
+    TRICEPS_STRETCH("Stretch check", "Face the phone with your upper body and both arms in view.",
+        "Raise one elbow and drop the hand behind your head. The timer runs while you hold.", "Stretching — elbow up, head tall."),
+    CHEST_OPENER("Stretch check", "Face the phone with your whole body in view.",
+        "Bring your hands together behind your back. The timer runs while you hold.", "Stretching — shoulders back, chest up."),
+    HIP_FLEXOR("Stretch check", "Put the phone at floor level, side-on, whole body in view.",
+        "Kneel on one knee, the other foot in front. The timer runs while you hold the stretch.", "Stretching — hips forward, chest tall."),
     ARMS_OUT("Arm check", "Face the phone with your upper body and both arms in view.",
         "Lift both arms out to shoulder height. The timer runs while they're up.", "Arms up — small, smooth circles."),
     ;
@@ -43,6 +51,10 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
             "single_leg_balance" -> BALANCE
             "childs_pose" -> CHILDS_POSE
             "arm_circles" -> ARMS_OUT
+            "cross_body_shoulder_stretch" -> SHOULDER_STRETCH
+            "overhead_triceps_stretch" -> TRICEPS_STRETCH
+            "chest_opener_stretch" -> CHEST_OPENER
+            "kneeling_hip_flexor_stretch" -> HIP_FLEXOR
             else -> null
         }
     }
@@ -170,6 +182,79 @@ class HoldMonitor(
         HoldCheck.BALANCE -> balance(f)
         HoldCheck.CHILDS_POSE -> childsPose(f)
         HoldCheck.ARMS_OUT -> armsOut(f)
+        HoldCheck.SHOULDER_STRETCH -> shoulderStretch(f)
+        HoldCheck.TRICEPS_STRETCH -> tricepsStretch(f)
+        HoldCheck.CHEST_OPENER -> chestOpener(f)
+        HoldCheck.HIP_FLEXOR -> hipFlexor(f)
+    }
+
+    /** Cross-body shoulder stretch, facing the phone: one wrist carried across past the middle of the chest, at about
+     *  shoulder height. */
+    private fun shoulderStretch(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val sides = listOf(BodyLandmark.LEFT_SHOULDER to BodyLandmark.LEFT_WRIST, BodyLandmark.RIGHT_SHOULDER to BodyLandmark.RIGHT_WRIST)
+        if (sides.none { (sh, wr) -> f.seen(sh) && f[wr].visibility >= 0.4f }) return null
+        val crossed = sides.any { (sh, wr) ->
+            f.seen(sh) && f[wr].visibility >= 0.4f &&
+                (f.x(wr) - tor.sx) * (f.x(sh) - tor.sx) < 0 && abs(f.x(wr) - tor.sx) / tor.len > SHOULDER_CROSS &&
+                (f.y(wr) - f.y(sh)) / tor.len in -0.25..0.45      // about shoulder height, not reaching overhead
+        }
+        return (tor.tilt < 30.0 && crossed) to null
+    }
+
+    /** Overhead triceps stretch: one arm raised — an elbow at or above shoulder height and a hand well above the
+     *  shoulders (the raised hand behind the head or the helping hand on the elbow; on the rendered videos the model
+     *  puts the bent elbow just above the shoulder, not above the head). */
+    private fun tricepsStretch(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val arms = listOf(
+            Triple(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.LEFT_WRIST),
+            Triple(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_ELBOW, BodyLandmark.RIGHT_WRIST),
+        ).filter { (sh, el, _) -> f.seen(sh) && f[el].visibility >= 0.4f }
+        if (arms.isEmpty()) return null
+        val elbowUp = arms.any { (sh, el, _) -> (f.y(sh) - f.y(el)) / tor.len > TRICEPS_ELBOW_UP }
+        val handUp = arms.any { (sh, _, wr) -> f[wr].visibility >= 0.3f && (f.y(sh) - f.y(wr)) / tor.len > TRICEPS_HAND_UP }
+        return (tor.tilt < 30.0 && elbowUp && handUp) to null
+    }
+
+    /** Image-plane angle at [el] between the upper arm and the forearm, degrees (180 = straight). */
+    private fun elbowAngle(f: PoseFrame, sh: BodyLandmark, el: BodyLandmark, wr: BodyLandmark): Double {
+        val ax = f.x(sh) - f.x(el); val ay = f.y(sh) - f.y(el); val bx = f.x(wr) - f.x(el); val by = f.y(wr) - f.y(el)
+        val d = hypot(ax, ay) * hypot(bx, by)
+        return if (d < 1e-6) 0.0 else Math.toDegrees(acos(((ax * bx + ay * by) / d).coerceIn(-1.0, 1.0)))
+    }
+
+    /** Chest opener, facing the phone: standing tall with both hands together behind the back — the wrists close to
+     *  the middle of the back, at lower-back height (they read through the body at lower visibility). */
+    private fun chestOpener(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val w = listOf(BodyLandmark.LEFT_WRIST, BodyLandmark.RIGHT_WRIST)
+        if (w.any { f[it].visibility < 0.2f }) return null
+        // hands drawn in behind the back, above the hips (hanging by the sides they are ~0.6 out and just below them)
+        val together = w.all { abs(f.x(it) - tor.hx) / tor.len < CHEST_HANDS_X && (tor.hy - f.y(it)) / tor.len in 0.05..0.75 }
+        // the arms stay long: hands clasped in front of the waist bend the elbows sharply (under ~70° on the videos,
+        // ~150° in the stretch), and the model's depth can't tell front from back (it puts these wrists in front too)
+        val long = listOf(
+            Triple(BodyLandmark.LEFT_SHOULDER, BodyLandmark.LEFT_ELBOW, BodyLandmark.LEFT_WRIST),
+            Triple(BodyLandmark.RIGHT_SHOULDER, BodyLandmark.RIGHT_ELBOW, BodyLandmark.RIGHT_WRIST),
+        ).all { (sh, el, wr) -> f[el].visibility >= 0.2f && elbowAngle(f, sh, el, wr) > CHEST_ELBOW_MIN }
+        return (tor.tilt < 25.0 && together && long) to null
+    }
+
+    /** Half-kneeling hip flexor stretch, side-on: torso upright, one knee down near the floor (near the height of the
+     *  lowest foot point), the other clearly higher (the front knee). */
+    private fun hipFlexor(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val knees = listOf(BodyLandmark.LEFT_KNEE, BodyLandmark.RIGHT_KNEE)
+        if (knees.any { f[it].visibility < 0.3f }) return null
+        val feet = listOf(BodyLandmark.LEFT_ANKLE, BodyLandmark.RIGHT_ANKLE, BodyLandmark.LEFT_FOOT_INDEX, BodyLandmark.RIGHT_FOOT_INDEX)
+            .filter { f[it].visibility >= 0.3f }
+        if (feet.isEmpty()) return null
+        val floor = feet.maxOf { f.y(it) }
+        val low = knees.maxOf { f.y(it) }; val high = knees.minOf { f.y(it) }
+        val kneeDown = (floor - low) / tor.len < HIP_KNEE_DOWN
+        val split = (low - high) / tor.len > HIP_KNEE_SPLIT
+        return (tor.tilt < 35.0 && kneeDown && split) to null
     }
 
     /** Arms out: both wrists near shoulder height (within [ARMS_BAND] torso lengths) and out to the sides, beyond the
@@ -273,5 +358,12 @@ class HoldMonitor(
         const val BALANCE_LIFT = 0.15
         const val CHILD_KNEE = 70.0
         const val ARMS_BAND = 0.45
+        const val SHOULDER_CROSS = 0.08
+        const val TRICEPS_ELBOW_UP = -0.05
+        const val TRICEPS_HAND_UP = 0.20
+        const val CHEST_HANDS_X = 0.36
+        const val CHEST_ELBOW_MIN = 110.0
+        const val HIP_KNEE_DOWN = 0.40
+        const val HIP_KNEE_SPLIT = 0.30
     }
 }

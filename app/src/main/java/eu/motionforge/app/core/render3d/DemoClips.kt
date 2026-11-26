@@ -125,6 +125,8 @@ object DemoSequence {
         "footwork_angle_step" to "Step off the line", "footwork_shuffle" to "In and out",
         "boxing_high_block" to "Cover", "boxing_body_block" to "Elbow to the ribs", "boxing_fist_rolls" to "Roll the fists",
         "boxing_stance_bounce" to "Bounce in your stance", "boxing_pull_counter" to "Pull back, then cross",
+        "quad_stretch" to "Heel to the seat", "shoulder_stretch" to "Arm across the chest", "triceps_stretch" to "Hand behind the head",
+        "chest_opener" to "Hands back, chest up", "hip_flexor_stretch" to "Kneel and press the hips forward",
     )
 
     /**
