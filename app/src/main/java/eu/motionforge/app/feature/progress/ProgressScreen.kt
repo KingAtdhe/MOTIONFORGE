@@ -148,7 +148,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
                         Text(r.title, style = MaterialTheme.typography.titleLarge)
                         val reps = r.exercises.mapNotNull { it.repetitions }
                         val parts = buildList {
-                            add("${r.exercises.size} exercise${if (r.exercises.size == 1) "" else "s"}")
+                            add(if (r.exercises.size == 1) "1 exercise" else "${r.exercises.size} exercises")
                             if (reps.isNotEmpty()) add("${reps.sum()} reps")
                             r.perceivedEffort?.let { add("effort $it/10") }
                             if (!r.completed) add("ended early")

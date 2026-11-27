@@ -3,20 +3,23 @@
 each language's table (app/src/main/assets/i18n/<lang>.json) translates. Run from the repo root."""
 import glob, json, re
 
-LIT = re.compile(r'"((?:[^"\\$]|\\.|\$\{[^}]*\}|\$[A-Za-z_][\w.]*|\$)*)"')
-TPL = re.compile(r'\$\{[^}]*\}|\$[A-Za-z_]\w*(?:\.\w+)*')
+LIT = re.compile(r'"((?:[^"\\$]|\\.|\$\{(?:[^{}"]|\{[^{}]*\}|"[^"]*")*\}|\$[A-Za-z_][\w.]*|\$)*)"')
+TPL = re.compile(r'\$\{(?:[^{}]|\{[^{}]*\})*\}|\$[A-Za-z_]\w*(?:\.\w+)*')
 SKIP_FILES = ("/spikes/",)
 out = set()
 
 
 def unescape(s):
+    s = re.sub(r'\\u([0-9a-fA-F]{4})', lambda m: chr(int(m.group(1), 16)), s)
     return s.replace('\\n', '\n').replace('\\"', '"').replace("\\'", "'").replace('\\\\', '\\').replace('\\$', '$')
 
 
 for f in sorted(glob.glob("app/src/main/java/**/*.kt", recursive=True)):
     if any(x in f for x in SKIP_FILES):
         continue
-    for line in open(f, encoding="utf-8"):
+    # literals joined with + (also across lines) are one string on screen
+    text = re.sub(r'"\s*\+\s*"', '', open(f, encoding="utf-8").read())
+    for line in text.split("\n"):
         st = line.strip()
         if st.startswith(("import ", "package ", "//", "*", "/*", "@")) or "Log." in st or "require(" in st or "error(" in st:
             continue

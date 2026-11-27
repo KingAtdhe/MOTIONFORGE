@@ -77,7 +77,7 @@ object SessionNarrator {
     private fun announce(step: SessionStep, camera: Boolean): CoachLine = when (step) {
         is SessionStep.Work -> if (step.round != null) {
             val mins = step.durationSeconds / 60; val secs = step.durationSeconds % 60
-            val len = if (secs == 0) "$mins minute${if (mins == 1) "" else "s"}" else "${step.durationSeconds} seconds"
+            val len = if (secs == 0) if (mins == 1) "1 minute" else "$mins minutes" else "${step.durationSeconds} seconds"
             CoachLine("${step.name}. $len. Throw what I call." +
                 if (camera && step.formDrill != null) " I'll watch your guard." else "", CuePriority.ANNOUNCE)
         } else {

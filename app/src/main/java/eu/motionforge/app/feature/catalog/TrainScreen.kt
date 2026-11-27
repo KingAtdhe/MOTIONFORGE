@@ -132,7 +132,7 @@ fun TrainScreen(
                     catalog.exercises.isEmpty() -> item(key = "none") { Panel { Text("No lessons are available in this build.") } }
                     visible.isEmpty() && filter.query.isNotBlank() -> item(key = "nomatch") {
                         Panel {
-                            Text("No lessons match \u201c${filter.query.trim()}\u201d${if (filter.copy(query = "").isActive) " with these filters" else ""}.", style = MaterialTheme.typography.titleMedium)
+                            Text(if (filter.copy(query = "").isActive) "No lessons match \u201c${filter.query.trim()}\u201d with these filters." else "No lessons match \u201c${filter.query.trim()}\u201d.", style = MaterialTheme.typography.titleMedium)
                             Text("Try a shorter word, a body part (legs, arms, abs) or a move (jab, squat).", style = MaterialTheme.typography.bodyMedium, color = MfColors.Graphite)
                             OutlinedButton(onClick = onClearFilters, modifier = Modifier.heightIn(min = 48.dp)) { Text("Clear search and filters") }
                         }
@@ -147,7 +147,7 @@ fun TrainScreen(
                         item(key = "h_" + category.name) {
                             SectionHeader(
                                 if (category == TrainingCategory.FIGHTING_FUNDAMENTALS) "Fighting" else category.displayName,
-                                trailing = "${lessons.size} lesson${if (lessons.size == 1) "" else "s"}",
+                                trailing = if (lessons.size == 1) "1 lesson" else "${lessons.size} lessons",
                             )
                         }
                         itemsIndexed(lessons, key = { _, ex -> ex.id }) { i, ex ->
