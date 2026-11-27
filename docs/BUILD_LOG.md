@@ -1358,3 +1358,20 @@ published debug APK's assets for the local MediaPipe runs.
   back (back knee bent) and was moved forward; hip circles widened so the circle reads.
 - Guided only (`guided_not_scored`): no camera rule has been validated on rendered videos for them yet.
 - Build your own → Stretch & recover now draws from them too; the hamstring and calf stretches join the cool-downs.
+
+## 2026-11-27 (5) — All 24 EU languages
+
+- **Translation at the edge** (`core/i18n`): English stays the source in code and in the lesson catalogue; the app's
+  `Text`, spoken cues and notifications show it in the chosen language through a table per language
+  (`assets/i18n/<lang>.json`, English → translation). Strings built from parts match as templates ("Round {0} of {1}",
+  placeholders may move), longer text is matched sentence by sentence, anything untranslated stays English.
+- **Profile → Language**: the phone's language (default) or any of the EU's 24 official languages. The voice coach
+  speaks the language when the phone has a voice for it, otherwise English.
+- **Tables for all 23 non-English languages**, 2,482 strings each (screens, cues, notifications, all 128 lessons),
+  machine-translated, not reviewed by native speakers. `tools/i18n/extract.py` collects the source strings
+  (literals joined with `+` become one string; Kotlin templates become placeholders), `check.py` validates a table.
+- Plurals that added an English "s" are now whole strings ("1 lesson" / "{0} lessons").
+- Known gaps: accessibility descriptions and a few composite lines (e.g. the summary's "Squat, 0:40, 12 reps …") stay
+  English; the camera tracking-status chip texts from enums are matched only when shown whole.
+- Tests: `I18nTest` (matching, templates, sentence split, language choice; passes locally), `I18nTablesTest` (every
+  table complete, placeholders and line breaks preserved; CI).

@@ -71,7 +71,7 @@ object Reminders {
         if (!prefs.reminderOn || !notificationsAllowed(context)) return
         if (ReminderSchedule.trainedToday(sessionStarts, now)) return
         val plan = TrainingPlans.byId(prefs.activePlanId)
-        val text = ReminderSchedule.message(plan?.name, plan?.let { prefs.planSessionsDone }, plan?.totalSessions)
+        val text = eu.motionforge.app.core.i18n.I18n.t(ReminderSchedule.message(plan?.name, plan?.let { prefs.planSessionsDone }, plan?.totalSessions))
         ensureChannel(context)
         val open = PendingIntent.getActivity(
             context, 0,
@@ -80,7 +80,7 @@ object Reminders {
         )
         val n = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_workout)
-            .setContentTitle("Time to train?")
+            .setContentTitle(eu.motionforge.app.core.i18n.I18n.t("Time to train?"))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
@@ -117,6 +117,8 @@ class ReminderReceiver : BroadcastReceiver() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 val prefs = app.container.preferences.preferences.first()
+                // a reminder can start the app's process on its own: load the chosen language for its text
+                eu.motionforge.app.core.i18n.I18nLoader.apply(context, eu.motionforge.app.core.i18n.I18n.resolve(prefs.language))
                 val now = ZonedDateTime.now(ReminderSchedule.zone())
                 if (intent.action == Reminders.ACTION_FIRE) {
                     val starts = app.container.sessions.history.first().map { it.startedAtMillis }

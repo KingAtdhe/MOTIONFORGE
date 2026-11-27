@@ -36,7 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import eu.motionforge.app.core.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -211,7 +211,7 @@ private fun SetupStage(plan: SessionPlan, coach: Coach, onStart: (camera: Boolea
             ScreenColumn(title = plan.title, onBack = onClose) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(formatClock(plan.totalSeconds), style = MfType.Numeral)
-                    Text("  ${work.size} move${if (work.size == 1) "" else "s"}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                    Text(if (work.size == 1) "  1 move" else "  ${work.size} moves", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     work.forEachIndexed { i, step ->
@@ -631,7 +631,7 @@ private fun SummaryStage(
     BackHandler(onBack = onClose)
     val stats = buildList {
         add(formatClock(state.workSeconds) + " active")
-        add("${state.results.size} exercise${if (state.results.size == 1) "" else "s"}")
+        add(if (state.results.size == 1) "1 exercise" else "${state.results.size} exercises")
         if (reps.isNotEmpty()) add("${reps.sum()} reps")
     }.joinToString(", ")
 

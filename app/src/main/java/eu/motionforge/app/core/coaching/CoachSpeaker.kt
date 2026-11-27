@@ -12,6 +12,8 @@ import java.util.Locale
  */
 class CoachSpeaker(context: Context) {
     private var ready = false
+    /** True when speaking in the app's (non-English) language. */
+    private var translated = false
     private var tts: TextToSpeech? = null
 
     /** True once an English voice is ready to speak. */
@@ -21,7 +23,11 @@ class CoachSpeaker(context: Context) {
         tts = TextToSpeech(context.applicationContext) { status ->
             val engine = tts ?: return@TextToSpeech
             if (status != TextToSpeech.SUCCESS) return@TextToSpeech
-            val lang = listOf(Locale.getDefault(), Locale.UK, Locale.US).firstOrNull { loc ->
+            // the app's language when the phone has a voice for it (then lines are spoken translated), else English
+            val app = eu.motionforge.app.core.i18n.I18n.language
+            val own = Locale.forLanguageTag(app).takeIf { app != "en" && engine.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE }
+            translated = own != null
+            val lang = own ?: listOf(Locale.getDefault(), Locale.UK, Locale.US).firstOrNull { loc ->
                 loc.language == "en" && engine.isLanguageAvailable(loc) >= TextToSpeech.LANG_AVAILABLE
             } ?: Locale.UK.takeIf { engine.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE }
             if (lang == null || engine.setLanguage(lang) < TextToSpeech.LANG_AVAILABLE) return@TextToSpeech
@@ -39,7 +45,7 @@ class CoachSpeaker(context: Context) {
     fun speak(u: Utterance) {
         val engine = tts ?: return
         if (!ready) return
-        engine.speak(u.text, if (u.interrupt) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, "mf-${u.hashCode()}")
+        engine.speak(if (translated) eu.motionforge.app.core.i18n.I18n.t(u.text) else u.text, if (u.interrupt) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, "mf-${u.hashCode()}")
     }
 
     fun stop() {
