@@ -1421,3 +1421,42 @@ apart — both lessons already ask for side-on. Thresholds are first hypotheses 
 mappings) with kotlinc; the Android build and the rest in CI. Catalogue: the five lessons are `limited_rule_based`
 with camera texts (`ExerciseCatalogParserTest` checks it). Translations: 18 new strings in all 23 tables
 (`tools/i18n/parts_batch9_checks.py`), `check.py` clean.
+
+## 2026-11-27 (8) — App icon and launch screen v6 (the owner's flexing-poses art)
+
+The owner rejected stick figures and the coach renders for the icon, supplied her own flexing-poses art sheet and
+picked "both together" from the art sheet (Claude Design canvas "MOTIONFORGE — App icon & splash art sheet").
+- **Icon:** her close-up portrait and his (mirrored, so the pair flexes outwards) in front of a timing-yellow disc
+  on black; the whole group inside the 66 dp safe zone, so no launcher shape cuts a fist or a head. Adaptive icon
+  with bitmap layers: `mipmap-*/ic_launcher_foreground.webp` (108 dp at every density, 432 px at xxxhdpi), black
+  background vector, and a one-colour themed layer `mipmap-*/ic_launcher_monochrome.webp` (their silhouette).
+- **System launch screen** (Android 12+ and the core-splashscreen fallback): the same picture as `splash_icon`
+  (288 dp canvas, xhdpi–xxxhdpi, up to 1152 px), wordmark below on 12+. The old animated vector is gone.
+- **App launch art** (`core/design/LaunchIntro`): right after the system screen, both full-body front double-biceps
+  poses rise in on black with the wordmark, ~1.3 s, once per cold start (not on rotation or recreation); a tap
+  skips it; with "remove animations" it shows the still picture; hidden from screen readers. Every step is a
+  frame-clock animation, so UI tests pass through it (the flow tests now wait 1.6 s at start).
+- **Quality:** the source sheet is 1536 × 1024, so each figure is cropped, upscaled 4× with EDSR (OpenCV
+  dnn_superres) and cut out with rembg (isnet-general-use + alpha matting: hair strands kept, no grey halo) before
+  composing; downscaled layers get a light unsharp mask. Pipeline: `tools/branding_v6/prepare.py` then
+  `compose.py` (source art in `assets/branding/v6/`; Play icon `assets/branding/icon_512.png`, 1024 px master
+  in `assets/branding/v6/`).
+- Not checked on a phone: how each launcher draws the bitmap icon; checked on renders of the circle and squircle
+  masks and at 48 px.
+
+## 2026-11-27 (9) — The app is called CORZA
+
+The owner renamed the app to **CORZA** (store title "CORZA – AI Fitness & Boxing"). MOTIONFORGE is already the name of
+a fitness app on the App Store; CORZA (from "core") turned up no app of that name in web and App Store searches. Not
+yet checked in the Play Console or the EU trademark register (EUIPO TMview) — do that before publishing.
+- **Visible name everywhere:** launcher label (`app_name`), the home header, safety and onboarding texts, the
+  notification/media-session name, the shared result plate (now `corza-plate.png`), and the same strings in all 23
+  translation tables (the name is a brand, so it stays "CORZA" in every language). `check.py`: 2494 strings, no gaps.
+- **Wordmark v7:** CORZA in Barlow Semi Condensed Bold as vector outlines, wide-spaced, cap height 26 dp, centred in
+  the 200 × 80 dp box used by the Android 12+ launch screen and `LaunchIntro` (`tools/branding_wordmark_v7.py`).
+- **Store text:** `docs/STORE_LISTING.md`. The owner's preferred title "CORZA – AI Fitness & Boxing Coach" is 33
+  characters; Google Play allows 30, so the title is "CORZA – AI Fitness & Boxing" and "coach" leads the short
+  description.
+- **Kept on purpose:** the application ID `eu.motionforge.app`, Kotlin packages, the repo name and the database file
+  `motionforge.db` (renaming the database would lose people's history; the ID is fixed once an app is published and
+  nobody sees it). Rename the ID only if the owner asks, before the first Play upload.

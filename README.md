@@ -1,6 +1,6 @@
-# MOTIONFORGE — Claude Development Package
+# CORZA (formerly MOTIONFORGE) — Claude Development Package
 
-**Product:** MOTIONFORGE  
+**Product:** CORZA — AI Fitness & Boxing (working name MOTIONFORGE until 27 Nov 2026)  
 **Category:** AI-assisted 3D fitness and fighting coach  
 **Target:** Android first  
 **Engine:** Native Android — Kotlin + Jetpack Compose  

@@ -20,7 +20,7 @@ import eu.motionforge.app.R
 import eu.motionforge.app.core.model.TrainingCategory
 
 /**
- * MOTIONFORGE identity v5 — "motion lab" (docs: MOTIONFORGE design plan, approved 2026-11-22).
+ * CORZA identity v5 — "motion lab" (docs: CORZA design plan, approved 2026-11-22).
  *
  * The app reads like a training lab's notebook: light silver pages with black photographic plates set into them. Every
  * lesson is shown as a motion study — several exposures of the coach on one plate, after Marey's chronophotographs —

@@ -149,7 +149,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
         }
         ProfileSection("Safety") {
             Text(
-                "MOTIONFORGE is an educational practice companion for adults. It is not a medical device, does not " +
+                "CORZA is an educational practice companion for adults. It is not a medical device, does not " +
                     "diagnose or prevent injury, and does not replace a qualified trainer or instructor. Fighting " +
                     "fundamentals are non-contact only. Stop if you feel pain, dizziness or unusual discomfort.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -290,7 +290,7 @@ private fun ReminderSettings(preferences: UserPreferences) {
     Text(schedule.describe(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     if (!allowed) {
         Text(
-            "Notifications are off for MOTIONFORGE, so the reminder can't appear. You can allow them in Android's settings.",
+            "Notifications are off for CORZA, so the reminder can't appear. You can allow them in Android's settings.",
             style = MaterialTheme.typography.bodyMedium,
             color = MfColors.Halt,
         )

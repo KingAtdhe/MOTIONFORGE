@@ -90,9 +90,9 @@ fun shareSessionPlate(context: Context, frames: List<PoseFrame>, title: String, 
     val body = ResourcesCompat.getFont(context, R.font.barlow_regular) ?: Typeface.DEFAULT
     c.drawText(title, 80f, h - 140f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE; textSize = 64f; typeface = face })
     c.drawText(stats, 80f, h - 80f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xCCFFFFFF.toInt(); textSize = 40f; typeface = body })
-    c.drawText("MOTIONFORGE", w - 80f, h - 80f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFD60A.toInt(); textSize = 36f; typeface = face; textAlign = Paint.Align.RIGHT })
+    c.drawText("CORZA", w - 80f, h - 80f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFD60A.toInt(); textSize = 36f; typeface = face; textAlign = Paint.Align.RIGHT })
     val dir = File(context.cacheDir, "plates").apply { mkdirs() }
-    val file = File(dir, "motionforge-plate.png")
+    val file = File(dir, "corza-plate.png")
     file.outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     bmp.recycle()
     val uri = FileProvider.getUriForFile(context, context.packageName + ".plates", file)
