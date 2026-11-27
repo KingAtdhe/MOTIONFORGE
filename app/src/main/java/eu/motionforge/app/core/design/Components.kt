@@ -377,7 +377,7 @@ fun MotionStudy(path: String, modifier: Modifier = Modifier, description: String
         CoachArt(
             path,
             Modifier.fillMaxSize(),
-            contentDescription = eu.motionforge.app.core.i18n.tr(description),
+            contentDescription = description?.let { eu.motionforge.app.core.i18n.tr(it) },
             contentScale = if (crop) ContentScale.Crop else ContentScale.Fit,
         )
     }
