@@ -1375,3 +1375,11 @@ published debug APK's assets for the local MediaPipe runs.
   English; the camera tracking-status chip texts from enums are matched only when shown whole.
 - Tests: `I18nTest` (matching, templates, sentence split, language choice; passes locally), `I18nTablesTest` (every
   table complete, placeholders and line breaks preserved; CI).
+
+## 2026-11-27 (6) — Languages: closing the English gaps
+
+- Screen-reader descriptions now go through the translation tables too (buttons, timers, voice toggle, holds chart).
+- The session summary's per-exercise line and the running-workout notification are built from translatable parts
+  ("12 reps, target 12 reached (experimental count)", "Exercise 2 of 5", "0:40 left") instead of one glued string.
+- Workflow for new text: run `python3 tools/i18n/extract.py`, translate the new strings into every table,
+  `python3 tools/i18n/check.py` must pass (CI's `I18nTablesTest` fails on a missing translation).

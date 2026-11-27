@@ -130,7 +130,7 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                 modifier = Modifier.fillMaxSize(),
                 allowOrbit = false,
                 transparent = true,
-                contentDescription = "3D trainer demonstrating ${exercise.name}",
+                contentDescription = eu.motionforge.app.core.i18n.tr("3D trainer demonstrating ${exercise.name}"),
             )
             when (val s = playback.loadState) {
                 GlbLoadState.Loading -> Text("Loading the 3D coach…", Modifier.align(Alignment.Center), color = androidx.compose.ui.graphics.Color.White)
@@ -172,13 +172,13 @@ private fun DemoPlayer(exercise: Exercise, manifest: ClipManifest, sequence: Lis
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background),
                 ) {
                     if (playback.playing) {
-                        Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Pause" })
+                        Text("❚❚", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Pause") })
                     } else {
-                        Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
+                        Icon(Icons.Filled.PlayArrow, contentDescription = eu.motionforge.app.core.i18n.tr("Play"))
                     }
                 }
                 OutlinedIconButton(onClick = { playback.replay() }, modifier = Modifier.size(52.dp), shape = RoundedCornerShape(2.dp), border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.onBackground)) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Replay")
+                    Icon(Icons.Filled.Refresh, contentDescription = eu.motionforge.app.core.i18n.tr("Replay"))
                 }
                 SegmentedPill(
                     options = speeds.map { if (it == 1f) "1×" else "$it×" },
@@ -238,7 +238,7 @@ fun TrainerDemoCompact(exercise: Exercise, playing: Boolean, modifier: Modifier 
                 playback = playback,
                 modifier = Modifier.matchParentSize(),
                 transparent = true,
-                contentDescription = "3D trainer demonstrating ${exercise.name}",
+                contentDescription = eu.motionforge.app.core.i18n.tr("3D trainer demonstrating ${exercise.name}"),
             )
         } else if (availability != DemoAvailability.Checking) {
             // no 3D here: the lesson's motion study shows the movement instead

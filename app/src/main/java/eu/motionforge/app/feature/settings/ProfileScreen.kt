@@ -123,7 +123,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
                 Switch(
                     checked = preferences.voiceCues,
                     onCheckedChange = { on -> scope.launch { prefsRepo.setVoiceCues(on) } },
-                    modifier = Modifier.semantics { contentDescription = "Spoken cues during sessions" },
+                    modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Spoken cues during sessions") },
                 )
             }
         }
@@ -239,7 +239,7 @@ private fun ReminderSettings(preferences: UserPreferences) {
                     ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
                 ) askNotify.launch(Manifest.permission.POST_NOTIFICATIONS)
             },
-            modifier = Modifier.semantics { contentDescription = "Training reminder" },
+            modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Training reminder") },
         )
     }
     if (!preferences.reminderOn) return
@@ -261,7 +261,7 @@ private fun ReminderSettings(preferences: UserPreferences) {
                             if (days.isNotEmpty()) save(true, schedule.copy(days = days))
                         },
                     )
-                    .semantics { contentDescription = label + if (on) ", on" else ", off" },
+                    .semantics { contentDescription = eu.motionforge.app.core.i18n.tr(if (on) "$label, on" else "$label, off") },
                 shape = RoundedCornerShape(6.dp),
                 color = if (on) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
                 border = BorderStroke(1.dp, if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),

@@ -111,7 +111,7 @@ private fun LessonDetail(exercise: Exercise, onBack: () -> Unit, onStartPractice
             androidx.compose.material3.IconButton(onClick = onBack, modifier = Modifier.padding(4.dp)) {
                 androidx.compose.material3.Icon(
                     androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = eu.motionforge.app.core.i18n.tr("Back"),
                     tint = androidx.compose.ui.graphics.Color.White,
                 )
             }

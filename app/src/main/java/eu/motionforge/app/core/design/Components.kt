@@ -293,7 +293,7 @@ fun RoundAction(
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(
             onClick = onClick,
-            modifier = Modifier.width(size).height(size).semantics { contentDescription = label; role = Role.Button },
+            modifier = Modifier.width(size).height(size).semantics { contentDescription = eu.motionforge.app.core.i18n.tr(label); role = Role.Button },
             shape = PlateShape,
             color = container,
         ) {
@@ -377,7 +377,7 @@ fun MotionStudy(path: String, modifier: Modifier = Modifier, description: String
         CoachArt(
             path,
             Modifier.fillMaxSize(),
-            contentDescription = description,
+            contentDescription = description?.let { eu.motionforge.app.core.i18n.tr(it) },
             contentScale = if (crop) ContentScale.Crop else ContentScale.Fit,
         )
     }

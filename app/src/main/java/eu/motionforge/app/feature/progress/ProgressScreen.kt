@@ -94,7 +94,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Bottom) {
                 summary.recentWeeks.forEach { w ->
                     Column(
-                        Modifier.weight(1f).semantics { contentDescription = "Week of ${w.weekStart.format(weekFormat)}: ${w.sessions} sessions" },
+                        Modifier.weight(1f).semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Week of ${w.weekStart.format(weekFormat)}: ${w.sessions} sessions") },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
@@ -172,7 +172,7 @@ private fun RepTrendRow(t: RepTrend, seconds: Boolean = false) {
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .semantics(mergeDescendants = true) {
-                contentDescription = if (seconds) "${t.name}: last hold ${t.last} seconds, best ${t.best} seconds" + (if (t.newBest) ", a new best" else "")
+                contentDescription = if (seconds) eu.motionforge.app.core.i18n.tr("${t.name}: last hold ${t.last} seconds, best ${t.best} seconds") + (if (t.newBest) eu.motionforge.app.core.i18n.tr(", a new best") else "")
                     else "${t.name}: last ${t.last} reps, best ${t.best}" + if (t.newBest) ", a new best" else ""
             },
         verticalAlignment = Alignment.CenterVertically,

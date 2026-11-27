@@ -50,7 +50,7 @@ internal object PlateGeometry {
 
 @Composable
 fun SessionPlateCanvas(frames: List<PoseFrame>, modifier: Modifier = Modifier) {
-    Canvas(modifier.semantics { contentDescription = "Your movement drawn as a motion study from ${frames.size} moments" }) {
+    Canvas(modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Your movement drawn as a motion study from ${frames.size} moments") }) {
         val poses = PlateGeometry.layout(frames, size.width, size.height, 28f)
         poses.forEachIndexed { i, pose ->
             val last = i == poses.lastIndex

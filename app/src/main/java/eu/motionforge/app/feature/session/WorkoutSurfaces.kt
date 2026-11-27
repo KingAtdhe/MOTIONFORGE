@@ -37,11 +37,11 @@ class WorkoutNotifier(private val context: Context) {
             is SessionStep.Work -> step.name
             is SessionStep.Rest -> "Rest, next: ${step.nextName}"
         }
-        val text = buildString {
-            if (step is SessionStep.Work) append("Exercise ${state.workIndex} of ${state.plan.workCount}")
-            if (step is SessionStep.Work && step.countsReps && state.cameraUsed) append(", ${state.stepReps} reps")
-            if (paused) append(if (isEmpty()) "Paused" else ". Paused") else append(if (isEmpty()) "${formatClock(state.remainingInStep)} left" else ", ${formatClock(state.remainingInStep)} left")
-        }
+        val text = buildList {
+            if (step is SessionStep.Work) add("Exercise ${state.workIndex} of ${state.plan.workCount}")
+            if (step is SessionStep.Work && step.countsReps && state.cameraUsed) add("${state.stepReps} reps")
+            add(if (paused) "Paused" else "${formatClock(state.remainingInStep)} left")
+        }.joinToString(", ") { eu.motionforge.app.core.i18n.I18n.t(it) }
         val open = PendingIntent.getActivity(
             context, 0,
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
@@ -50,7 +50,7 @@ class WorkoutNotifier(private val context: Context) {
         val b = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_workout)
             .setContentTitle(eu.motionforge.app.core.i18n.I18n.t(title))
-            .setContentText(eu.motionforge.app.core.i18n.I18n.t(text))
+            .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
