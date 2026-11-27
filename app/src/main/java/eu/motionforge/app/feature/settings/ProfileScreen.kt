@@ -125,6 +125,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
                 )
             }
         }
+        ProfileSection("Reminders") { ReminderSettings(preferences) }
         ProfileSection("Camera & privacy") {
             Text(
                 "Camera images are processed on this phone to estimate body landmarks. Frames are kept in " +
@@ -138,7 +139,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                "Stored on this phone: your focus, goal, chosen coach, voice setting and last viewed lesson. Nothing is sent to a server.",
+                "Stored on this phone: your focus, goal, chosen coach, voice and reminder settings and last viewed lesson. Nothing is sent to a server.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -191,5 +192,111 @@ private fun ProfileSection(title: String, onClick: (() -> Unit)? = null, content
         eu.motionforge.app.core.design.SectionHeader(title)
         Spacer(Modifier.height(4.dp))
         content()
+    }
+}
+
+/**
+ * The optional training reminder: off by default. Turning it on explains why before Android asks for the
+ * notification permission (Android 13+); without it the switch stays usable and says reminders can't appear.
+ */
+@Composable
+private fun ReminderSettings(preferences: UserPreferences) {
+    val context = LocalContext.current
+    val prefsRepo = remember { (context.applicationContext as MotionForgeApplication).container.preferences }
+    val scope = rememberCoroutineScope()
+    var allowed by remember { mutableStateOf(eu.motionforge.app.feature.reminders.Reminders.notificationsAllowed(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { allowed = eu.motionforge.app.feature.reminders.Reminders.notificationsAllowed(context) }
+    val schedule = preferences.reminder
+
+    fun save(on: Boolean, s: eu.motionforge.app.feature.reminders.ReminderSchedule) {
+        scope.launch {
+            prefsRepo.setReminder(on, s)
+            eu.motionforge.app.feature.reminders.Reminders.apply(context, preferences.copy(reminderOn = on, reminder = s))
+        }
+    }
+    val askNotify = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+    ) { allowed = eu.motionforge.app.feature.reminders.Reminders.notificationsAllowed(context) }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f)) {
+            Text("Training reminder", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "One notification on the days you pick, at the time you pick. It stays quiet on a day you've already trained. " +
+                    "Android asks for permission to show notifications the first time.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(
+            checked = preferences.reminderOn,
+            onCheckedChange = { on ->
+                save(on, schedule)
+                if (on && android.os.Build.VERSION.SDK_INT >= 33 &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                ) askNotify.launch(Manifest.permission.POST_NOTIFICATIONS)
+            },
+            modifier = Modifier.semantics { contentDescription = "Training reminder" },
+        )
+    }
+    if (!preferences.reminderOn) return
+
+    // days: at least one stays chosen
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        java.time.DayOfWeek.entries.forEach { d ->
+            val on = d in schedule.days
+            val label = eu.motionforge.app.feature.reminders.ReminderSchedule.SHORT[d.ordinal]
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 48.dp)
+                    .selectable(
+                        selected = on,
+                        role = Role.Checkbox,
+                        onClick = {
+                            val days = if (on) schedule.days - d else schedule.days + d
+                            if (days.isNotEmpty()) save(true, schedule.copy(days = days))
+                        },
+                    )
+                    .semantics { contentDescription = label + if (on) ", on" else ", off" },
+                shape = RoundedCornerShape(6.dp),
+                color = if (on) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
+                border = BorderStroke(1.dp, if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+            ) {
+                androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        label.take(2),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+    }
+    OutlinedButton(
+        onClick = {
+            android.app.TimePickerDialog(
+                context,
+                { _, h, m -> save(true, schedule.copy(minuteOfDay = h * 60 + m)) },
+                schedule.minuteOfDay / 60, schedule.minuteOfDay % 60,
+                android.text.format.DateFormat.is24HourFormat(context),
+            ).show()
+        },
+        modifier = Modifier.heightIn(min = 48.dp),
+    ) { Text("Time: %02d:%02d".format(schedule.minuteOfDay / 60, schedule.minuteOfDay % 60)) }
+    Text(schedule.describe(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    if (!allowed) {
+        Text(
+            "Notifications are off for MOTIONFORGE, so the reminder can't appear. You can allow them in Android's settings.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MfColors.Halt,
+        )
+        TextButton(onClick = {
+            context.startActivity(
+                android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }) { Text("Open notification settings") }
     }
 }

@@ -41,7 +41,8 @@ class MainActivity : ComponentActivity() {
 /** Decides between onboarding and the main app based on locally stored preferences. */
 @Composable
 fun MotionForgeRoot() {
-    val container = (LocalContext.current.applicationContext as MotionForgeApplication).container
+    val appContext = LocalContext.current.applicationContext
+    val container = (appContext as MotionForgeApplication).container
     val appViewModel: AppViewModel = viewModel { AppViewModel(container.preferences, container.sessions, container.activeSession) }
     val state by appViewModel.state.collectAsStateWithLifecycle()
 
@@ -58,7 +59,10 @@ fun MotionForgeRoot() {
                 preferences = s.preferences,
                 session = s.session,
                 container = container,
-                onResetData = appViewModel::resetAllData,
+                onResetData = {
+                    eu.motionforge.app.feature.reminders.Reminders.cancel(appContext)
+                    appViewModel.resetAllData()
+                },
             )
         }
     }

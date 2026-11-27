@@ -1310,3 +1310,15 @@ published debug APK's assets for the local MediaPipe runs.
   A short list is gone through again in rounds (never the same move back to back). Deterministic per day so a
   restart resumes the same session (`SessionBuilder`, unit-tested).
 - **3 new plans**: Core & mobility, Legs & glutes, Boxing conditioning (6 plans in total).
+
+## 2026-11-27 — Training reminders
+
+- **Optional reminder** (Profile → Reminders, off by default): pick days (at least one) and a time; one notification
+  "Time to train?" naming the plan's next session when a plan is followed. It stays quiet on a day a session was
+  already saved, and times out after 6 h. No streak or guilt wording (Progress keeps "no pressure mechanics").
+- One inexact alarm (`setAndAllowWhileIdle`, no exact-alarm permission), re-armed after firing, at app start, after a
+  reboot / app update / clock or time-zone change (`ReminderReceiver`, not exported). Local data reset cancels it.
+- Permission: the section explains the reminder before Android's notification prompt (Android 13+); if notifications
+  are off it says so and links to the app's notification settings.
+- Tests: `ReminderScheduleTest` (next time, week wrap, DST, quiet after training, text; passes locally with kotlinc),
+  `RemindersAlarmTest` (Robolectric: alarm armed / cancelled, notification shown once and not after training; CI).
