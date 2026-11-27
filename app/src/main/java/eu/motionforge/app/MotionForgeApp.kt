@@ -154,6 +154,11 @@ fun MotionForgeApp(
                 // An unfinished workout (the app was closed mid-session) is offered on Home; re-read on each visit.
                 var unfinished by remember { mutableStateOf<SessionSnapshot?>(null) }
                 LaunchedEffect(Unit) { unfinished = withContext(Dispatchers.IO) { container.activeSession.read() } }
+                // the date, re-read whenever the app comes back: the level's six-week window moves on during a break
+                var today by remember { androidx.compose.runtime.mutableLongStateOf(java.time.LocalDate.now().toEpochDay()) }
+                androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                    today = java.time.LocalDate.now().toEpochDay()
+                }
                 HomeScreen(
                     preferences = preferences,
                     catalog = catalog,
@@ -177,7 +182,7 @@ fun MotionForgeApp(
                         unfinished = null
                     },
                     sessionsThisWeek = sessionsThisWeek,
-                    buildLevel = remember(history) {
+                    buildLevel = remember(history, today) {
                         eu.motionforge.app.feature.session.SessionBuilder.levelFor(
                             history.orEmpty().filter { it.completed }.map { it.startedAtMillis }, System.currentTimeMillis(),
                         )
