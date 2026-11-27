@@ -101,7 +101,7 @@ private const val ID = 4201
  * session, so whether the buttons reach the app depends on the phone and headset.
  */
 class WorkoutButtons(context: Context, private val onToggle: () -> Unit, private val onNext: () -> Unit) {
-    private val session = MediaSession(context, "MOTIONFORGE workout").apply {
+    private val session = MediaSession(context, "CORZA workout").apply {
         setCallback(object : MediaSession.Callback() {
             override fun onPlay() = onToggle()
             override fun onPause() = onToggle()

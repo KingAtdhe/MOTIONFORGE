@@ -80,7 +80,7 @@ fun CameraPoseSpikeScreen(onBack: () -> Unit) {
             Panel {
                 Eyebrow("Why the camera is needed")
                 Text(
-                    "MOTIONFORGE uses the camera to estimate the position of your joints while you practise. " +
+                    "CORZA uses the camera to estimate the position of your joints while you practise. " +
                         "Images are processed on this phone, kept in memory only, and never saved or uploaded.",
                     style = MaterialTheme.typography.bodyMedium,
                 )

@@ -148,7 +148,7 @@ private fun ColumnScope.WelcomeStep() {
 
 @Composable
 private fun ColumnScope.AgeStep(onEvent: (OnboardingEvent) -> Unit) {
-    Heading("Are you 18 or older?", "This first version of MOTIONFORGE is designed for adults. Your answer is not stored.")
+    Heading("Are you 18 or older?", "This first version of CORZA is designed for adults. Your answer is not stored.")
     Button(
         onClick = { onEvent(OnboardingEvent.AgeAnswered(isAdult = true)) },
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
@@ -165,7 +165,7 @@ private fun ColumnScope.AgeStep(onEvent: (OnboardingEvent) -> Unit) {
 @Composable
 private fun ColumnScope.UnderAgeStep() {
     Heading(
-        "MOTIONFORGE is for adults for now",
+        "CORZA is for adults for now",
         "This version isn't designed for people under 18, so we can't continue. If you want to get active, " +
             "a parent, PE teacher or local sports club can help you find something suitable.",
     )
@@ -176,7 +176,7 @@ private fun ColumnScope.SafetyStep(acknowledged: Boolean, onEvent: (OnboardingEv
     Heading("Before you start", "Please read this once. You can find it again in Profile.")
     Panel {
         Eyebrow("Safety", color = MfColors.Caution)
-        SafetyLine("MOTIONFORGE is an educational practice companion. It is not a medical device and does not diagnose, treat or prevent any condition or injury.")
+        SafetyLine("CORZA is an educational practice companion. It is not a medical device and does not diagnose, treat or prevent any condition or injury.")
         SafetyLine("It does not replace a qualified personal trainer or martial arts instructor.")
         SafetyLine("Camera feedback, when available, is limited and may be wrong. It never certifies technique.")
         SafetyLine("All fighting fundamentals are non-contact. Never strike people or objects.")

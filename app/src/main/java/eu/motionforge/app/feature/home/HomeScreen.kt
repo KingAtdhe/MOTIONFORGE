@@ -133,7 +133,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
-                Text("MOTIONFORGE", style = MaterialTheme.typography.labelLarge.copy(fontFamily = eu.motionforge.app.core.design.DisplayFont, fontWeight = FontWeight.Bold))
+                Text("CORZA", style = MaterialTheme.typography.labelLarge.copy(fontFamily = eu.motionforge.app.core.design.DisplayFont, fontWeight = FontWeight.Bold))
             }
 
             if (unfinished != null) Box(side) { UnfinishedCard(unfinished, onResumeUnfinished, onDiscardUnfinished) }
@@ -215,7 +215,7 @@ fun HomeScreen(
                 Text("Train safely", style = MaterialTheme.typography.titleSmall)
                 Text(
                     "Train in clear space, at your own pace. Stop if you feel pain, dizziness or unusual discomfort. " +
-                        "MOTIONFORGE does not replace a qualified trainer or instructor.",
+                        "CORZA does not replace a qualified trainer or instructor.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

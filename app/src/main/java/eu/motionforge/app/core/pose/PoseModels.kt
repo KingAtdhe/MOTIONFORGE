@@ -1,7 +1,7 @@
 package eu.motionforge.app.core.pose
 
 /**
- * MOTIONFORGE's own pose types. Raw MediaPipe types never leave the pose package
+ * CORZA's own pose types. Raw MediaPipe types never leave the pose package
  * (see [MediaPipePoseEngine]); everything downstream uses these.
  */
 

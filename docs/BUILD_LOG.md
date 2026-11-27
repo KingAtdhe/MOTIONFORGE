@@ -1443,3 +1443,20 @@ picked "both together" from the art sheet (Claude Design canvas "MOTIONFORGE —
   in `assets/branding/v6/`).
 - Not checked on a phone: how each launcher draws the bitmap icon; checked on renders of the circle and squircle
   masks and at 48 px.
+
+## 2026-11-27 (9) — The app is called CORZA
+
+The owner renamed the app to **CORZA** (store title "CORZA – AI Fitness & Boxing"). MOTIONFORGE is already the name of
+a fitness app on the App Store; CORZA (from "core") turned up no app of that name in web and App Store searches. Not
+yet checked in the Play Console or the EU trademark register (EUIPO TMview) — do that before publishing.
+- **Visible name everywhere:** launcher label (`app_name`), the home header, safety and onboarding texts, the
+  notification/media-session name, the shared result plate (now `corza-plate.png`), and the same strings in all 23
+  translation tables (the name is a brand, so it stays "CORZA" in every language). `check.py`: 2494 strings, no gaps.
+- **Wordmark v7:** CORZA in Barlow Semi Condensed Bold as vector outlines, wide-spaced, cap height 26 dp, centred in
+  the 200 × 80 dp box used by the Android 12+ launch screen and `LaunchIntro` (`tools/branding_wordmark_v7.py`).
+- **Store text:** `docs/STORE_LISTING.md`. The owner's preferred title "CORZA – AI Fitness & Boxing Coach" is 33
+  characters; Google Play allows 30, so the title is "CORZA – AI Fitness & Boxing" and "coach" leads the short
+  description.
+- **Kept on purpose:** the application ID `eu.motionforge.app`, Kotlin packages, the repo name and the database file
+  `motionforge.db` (renaming the database would lose people's history; the ID is fixed once an app is published and
+  nobody sees it). Rename the ID only if the owner asks, before the first Play upload.
