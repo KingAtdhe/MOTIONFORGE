@@ -53,6 +53,32 @@ class RepCountingTest {
         assertTrue(CountedMove.counterFor("calf_raise") is CalfRaiseRepCounter)
         listOf("crunch", "dead_bug", "bird_dog", "slow_mountain_climber", "wall_push_up").forEach { assertTrue(it, CountedMove.counterFor(it) is SignalRepCounter) }
         assertTrue(CountedMove.counterFor("standing_side_bend") is TwoSidedRepCounter)
+        // 2026-11-27 mobility
+        assertTrue(CountedMove.counterFor("leg_swings") is PendulumRepCounter)
+        assertTrue(CountedMove.counterFor("hip_circles") is SignalRepCounter)
+        assertNull(CountedMove.counterFor("standing_quad_stretch"))
+    }
+
+    /** Feeds a signal sequence (one value per 83 ms frame, null = unreadable) through a pendulum counter. */
+    private fun pendulum(values: List<Double?>, maxRepMs: Long = 1_500): Int {
+        val f = PoseFixtures.standingFrame(0)
+        var i = 0
+        val c = PendulumRepCounter(travel = 25.0, side = 8.0, maxRepMs = maxRepMs) { values[i] }
+        values.indices.forEach { k -> i = k; c.update(f.copy(timestampMs = k * 83L), true) }
+        return c.repetitions
+    }
+
+    @Test
+    fun pendulumCountsEachCrossingNotOneSidedMoves() {
+        // forward to -25, back to +20, forward, back: three changes of side
+        val swing = listOf(0.0, -12.0, -25.0, -12.0, 0.0, 10.0, 20.0, 10.0, 0.0, -12.0, -25.0, -12.0, 0.0, 10.0, 20.0, 10.0, 0.0)
+        assertEquals(3, pendulum(swing))
+        // a heel kicked up behind (one side only) and back, several times: nothing
+        assertEquals(0, pendulum(List(4) { listOf(0.0, 15.0, 30.0, 15.0, 0.0) }.flatten()))
+        // too small a swing (under the travel) is not counted
+        assertEquals(0, pendulum(listOf(0.0, -10.0, 0.0, 10.0, 0.0, -10.0, 0.0)))
+        // a slow change of side (stepping into a split stance and out) is not a swing
+        assertEquals(0, pendulum(listOf(-25.0) + List(30) { -25.0 } + listOf(0.0, 25.0)))
     }
 
     /** Standing person bending and straightening both elbows (a curl): must never count as push-ups. */

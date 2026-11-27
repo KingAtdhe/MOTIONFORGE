@@ -1,6 +1,8 @@
 """Batch 9 lessons (2026-11-27): mobility. Appends them to both copies of the catalogue (data/exercises.json and the
 app asset) if they are not there yet. Run from the repo root. Guided: no camera check yet (none has been validated on
-rendered videos for these), so the timer guides them."""
+rendered videos for these), so the timer guides them.
+Later the same day all five got camera checks (BUILD_LOG 2026-11-27 (7)): their analysisMode and limitations were
+changed in the catalogue itself. This script never rewrites a lesson that is already there."""
 import json
 
 STAND = "About 2 × 2 m of clear, stable, non-slip floor."

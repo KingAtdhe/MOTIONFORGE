@@ -4738,7 +4738,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "leg_swing",
     "purpose": "Loosen the hips before training with an easy, controlled swing.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -4771,7 +4771,7 @@
         "adjustment": "Keep the back swing small and the ribs down."
       }
     ],
-    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Stand side-on to the phone if you want to watch yourself.",
+    "limitations": "The camera counts each swing forward and each swing back (the swinging leg passing under you while the standing leg stays upright); it does not judge technique beyond that. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4781,7 +4781,7 @@
     "level": "beginner",
     "durationSeconds": 40,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "hip_circles",
     "purpose": "Warm up the hips and lower back with slow circles.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -4807,7 +4807,7 @@
         "adjustment": "Take two or three seconds for each circle."
       }
     ],
-    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "limitations": "The camera counts each circle (your hips travelling side to side over planted feet); it does not judge technique beyond that. Face the phone with your whole body, feet included, in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4817,7 +4817,7 @@
     "level": "beginner",
     "durationSeconds": 60,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "hamstring_stretch",
     "purpose": "Stretch the back of the thigh after leg work or running.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -4848,7 +4848,7 @@
         "adjustment": "Rest the hands on the thigh above the knee."
       }
     ],
-    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Stand side-on to the phone with your whole body in view.",
+    "limitations": "The camera times your stretch only while you're in the position (one leg long in front, the other knee bent, tipped forward from the hips); it does not judge how far you stretch or how long you should hold. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4858,7 +4858,7 @@
     "level": "beginner",
     "durationSeconds": 45,
     "recommendedView": "front",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "squat_hold",
     "purpose": "Open the hips and ankles by resting in a deep squat.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -4891,7 +4891,7 @@
         "adjustment": "Lower slowly and stop where it's comfortable."
       }
     ],
-    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "limitations": "The camera times your hold only while you're in the position (hips down near knee height, knees bent, chest up); it does not judge depth beyond that or how long you should hold. Face the phone with your whole body, feet included, in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   },
   {
@@ -4901,7 +4901,7 @@
     "level": "beginner",
     "durationSeconds": 50,
     "recommendedView": "side",
-    "analysisMode": "guided_not_scored",
+    "analysisMode": "limited_rule_based",
     "demoAnimation": "calf_stretch",
     "purpose": "Stretch the calves after walking, running, skipping or boxing footwork.",
     "space": "About 2 × 2 m of clear, stable, non-slip floor.",
@@ -4934,7 +4934,7 @@
         "adjustment": "Lean the whole body in one line instead."
       }
     ],
-    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Stand side-on to the phone with your whole body in view.",
+    "limitations": "The camera times your stretch only while you're in the position (one leg long behind you, the front knee bent, leaning forward); it does not judge how far you stretch or how long you should hold. Stand side-on to the phone with your whole body in view. Experimental.",
     "reviewStatus": "draft_pending_coach_review"
   }
 ]

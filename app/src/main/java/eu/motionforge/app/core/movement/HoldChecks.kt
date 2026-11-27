@@ -40,6 +40,15 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
         "Kneel on one knee, the other foot in front. The timer runs while you hold the stretch.", "Stretching — hips forward, chest tall."),
     ARMS_OUT("Arm check", "Face the phone with your upper body and both arms in view.",
         "Lift both arms out to shoulder height. The timer runs while they're up.", "Arms up — small, smooth circles."),
+    // ---- added 2026-11-27 (mobility batch 9) ----
+    HAMSTRING("Stretch check", "Stand side-on to the phone with your whole body in view.",
+        "Heel forward, hips back, tip forward with a flat back. The timer runs while you hold the stretch.",
+        "Stretching — flat back, breathe."),
+    CALF("Stretch check", "Stand side-on to the phone with your whole body in view.",
+        "Step one foot back, heel down, and lean forward. The timer runs while you hold the stretch.",
+        "Stretching — back heel down."),
+    SQUAT_HOLD("Squat hold check", "Face the phone with your whole body, feet included, in view.",
+        "Sit down into a deep squat. The timer runs while you hold it.", "Holding — chest up, breathe."),
     ;
 
     companion object {
@@ -55,6 +64,9 @@ enum class HoldCheck(val checkName: String, val framing: String, val waiting: St
             "overhead_triceps_stretch" -> TRICEPS_STRETCH
             "chest_opener_stretch" -> CHEST_OPENER
             "kneeling_hip_flexor_stretch" -> HIP_FLEXOR
+            "standing_hamstring_stretch" -> HAMSTRING
+            "standing_calf_stretch" -> CALF
+            "squat_hold" -> SQUAT_HOLD
             else -> null
         }
     }
@@ -186,6 +198,70 @@ class HoldMonitor(
         HoldCheck.TRICEPS_STRETCH -> tricepsStretch(f)
         HoldCheck.CHEST_OPENER -> chestOpener(f)
         HoldCheck.HIP_FLEXOR -> hipFlexor(f)
+        HoldCheck.HAMSTRING -> splitStance(f, hamstring = true)
+        HoldCheck.CALF -> splitStance(f, hamstring = false)
+        HoldCheck.SQUAT_HOLD -> squatHold(f)
+    }
+
+    /**
+     * The two standing split-stance stretches, side-on, feet apart front to back:
+     * - hamstring: the torso tips forward ([HAM_TILT] or more from upright) toward the front foot, which is well ahead
+     *   of the hips with its knee fairly long (over [HAM_FRONT_KNEE]; the pose model reads the long front leg of the male
+     *   coach at only ~125–130°, so a soft knee also passes — a lunge's front knee is ~90°) and the back knee bent
+     *   (under [HAM_BACK_KNEE]: a good morning, feet side by side but seen from a corner, keeps both knees at ~160°);
+     * - calf: one leg long and reaching back (its hip→ankle line [CALF_LEG] or more from vertical), the other knee bent,
+     *   and the body leaning forward away from the long leg, over the bent front knee.
+     */
+    private fun splitStance(f: PoseFrame, hamstring: Boolean): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val legs = listOf(
+            Triple(BodyLandmark.LEFT_HIP, BodyLandmark.LEFT_KNEE, BodyLandmark.LEFT_ANKLE),
+            Triple(BodyLandmark.RIGHT_HIP, BodyLandmark.RIGHT_KNEE, BodyLandmark.RIGHT_ANKLE),
+        )
+        // side-on the far knee and ankle are rated low (down to ~0.25 on the rendered videos) while still placed well
+        if (legs.any { (h, k, a) -> f[h].visibility < 0.2f || f[k].visibility < 0.2f || f[a].visibility < 0.2f }) return null
+        val knees = legs.map { (h, k, a) -> f.angleAtLoose(h, k, a, 0.2f) ?: return null }
+        val long = if (knees[0] >= knees[1]) 0 else 1
+        val (lh, _, la) = legs[long]
+        val apart = abs(f.x(BodyLandmark.LEFT_ANKLE) - f.x(BodyLandmark.RIGHT_ANKLE)) / tor.len
+        val lean = (tor.sx - tor.hx) / tor.len
+        return if (hamstring) {
+            // the front foot is the one further in the direction the torso tips
+            val dir = if (lean >= 0) 1.0 else -1.0
+            val front = if ((f.x(BodyLandmark.LEFT_ANKLE) - f.x(BodyLandmark.RIGHT_ANKLE)) * dir >= 0) 0 else 1
+            val ahead = (f.x(legs[front].third) - tor.hx) * dir / tor.len
+            (tor.tilt in HAM_TILT..60.0 && abs(lean) > 0.25 && apart > HAM_APART && ahead > HAM_AHEAD &&
+                knees[front] > HAM_FRONT_KNEE && knees[1 - front] < HAM_BACK_KNEE) to null
+        } else {
+            val toward = lean * (f.x(la) - tor.hx) > 0
+            val legAngle = Math.toDegrees(atan2(abs(f.x(la) - f.x(lh)), f.y(la) - f.y(lh)))
+            (tor.tilt in CALF_TILT..30.0 && knees[long] > SPLIT_LONG_KNEE && knees[1 - long] < knees[long] - CALF_BEND &&
+                apart > CALF_APART && legAngle > CALF_LEG && !toward) to null
+        }
+    }
+
+    /** Deep squat hold: torso fairly upright, both knees bent and the hips down near knee height (the knees no more
+     *  than [SQUAT_HIP_LOW] torso lengths below the hips; standing they are ~0.8 below). */
+    private fun squatHold(f: PoseFrame): Pair<Boolean, HoldIssue?>? {
+        val tor = f.torso() ?: return null
+        val kn = listOf(BodyLandmark.LEFT_KNEE, BodyLandmark.RIGHT_KNEE)
+        if (kn.any { f[it].visibility < 0.5f }) return null
+        val knees = listOf(
+            f.angleAtLoose(BodyLandmark.LEFT_HIP, BodyLandmark.LEFT_KNEE, BodyLandmark.LEFT_ANKLE),
+            f.angleAtLoose(BodyLandmark.RIGHT_HIP, BodyLandmark.RIGHT_KNEE, BodyLandmark.RIGHT_ANKLE),
+        )
+        if (knees.any { it == null }) return null
+        val drop = (kn.sumOf { f.y(it) } / 2 - tor.hy) / tor.len
+        return (tor.tilt < 45.0 && knees.all { it!! < SQUAT_KNEE } && drop < SQUAT_HIP_LOW) to null
+    }
+
+    /** Like [angleAt] with a lower visibility bar (side-on the far leg is rated lower). */
+    private fun PoseFrame.angleAtLoose(a: BodyLandmark, b: BodyLandmark, c: BodyLandmark, v: Float = 0.3f): Double? {
+        if (listOf(a, b, c).any { this[it].visibility < v }) return null
+        val ux = x(a) - x(b); val uy = y(a) - y(b); val vx = x(c) - x(b); val vy = y(c) - y(b)
+        val n = hypot(ux, uy) * hypot(vx, vy)
+        if (n < 1.0) return null
+        return Math.toDegrees(acos(((ux * vx + uy * vy) / n).coerceIn(-1.0, 1.0)))
     }
 
     /** Cross-body shoulder stretch, facing the phone: one wrist carried across past the middle of the chest, at about
@@ -365,5 +441,17 @@ class HoldMonitor(
         const val CHEST_ELBOW_MIN = 110.0
         const val HIP_KNEE_DOWN = 0.40
         const val HIP_KNEE_SPLIT = 0.30
+        const val SPLIT_LONG_KNEE = 145.0
+        const val HAM_TILT = 20.0
+        const val HAM_FRONT_KNEE = 115.0
+        const val HAM_AHEAD = 0.25
+        const val HAM_BACK_KNEE = 152.0
+        const val HAM_APART = 0.12
+        const val CALF_TILT = 7.0
+        const val CALF_APART = 0.50
+        const val CALF_LEG = 20.0
+        const val CALF_BEND = 20.0
+        const val SQUAT_KNEE = 120.0
+        const val SQUAT_HIP_LOW = 0.40
     }
 }

@@ -83,6 +83,10 @@ class ExerciseCatalogParserTest {
         // the plank got its hold check once it was checked on rendered videos (2026-11-25); footwork never does
         assertTrue(byId.getValue("forearm_plank").analysisMode.allowsLiveCues)
         assertFalse(byId.getValue("footwork_lateral").analysisMode.allowsLiveCues)
+        // the mobility lessons got their checks once checked on rendered videos (2026-11-27); the quad stretch has none
+        listOf("leg_swings", "hip_circles", "standing_hamstring_stretch", "standing_calf_stretch", "squat_hold")
+            .forEach { assertTrue(it, byId.getValue(it).analysisMode.allowsLiveCues) }
+        assertFalse(byId.getValue("standing_quad_stretch").analysisMode.allowsLiveCues)
     }
 
     @Test

@@ -41,6 +41,37 @@ object MoreMoves {
             if (!r.torsoIn(0.0, 35.0)) null
             else r.sides { s -> if (r.seenAt(0.4f, s.hip, s.ankle)) Math.toDegrees(kotlin.math.atan2(kotlin.math.abs(r.x(s.ankle) - r.x(s.hip)), r.y(s.ankle) - r.y(s.hip))) else null }.maxOrNull()
         }
+        // standing side-on, one leg swinging like a pendulum: the swinging leg's hip→ankle line leaves vertical, ~25–30°
+        // forward and ~20° back on the rendered videos; each swing forward and each swing back is one (they pass the
+        // vertical between them). Half a swing takes ~0.55 s at the demo tempo.
+        CountedMove.LEG_PENDULUM -> PendulumRepCounter(travel = 25.0, side = 8.0) { r ->
+            if (!r.torsoIn(0.0, 25.0)) null
+            else {
+                val legs = r.sides { s -> if (r.seenAt(0.4f, s.hip, s.ankle)) Math.toDegrees(kotlin.math.atan2(r.x(s.ankle) - r.x(s.hip), r.y(s.ankle) - r.y(s.hip))) else null }
+                // the standing leg stays under the body (up to ~10° on the videos) and the swinging leg is clearly further
+                // out; a lunge or a split stance has both legs off vertical by about the same angle
+                val a = legs.map { kotlin.math.abs(it) }
+                if (legs.size < 2 || a.min() > 12.0 || a.max() - a.min() < 6.0) null else legs.maxByOrNull { kotlin.math.abs(it) }
+            }
+        }
+        // facing the phone, feet planted: the hips travel side to side over the feet as they circle (hip centre
+        // relative to the middle of the ankles, ±0.1 torso lengths on the rendered videos); one excursion across and
+        // back is one circle (a circle takes ~2.5 s).
+        CountedMove.HIP_CIRCLE -> {
+            var footMovedMs = Long.MIN_VALUE / 2
+            SignalRepCounter(+1, travel = 0.09, minRepMs = 500) { r ->
+                val t = r.torso
+                val la = Side.LEFT.ankle; val ra = Side.RIGHT.ankle
+                val now = r.f.timestampMs
+                if (t == null || t.tilt > 20.0 || (r.frontal() ?: 0.0) < 0.35 || !r.seenAt(0.5f, la, ra)) null
+                else {
+                    // both feet planted and apart: a foot lifted (marching, side leg raises) or travelling (skater steps)
+                    // blocks the reading for longer than a tracking blip, so the circle in progress is dropped
+                    if (kotlin.math.abs(r.y(la) - r.y(ra)) / t.len > 0.12 || kotlin.math.abs(r.x(la) - r.x(ra)) / t.len !in 0.25..1.0) footMovedMs = now
+                    if (now - footMovedMs < 2 * MAX_BLIP_MS) null else (t.hx - (r.x(la) + r.x(ra)) / 2) / t.len
+                }
+            }
+        }
         // standing: the heel comes up behind — the knee bends (hip–knee–ankle) from ~165° to ~110–130° in a quick kick
         CountedMove.BUTT_KICK -> SignalRepCounter(-1, travel = 25.0, minRepMs = 150, smoothingWindow = 2) { r ->
             if (!r.torsoIn(0.0, 35.0)) null else r.sides { s -> r.angle(s.hip, s.knee, s.ankle, 0.3f) }.minOrNull()

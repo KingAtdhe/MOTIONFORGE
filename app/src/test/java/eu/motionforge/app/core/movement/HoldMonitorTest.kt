@@ -79,5 +79,9 @@ class HoldMonitorTest {
         assertEquals(HoldCheck.WALL_SIT, HoldCheck.forExercise("wall_sit"))
         assertNull(HoldCheck.forExercise("bodyweight_squat"))
         assertNull(HoldCheck.forExercise("footwork_lateral"))
+        assertEquals(HoldCheck.HAMSTRING, HoldCheck.forExercise("standing_hamstring_stretch"))
+        assertEquals(HoldCheck.CALF, HoldCheck.forExercise("standing_calf_stretch"))
+        assertEquals(HoldCheck.SQUAT_HOLD, HoldCheck.forExercise("squat_hold"))
+        assertNull(HoldCheck.forExercise("standing_quad_stretch"))
     }
 }
