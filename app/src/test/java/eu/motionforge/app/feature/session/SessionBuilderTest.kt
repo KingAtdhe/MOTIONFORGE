@@ -1,6 +1,7 @@
 package eu.motionforge.app.feature.session
 
 import eu.motionforge.app.core.model.TrainingCategory
+import eu.motionforge.app.core.movement.BoxingDrill
 import eu.motionforge.app.data.ExerciseCatalogParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -27,6 +28,7 @@ class SessionBuilderTest {
             assertTrue("$f $m: ${works.size} moves", works.size >= 2)
             assertTrue("$f $m lasts ${p.totalSeconds}", p.totalSeconds in (m * 60 - 120)..(m * 60 + 60))
             assertTrue("$f $m starts with a move", p.steps.first() is SessionStep.Work)
+            if (f == SessionFocus.ROUNDS) continue // every round is the same shadow-boxing step (own test below)
             assertTrue("$f $m: a move back to back", works.zipWithNext().none { (a, b) -> a.exerciseId == b.exerciseId })
             // every move of the day's list comes before any repeat
             val main = works.map { it.exerciseId }.filter { it != "standing_mobility_warmup" }
@@ -78,5 +80,40 @@ class SessionBuilderTest {
         assertNull(SessionBuilder.parseKey("build-upper-7-d-1"))
         assertNull(SessionBuilder.parseKey("quick"))
         assertNull(SessionBuilder.parseKey("build-nope-10-n-1"))
+    }
+
+    @Test
+    fun roundsAreBelledCalledAndRested() {
+        for (m in SessionBuilder.MINUTES) {
+            val p = build(SessionFocus.ROUNDS, m)
+            assertEquals(TrainingCategory.FIGHTING_FUNDAMENTALS, p.type)
+            val rounds = p.steps.filterIsInstance<SessionStep.Work>().filter { it.round != null }
+            assertTrue("$m min: ${rounds.size} rounds", rounds.size >= 2)
+            assertEquals((1..rounds.size).toList(), rounds.map { it.round })
+            rounds.forEach { r ->
+                assertEquals(SessionBuilder.roundSeconds(m), r.durationSeconds)
+                assertEquals(ShadowRounds.ROUND_LESSON, r.exerciseId)
+                assertEquals("the guard check runs in rounds", BoxingDrill.STANCE, r.formDrill)
+                assertTrue(r.calls.isNotEmpty())
+                assertTrue("no call twice in a row", r.calls.zipWithNext().none { (a, b) -> a == b })
+            }
+            // 45 s between rounds
+            p.steps.zipWithNext().filter { (a, b) -> a is SessionStep.Rest && (b as? SessionStep.Work)?.round?.let { it > 1 } == true }
+                .forEach { (a, _) -> assertEquals(SessionBuilder.ROUND_REST, a.durationSeconds) }
+        }
+    }
+
+    @Test
+    fun roundCallsOnlyUseTaughtMovesAndBuildUp() {
+        val ids = byId.keys
+        ShadowRounds.CALLS.forEach { assertTrue("${it.text}: ${it.lessonId} missing", it.lessonId in ids) }
+        val first = ShadowRounds.callsFor(1, 120, ids, 7).toSet()
+        val tier1 = ShadowRounds.CALLS.filter { it.tier == 1 }.map { it.text }.toSet()
+        assertTrue("round 1 keeps to singles and the 1-2: $first", tier1.containsAll(first))
+        val third = ShadowRounds.callsFor(3, 120, ids, 7)
+        assertTrue("round 3 adds three-punch combinations", third.any { c -> ShadowRounds.CALLS.first { it.text == c }.tier == 3 })
+        assertEquals(ShadowRounds.callsFor(2, 120, ids, 7), ShadowRounds.callsFor(2, 120, ids, 7))
+        // nothing beyond three punches is ever called
+        ShadowRounds.CALLS.forEach { assertTrue(it.text, it.text.split(',').size <= 3) }
     }
 }

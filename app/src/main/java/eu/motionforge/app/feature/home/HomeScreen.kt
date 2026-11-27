@@ -435,7 +435,7 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
                 options = eu.motionforge.app.feature.session.SessionBuilder.MINUTES.map { "$it min" },
                 selectedIndex = minutes, onSelect = { minutes = it }, compact = true,
             )
-            if (params.focus != eu.motionforge.app.feature.session.SessionFocus.BOXING && params.focus != eu.motionforge.app.feature.session.SessionFocus.STRETCH) {
+            if (params.focus.category == eu.motionforge.app.core.model.TrainingCategory.FITNESS && params.focus != eu.motionforge.app.feature.session.SessionFocus.STRETCH) {
                 eu.motionforge.app.core.design.ChoiceButton("Dumbbells", dumbbells, onClick = { dumbbells = !dumbbells })
             }
         }

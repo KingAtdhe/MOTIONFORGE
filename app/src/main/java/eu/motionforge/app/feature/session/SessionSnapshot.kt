@@ -62,6 +62,11 @@ data class SessionSnapshot(
                                 step.formDrill?.let { put("formDrill", it.name) }
                                 step.holdCheck?.let { put("holdCheck", it.name) }
                                 step.targetReps?.let { put("targetReps", it) }
+                                step.round?.let { put("round", it) }
+                                if (step.calls.isNotEmpty()) {
+                                    put("calls", buildJsonArray { step.calls.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) } })
+                                    put("callEvery", step.callEverySeconds)
+                                }
                             }
                             is SessionStep.Rest -> buildJsonObject {
                                 put("kind", "rest")
@@ -114,6 +119,9 @@ data class SessionSnapshot(
                         formDrill = so["formDrill"]?.jsonPrimitive?.content?.let { BoxingDrill.valueOf(it) },
                         holdCheck = so["holdCheck"]?.jsonPrimitive?.content?.let { eu.motionforge.app.core.movement.HoldCheck.valueOf(it) },
                         targetReps = so["targetReps"]?.jsonPrimitive?.intOrNull,
+                        round = so["round"]?.jsonPrimitive?.intOrNull,
+                        calls = so["calls"]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty(),
+                        callEverySeconds = so["callEvery"]?.jsonPrimitive?.intOrNull ?: 0,
                     )
                     "rest" -> SessionStep.Rest(so.int("seconds"), so.str("nextName"))
                     else -> error("unknown step")

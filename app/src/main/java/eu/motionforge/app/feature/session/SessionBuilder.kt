@@ -27,6 +27,7 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
         "standing_side_bend", "standing_torso_twist",
     )),
     BOXING("boxing", "Boxing", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()),  // every fighting lesson but footwork
+    ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
     STRETCH("stretch", "Stretch & recover", TrainingCategory.FITNESS, listOf(
         "cat_cow", "childs_pose", "standing_quad_stretch", "cross_body_shoulder_stretch", "overhead_triceps_stretch",
         "chest_opener_stretch", "kneeling_hip_flexor_stretch", "standing_side_bend", "standing_torso_twist", "arm_circles",
@@ -89,6 +90,7 @@ object SessionBuilder {
     fun build(catalog: List<Exercise>, p: Params): SessionPlan? {
         val byId = catalog.associateBy { it.id }
         val seed = p.day * 31 + p.focus.ordinal
+        if (p.focus == SessionFocus.ROUNDS) return rounds(catalog, byId, p, seed)
         val pool: List<Exercise> = when (p.focus) {
             SessionFocus.FULL_BODY -> {
                 // interleave legs, upper body and core so the session works everything
@@ -132,6 +134,43 @@ object SessionBuilder {
         // a short session still gets at least two moves
         if (steps.count { it is SessionStep.Work } < 2) pool.firstOrNull { it.id != last }?.let { add(it, each) }
         coolDown.forEach { add(it, 45) }
+        return SessionPlan("${p.focus.label}, ${p.minutes} min", p.focus.category, steps)
+    }
+
+    /** Rest between rounds, and a round's length (shorter rounds in a 5-minute session). */
+    const val ROUND_REST = 45
+    fun roundSeconds(minutes: Int) = if (minutes <= 5) 90 else 120
+
+    /**
+     * Shadow-boxing rounds: warm-up, then as many rounds as fit (a bell at each start and end, combinations called out
+     * every few seconds, the guard check with the camera), 45 s rest between, and a cool-down stretch from 10 min.
+     */
+    private fun rounds(catalog: List<Exercise>, byId: Map<String, Exercise>, p: Params, seed: Long): SessionPlan? {
+        val lesson = byId[ShadowRounds.ROUND_LESSON] ?: return null
+        val available = catalog.map { it.id }.toSet()
+        val target = p.minutes * 60
+        val rest = SessionPlanner.REST_SECONDS
+        val len = roundSeconds(p.minutes)
+        val steps = mutableListOf<SessionStep>()
+        var total = 0
+        val warm = byId[WARM_UP_ID]
+        if (warm != null) { steps += work(warm, if (p.minutes <= 10) 60 else 90); total += steps.last().durationSeconds }
+        val coolDown = if (p.minutes >= 10) shuffled(COOL_DOWN.mapNotNull { byId[it] }, seed).take(if (p.minutes >= 15) 2 else 1) else emptyList()
+        val coolDownTime = coolDown.size * (45 + rest)
+        var n = 0
+        while (n == 0 || total + ROUND_REST + len + coolDownTime <= target + 20) {
+            val r = n + 1
+            if (steps.isNotEmpty()) { val gap = if (n == 0) rest else ROUND_REST; steps += SessionStep.Rest(gap, "Round $r"); total += gap }
+            steps += work(lesson, len).copy(
+                name = "Round $r",
+                round = r,
+                calls = ShadowRounds.callsFor(r, len, available, seed),
+                callEverySeconds = ShadowRounds.CALL_EVERY_SECONDS,
+            )
+            total += len; n++
+            if (n >= 8) break
+        }
+        coolDown.forEach { e -> steps += SessionStep.Rest(rest, e.name); steps += work(e, 45); total += rest + 45 }
         return SessionPlan("${p.focus.label}, ${p.minutes} min", p.focus.category, steps)
     }
 }

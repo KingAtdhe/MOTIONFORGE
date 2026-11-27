@@ -140,4 +140,24 @@ class SessionNarratorTest {
         val c = SessionNarrator.boxingCard(FormFeedback.Steady(0), BoxingDrill.STANCE, 0, reps = 3)
         assertEquals("Guard check (experimental) · 3 counted", c.title)
     }
+
+    @Test
+    fun roundsCallCombinationsOnTheBeatAndNoTips() {
+        val round = SessionStep.Work("boxing_stance_bounce", "Round 1", 30, countsReps = false, round = 1,
+            calls = listOf("Jab", "One, two", "Slip"), callEverySeconds = 6)
+        val p = SessionPlan("Rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, listOf(round))
+        val ready = SessionState(p)
+        var s = run(ready, SessionEvent.Start(false))
+        assertEquals("Round 1. 30 seconds. Throw what I call.", SessionNarrator.onTransition(ready, s, tips, false).single().text)
+        val spoken = mutableListOf<Pair<Int, String>>()
+        repeat(29) {
+            val next = run(s, SessionEvent.Tick(false))
+            SessionNarrator.onTransition(s, next, mapOf("boxing_stance_bounce" to listOf("Tip")), false).forEach { spoken += next.stepElapsed to it.text }
+            s = next
+        }
+        // calls at 5, 11, 17, 23 s (none in the last 3 s), the ten-second line at 20 s; never a lesson tip
+        assertEquals(listOf(5 to "Jab", 11 to "One, two", 17 to "Slip", 20 to "Ten seconds. Keep your hands up.", 23 to "Jab"), spoken)
+        assertEquals("Slip", round.callAt(19))
+        assertNull(round.callAt(4))
+    }
 }
