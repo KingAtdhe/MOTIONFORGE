@@ -48,6 +48,6 @@ class RemindersAlarmTest {
         assertEquals(0, notes.allNotifications.size)
         Reminders.show(app, prefs, emptyList(), now)
         assertEquals(1, notes.allNotifications.size)
-        assertNotNull(notes.getNotificationChannel("reminders"))
+        assertNotNull(app.getSystemService(NotificationManager::class.java).getNotificationChannel("reminders"))
     }
 }
