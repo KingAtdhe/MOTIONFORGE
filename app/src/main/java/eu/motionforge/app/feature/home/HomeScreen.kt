@@ -91,6 +91,8 @@ fun HomeScreen(
     onStartQuickSession: () -> Unit,
     sessionsThisWeek: Int?,
     onRetry: () -> Unit,
+    /** Build-your-own level from recent training (see SessionBuilder.levelFor). */
+    buildLevel: Int = 1,
     unfinished: SessionSnapshot? = null,
     onResumeUnfinished: (SessionSnapshot) -> Unit = {},
     onDiscardUnfinished: () -> Unit = {},
@@ -160,7 +162,7 @@ fun HomeScreen(
                         TodayPlate(quick, coach, active, start, side, eyebrow = planLabel ?: "Today", heading = planHeading ?: quick.title)
                         Filmstrip(quick, coach, active, side)
                         PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
-                        BuildYourOwn(exercises, onStartBuilt, side)
+                        BuildYourOwn(exercises, onStartBuilt, side, buildLevel)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -414,17 +416,17 @@ private fun PlanSection(
 
 /** Build your own session: what to train, how long, and whether there are dumbbells; the moves change every day. */
 @Composable
-private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>, onStart: (String) -> Unit, modifier: Modifier) {
+private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>, onStart: (String) -> Unit, modifier: Modifier, level: Int = 1) {
     var focus by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
     var minutes by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(1) }
     var dumbbells by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     val day = remember { LocalDate.now().toEpochDay() }
     val params = eu.motionforge.app.feature.session.SessionBuilder.Params(
-        eu.motionforge.app.feature.session.SessionFocus.entries[focus], eu.motionforge.app.feature.session.SessionBuilder.MINUTES[minutes], dumbbells, day,
+        eu.motionforge.app.feature.session.SessionFocus.entries[focus], eu.motionforge.app.feature.session.SessionBuilder.MINUTES[minutes], dumbbells, day, level,
     )
     val plan = remember(exercises, params) { eu.motionforge.app.feature.session.SessionBuilder.build(exercises, params) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionHeader("Build your own", trailing = "new moves every day")
+        SectionHeader("Build your own", trailing = "level $level of 3")
         eu.motionforge.app.core.design.SegmentedPill(
             options = eu.motionforge.app.feature.session.SessionFocus.entries.map { it.label },
             selectedIndex = focus, onSelect = { focus = it },
@@ -439,6 +441,13 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
                 eu.motionforge.app.core.design.ChoiceButton("Dumbbells", dumbbells, onClick = { dumbbells = !dumbbells })
             }
         }
+        val next = eu.motionforge.app.feature.session.SessionBuilder.sessionsForNextLevel(level)
+        Text(
+            "New moves every day. Moves last ${eu.motionforge.app.feature.session.SessionBuilder.workSeconds(level)} s at this level" +
+                if (next != null) "; level ${level + 1} after $next sessions in six weeks." else ", the top level.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (plan != null) {
             val moves = plan.steps.filterIsInstance<SessionStep.Work>()
             Text(
@@ -448,7 +457,7 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
             )
             eu.motionforge.app.core.design.SecondaryButton(
                 "Start ${params.focus.label.lowercase()}, ${formatClock(plan.totalSeconds)}",
-                onClick = { onStart(eu.motionforge.app.feature.session.SessionBuilder.key(params.focus, params.minutes, params.dumbbells, day)) },
+                onClick = { onStart(eu.motionforge.app.feature.session.SessionBuilder.key(params.focus, params.minutes, params.dumbbells, day, level)) },
             )
         }
     }

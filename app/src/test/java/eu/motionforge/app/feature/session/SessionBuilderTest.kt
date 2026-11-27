@@ -17,13 +17,13 @@ class SessionBuilderTest {
     private val COOL_DOWN = setOf("standing_quad_stretch", "cross_body_shoulder_stretch", "kneeling_hip_flexor_stretch",
         "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose")
 
-    private fun build(f: SessionFocus, min: Int, db: Boolean = false, day: Long = 20_000) =
-        SessionBuilder.build(catalog, SessionBuilder.Params(f, min, db, day))!!
+    private fun build(f: SessionFocus, min: Int, db: Boolean = false, day: Long = 20_000, level: Int = 1) =
+        SessionBuilder.build(catalog, SessionBuilder.Params(f, min, db, day, level))!!
 
     @Test
     fun everyFocusAndLengthBuildsAPlanCloseToItsLength() {
-        for (f in SessionFocus.entries) for (m in SessionBuilder.MINUTES) {
-            val p = build(f, m)
+        for (level in SessionBuilder.LEVELS) for (f in SessionFocus.entries) for (m in SessionBuilder.MINUTES) {
+            val p = build(f, m, level = level)
             val works = p.steps.filterIsInstance<SessionStep.Work>()
             assertTrue("$f $m: ${works.size} moves", works.size >= 2)
             assertTrue("$f $m lasts ${p.totalSeconds}", p.totalSeconds in (m * 60 - 120)..(m * 60 + 60))
@@ -99,7 +99,7 @@ class SessionBuilderTest {
             }
             // 45 s between rounds
             p.steps.zipWithNext().filter { (a, b) -> a is SessionStep.Rest && (b as? SessionStep.Work)?.round?.let { it > 1 } == true }
-                .forEach { (a, _) -> assertEquals(SessionBuilder.ROUND_REST, a.durationSeconds) }
+                .forEach { (a, _) -> assertEquals(SessionBuilder.roundRest(1), a.durationSeconds) }
         }
     }
 
@@ -115,5 +115,42 @@ class SessionBuilderTest {
         assertEquals(ShadowRounds.callsFor(2, 120, ids, 7), ShadowRounds.callsFor(2, 120, ids, 7))
         // nothing beyond three punches is ever called
         ShadowRounds.CALLS.forEach { assertTrue(it.text, it.text.split(',').size <= 3) }
+    }
+
+    @Test
+    fun levelsFollowRecentTrainingAndEaseBackAfterABreak() {
+        val day = 24L * 60 * 60 * 1000
+        val now = 1_000L * day
+        assertEquals(1, SessionBuilder.levelFor(emptyList(), now))
+        assertEquals(1, SessionBuilder.levelFor(List(3) { now - it * day }, now))
+        assertEquals(2, SessionBuilder.levelFor(List(4) { now - it * day }, now))
+        assertEquals(3, SessionBuilder.levelFor(List(10) { now - it * 3 * day }, now))
+        // ten sessions, all more than six weeks ago: back to level 1
+        assertEquals(1, SessionBuilder.levelFor(List(10) { now - (43 + it) * day }, now))
+    }
+
+    @Test
+    fun higherLevelsHaveLongerMovesAndHarderVariants() {
+        val l1 = build(SessionFocus.UPPER, 20, level = 1).steps.filterIsInstance<SessionStep.Work>()
+        val l3 = build(SessionFocus.UPPER, 20, level = 3).steps.filterIsInstance<SessionStep.Work>()
+        val main1 = l1.filter { it.exerciseId != "standing_mobility_warmup" && it.durationSeconds != 45 }
+        val main3 = l3.filter { it.exerciseId != "standing_mobility_warmup" && it.durationSeconds != 45 }
+        assertTrue(main1.all { it.durationSeconds == 40 })
+        assertTrue(main3.all { it.durationSeconds == 50 })
+        assertTrue("no full push-ups at level 1", l1.none { it.exerciseId == "push_up" })
+        assertTrue("full push-ups at level 3", l3.any { it.exerciseId == "push_up" })
+        assertTrue("no wall or knee push-ups at level 3", l3.none { it.exerciseId == "wall_push_up" || it.exerciseId == "knee_push_up" })
+        // boxing rounds rest less at higher levels
+        val rests = build(SessionFocus.ROUNDS, 15, level = 3).steps.zipWithNext()
+            .filter { (a, b) -> a is SessionStep.Rest && (b as? SessionStep.Work)?.round?.let { it > 1 } == true }
+        assertTrue(rests.isNotEmpty() && rests.all { (a, _) -> a.durationSeconds == SessionBuilder.roundRest(3) })
+    }
+
+    @Test
+    fun levelIsPartOfTheKeyAndOldKeysStillRead() {
+        val k = SessionBuilder.key(SessionFocus.CORE, 10, false, 20_100, level = 3)
+        assertEquals(SessionBuilder.Params(SessionFocus.CORE, 10, false, 20_100, 3), SessionBuilder.parseKey(k))
+        assertEquals(SessionBuilder.Params(SessionFocus.CORE, 10, false, 20_100, 1), SessionBuilder.parseKey("build-core-10-n-20100"))
+        assertNull(SessionBuilder.parseKey("build-core-10-n-20100-L9"))
     }
 }
