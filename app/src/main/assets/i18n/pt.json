@@ -2471,6 +2471,8 @@
 "{0} sessions": "{0} sessões",
 "{0} sessions saved in total": "{0} sessões guardadas no total",
 "{0} · week {1}, day {2}": "{0} · semana {1}, dia {2}",
+"{0}, off": "{0}, desativado",
+"{0}, on": "{0}, ativado",
 "{0}, {1} min": "{0}, {1} min",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Lança o que eu disser.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: última posição {1} segundos, melhor {2} segundos",

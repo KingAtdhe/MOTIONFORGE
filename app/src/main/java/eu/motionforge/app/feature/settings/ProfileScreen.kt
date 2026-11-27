@@ -261,7 +261,7 @@ private fun ReminderSettings(preferences: UserPreferences) {
                             if (days.isNotEmpty()) save(true, schedule.copy(days = days))
                         },
                     )
-                    .semantics { contentDescription = eu.motionforge.app.core.i18n.tr(label) + ", " + eu.motionforge.app.core.i18n.tr(if (on) "on" else "off") },
+                    .semantics { contentDescription = eu.motionforge.app.core.i18n.tr(if (on) "$label, on" else "$label, off") },
                 shape = RoundedCornerShape(6.dp),
                 color = if (on) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
                 border = BorderStroke(1.dp, if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),

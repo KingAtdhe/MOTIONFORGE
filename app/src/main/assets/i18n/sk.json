@@ -2471,6 +2471,8 @@
 "{0} sessions": "{0} tréningov",
 "{0} sessions saved in total": "Celkovo uložených tréningov: {0}",
 "{0} · week {1}, day {2}": "{0} · týždeň {1}, deň {2}",
+"{0}, off": "{0}, vypnuté",
+"{0}, on": "{0}, zapnuté",
 "{0}, {1} min": "{0}, {1} min",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Hoď, čo ohlásim.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: posledná výdrž {1} sekúnd, najlepšia {2} sekúnd",

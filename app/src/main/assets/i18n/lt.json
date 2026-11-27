@@ -2471,6 +2471,8 @@
 "{0} sessions": "Treniruotės: {0}",
 "{0} sessions saved in total": "Iš viso išsaugota treniruočių: {0}",
 "{0} · week {1}, day {2}": "{0} · {1} savaitė, {2} diena",
+"{0}, off": "{0}, išjungta",
+"{0}, on": "{0}, įjungta",
 "{0}, {1} min": "{0}, {1} min.",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Mušk tai, ką pašauksiu.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: paskutinis išlaikymas {1} sek., geriausias {2} sek.",

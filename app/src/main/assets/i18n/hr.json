@@ -2471,6 +2471,8 @@
 "{0} sessions": "Treninzi: {0}",
 "{0} sessions saved in total": "Ukupno spremljenih treninga: {0}",
 "{0} · week {1}, day {2}": "{0} · tjedan {1}, dan {2}",
+"{0}, off": "{0}, isključeno",
+"{0}, on": "{0}, uključeno",
 "{0}, {1} min": "{0}, {1} min",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Baci ono što zazovem.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: zadnje zadržavanje {1} sekundi, najbolje {2} sekundi",

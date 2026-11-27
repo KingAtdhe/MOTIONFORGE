@@ -2471,6 +2471,8 @@
 "{0} sessions": "{0} vadb",
 "{0} sessions saved in total": "Skupaj shranjenih vadb: {0}",
 "{0} · week {1}, day {2}": "{0} · teden {1}, dan {2}",
+"{0}, off": "{0}, izklopljeno",
+"{0}, on": "{0}, vklopljeno",
 "{0}, {1} min": "{0}, {1} min",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Vrzi, kar napovem.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: zadnje zadrževanje {1} sekund, najboljše {2} sekund",

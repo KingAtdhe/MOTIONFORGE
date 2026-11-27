@@ -2471,6 +2471,8 @@
 "{0} sessions": "{0} edzés",
 "{0} sessions saved in total": "Összesen {0} mentett edzés",
 "{0} · week {1}, day {2}": "{0} · {1}. hét, {2}. nap",
+"{0}, off": "{0}, ki",
+"{0}, on": "{0}, be",
 "{0}, {1} min": "{0}, {1} perc",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Azt üsd, amit mondok.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: legutóbbi tartás {1} másodperc, legjobb {2} másodperc",

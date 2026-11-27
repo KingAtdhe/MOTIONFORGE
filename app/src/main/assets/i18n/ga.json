@@ -2471,6 +2471,8 @@
 "{0} sessions": "{0} seisiún",
 "{0} sessions saved in total": "{0} seisiún sábháilte san iomlán",
 "{0} · week {1}, day {2}": "{0} · seachtain {1}, lá {2}",
+"{0}, off": "{0}, múchta",
+"{0}, on": "{0}, ar siúl",
 "{0}, {1} min": "{0}, {1} nóim",
 "{0}. {1}. Throw what I call.": "{0}. {1}. Caith an rud a ghlaoim.",
 "{0}: last hold {1} seconds, best {2} seconds": "{0}: an seasamh deireanach {1} soicind, is fearr {2} soicind",
