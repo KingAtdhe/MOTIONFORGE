@@ -97,6 +97,8 @@ fun HomeScreen(
     onResumeUnfinished: (SessionSnapshot) -> Unit = {},
     onDiscardUnfinished: () -> Unit = {},
     trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
+    /** The weekly goal and streak (null when streaks and badges are off or history is loading). */
+    weekStreak: eu.motionforge.app.feature.progress.WeekStreak? = null,
     /** The plan being followed and its next session (with today's targets), or nulls. */
     activePlan: eu.motionforge.app.feature.plan.TrainingPlan? = null,
     planSession: SessionPlan? = null,
@@ -179,6 +181,19 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                         WeekTicks(trainedDaysThisWeek, remember { LocalDate.now().dayOfWeek })
+                        weekStreak?.let { w ->
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                when {
+                                    w.metThisWeek && w.current > 1 -> "Weekly goal reached · ${w.current} weeks in a row"
+                                    w.metThisWeek -> "Weekly goal reached"
+                                    w.current > 0 -> "${w.doneThisWeek} of ${w.goal} this week · streak ${w.current} weeks"
+                                    else -> "${w.doneThisWeek} of ${w.goal} sessions toward this week's goal"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
 
                     val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }

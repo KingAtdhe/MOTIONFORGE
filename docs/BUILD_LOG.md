@@ -1460,3 +1460,21 @@ yet checked in the Play Console or the EU trademark register (EUIPO TMview) — 
 - **Kept on purpose:** the application ID `eu.motionforge.app`, Kotlin packages, the repo name and the database file
   `motionforge.db` (renaming the database would lose people's history; the ID is fixed once an app is published and
   nobody sees it). Rename the ID only if the owner asks, before the first Play upload.
+
+## 2026-11-28 (1) — Weekly goal, streak and badges
+
+The owner asked for streaks and badges. The product spec rules out *pressure-based* streaks, so this is the calm kind:
+- **Weekly goal** (1–7 sessions, default 3; Profile → Weekly goal). The **streak** counts weeks in a row that reached
+  it. Rest days never break it, a week still running never breaks it (it only ends after a whole week below the goal),
+  and there are no warnings, countdowns or "don't lose your streak" messages anywhere. One switch turns the goal,
+  streak and badges off everywhere.
+- **15 badges** for training done: first session, first boxing rounds, all-rounder (both categories), 10/25/50
+  sessions, 1 h and 5 h trained, 100 and 1,000 camera-counted reps, 5 min of camera-timed holds, a personal best,
+  goal reached, 4 and 12 goal weeks in a row. Nothing rewards training every day or through discomfort. Each badge's
+  date is the session that earned it (the history is replayed oldest first), so they need no storage of their own
+  and the data reset clears them too.
+- **Where:** You → a weekly goal panel (segments fill per session and turn yellow when the goal is reached, the streak
+  and best streak) and a badge grid (earned in yellow, the rest as outlines, each with a screen-reader label); Home →
+  one quiet line under the week ticks; the session summary → "New badge" after saving when one was earned.
+- `feature/progress/Milestones.kt` (pure logic, `MilestonesTest`: 11 tests, run locally with kotlinc) and
+  `MilestonesUi.kt`. Translations: 55 strings in all 23 tables (`tools/i18n/parts_milestones.py`), `check.py` clean.

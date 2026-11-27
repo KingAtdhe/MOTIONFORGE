@@ -46,6 +46,10 @@ class SessionViewModel(
     private val clock: () -> Long = { android.os.SystemClock.elapsedRealtime() },
     /** Called once the session is saved (a plan session then counts as done). */
     private val onSaved: suspend () -> Unit = {},
+    /** The saved history right now (read just before saving, to see which badges the save earns). */
+    private val historyNow: suspend () -> List<eu.motionforge.app.feature.progress.SessionRecord> = { emptyList() },
+    /** Badges earned by the save, given the history before it (empty when streaks and badges are turned off). */
+    private val badgesEarned: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Badge> = { emptyList() },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -56,6 +60,10 @@ class SessionViewModel(
 
     private val _save = MutableStateFlow(SaveState.IDLE)
     val save: StateFlow<SaveState> = _save.asStateFlow()
+
+    private val _newBadges = MutableStateFlow<List<eu.motionforge.app.feature.progress.Badge>>(emptyList())
+    /** Badges the saved session earned, shown on the summary. */
+    val newBadges: StateFlow<List<eu.motionforge.app.feature.progress.Badge>> = _newBadges.asStateFlow()
 
     private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
     /** The rep counter for the current step (squat, push-up or lunge rules), or null when the step isn't counted. */
@@ -293,10 +301,12 @@ class SessionViewModel(
         if (!s.isSaveable || _save.value == SaveState.SAVING || _save.value == SaveState.SAVED) return
         _save.value = SaveState.SAVING
         viewModelScope.launch {
+            val before = runCatching { historyNow() }.getOrNull()
             _save.value = runCatching {
                 repository.save(s, startedAtMillis, System.currentTimeMillis(), perceivedEffort)
             }.fold({
                 runCatching { onSaved() }
+                if (before != null) _newBadges.value = runCatching { badgesEarned(before) }.getOrDefault(emptyList())
                 toPersist.value = Disk.Forget
                 withContext(Dispatchers.IO) { store.clear() }
                 SaveState.SAVED

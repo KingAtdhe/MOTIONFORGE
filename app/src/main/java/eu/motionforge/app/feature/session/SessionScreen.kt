@@ -106,6 +106,7 @@ fun SessionScreen(
     val tracking by viewModel.tracking.collectAsStateWithLifecycle()
     val coaching by viewModel.coaching.collectAsStateWithLifecycle()
     val save by viewModel.save.collectAsStateWithLifecycle()
+    val newBadges by viewModel.newBadges.collectAsStateWithLifecycle()
 
     // Voice coach: the phone's text-to-speech, alive while this screen is.
     val appContext = LocalContext.current.applicationContext
@@ -171,6 +172,7 @@ fun SessionScreen(
         }
         SessionPhase.FINISHED -> SummaryStage(
             state, save, coach, remember(state.phase) { viewModel.plateFrames() }, exercisesById,
+            newBadges = newBadges,
             onSave = viewModel::saveSession,
             onClose = { viewModel.onClosed(); onClose() },
             onOpenProgress = { viewModel.onClosed(); onOpenProgress() },
@@ -621,6 +623,7 @@ private fun SummaryStage(
     coach: Coach,
     plate: List<eu.motionforge.app.core.pose.PoseFrame>,
     exercisesById: Map<String, Exercise>,
+    newBadges: List<eu.motionforge.app.feature.progress.Badge>,
     onSave: (Int?) -> Unit,
     onClose: () -> Unit,
     onOpenProgress: () -> Unit,
@@ -692,6 +695,7 @@ private fun SummaryStage(
             }
             save == SaveState.SAVED -> {
                 Panel { Text("Saved to your progress on this phone.", style = MaterialTheme.typography.bodyLarge) }
+                eu.motionforge.app.feature.progress.NewBadgesPanel(newBadges)
                 PrimaryButton("See progress", onClick = onOpenProgress)
                 TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Done") }
             }

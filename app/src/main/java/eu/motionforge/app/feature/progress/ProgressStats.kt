@@ -45,7 +45,7 @@ data class RepTrend(val exerciseId: String, val name: String, val recent: List<I
     val newBest: Boolean get() = recent.size > 1 && last == best && recent.dropLast(1).all { it < last }
 }
 
-/** Simple consistency numbers. No streaks, no pressure mechanics. */
+/** Simple consistency numbers. The calm weekly streak and badges live in [Milestones]. */
 object ProgressStats {
     const val RECENT = 8
 
