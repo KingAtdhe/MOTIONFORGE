@@ -34,6 +34,8 @@ data class UserPreferences(
     val planSessionsDone: Int = 0,
     /** Optional training reminder (off by default): on/off, the days and the time of day. */
     val reminderOn: Boolean = false,
+    /** App language: an I18n code, or "" for the phone's language. */
+    val language: String = "",
     val reminder: eu.motionforge.app.feature.reminders.ReminderSchedule = eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT,
 )
 
@@ -56,6 +58,7 @@ class UserPreferencesRepository(context: Context) {
                 activePlanId = p[ACTIVE_PLAN],
                 planSessionsDone = p[PLAN_DONE] ?: 0,
                 reminderOn = p[REMINDER_ON] ?: false,
+                language = p[LANGUAGE] ?: "",
                 reminder = eu.motionforge.app.feature.reminders.ReminderSchedule(
                     eu.motionforge.app.feature.reminders.ReminderSchedule.parseDays(p[REMINDER_DAYS])
                         ?: eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT.days,
@@ -108,6 +111,10 @@ class UserPreferencesRepository(context: Context) {
         }
     }
 
+    suspend fun setLanguage(code: String) {
+        store.edit { it[LANGUAGE] = code }
+    }
+
     /** Local data reset: removes every stored preference and returns the app to onboarding. */
     suspend fun clearAll() {
         store.edit { it.clear() }
@@ -123,6 +130,7 @@ class UserPreferencesRepository(context: Context) {
         val ACTIVE_PLAN = stringPreferencesKey("active_plan")
         val PLAN_DONE = androidx.datastore.preferences.core.intPreferencesKey("plan_sessions_done")
         val REMINDER_ON = booleanPreferencesKey("reminder_on")
+        val LANGUAGE = stringPreferencesKey("language")
         val REMINDER_DAYS = stringPreferencesKey("reminder_days")
         val REMINDER_MINUTE = androidx.datastore.preferences.core.intPreferencesKey("reminder_minute")
     }

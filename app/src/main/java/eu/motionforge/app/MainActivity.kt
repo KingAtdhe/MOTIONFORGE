@@ -45,8 +45,23 @@ fun MotionForgeRoot() {
     val container = (appContext as MotionForgeApplication).container
     val appViewModel: AppViewModel = viewModel { AppViewModel(container.preferences, container.sessions, container.activeSession) }
     val state by appViewModel.state.collectAsStateWithLifecycle()
+    // the chosen language (or the phone's): its table loads off the main thread, then the whole UI redraws in it
+    val lang = eu.motionforge.app.core.i18n.I18n.resolve((state as? AppUiState.Ready)?.preferences?.language)
+    var loaded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    // English needs no table, so it is ready at once (no blank first frame)
+    val applied: String? = if (lang == "en") {
+        androidx.compose.runtime.remember(lang) { eu.motionforge.app.core.i18n.I18n.use("en", emptyMap()); "en" }
+    } else loaded
+    androidx.compose.runtime.LaunchedEffect(lang) {
+        if (lang != "en") {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { eu.motionforge.app.core.i18n.I18nLoader.apply(appContext, lang) }
+            loaded = lang
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        if (applied == null) return@Box
+        androidx.compose.runtime.key(applied) {
         when (val s = state) {
             AppUiState.Loading -> Unit // brief; preferences are local
             is AppUiState.NeedsOnboarding -> {
@@ -64,6 +79,7 @@ fun MotionForgeRoot() {
                     appViewModel.resetAllData()
                 },
             )
+        }
         }
     }
 }

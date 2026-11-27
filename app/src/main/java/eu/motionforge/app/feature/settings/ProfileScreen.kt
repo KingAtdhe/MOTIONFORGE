@@ -1,6 +1,8 @@
 package eu.motionforge.app.feature.settings
 
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.ui.semantics.heading
@@ -15,7 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import eu.motionforge.app.core.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -125,6 +127,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
                 )
             }
         }
+        ProfileSection("Language") { LanguageSetting(preferences) }
         ProfileSection("Reminders") { ReminderSettings(preferences) }
         ProfileSection("Camera & privacy") {
             Text(
@@ -298,5 +301,52 @@ private fun ReminderSettings(preferences: UserPreferences) {
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
             )
         }) { Text("Open notification settings") }
+    }
+}
+
+/** The app's language: the phone's (default) or one of the EU's official languages. Translations are machine-made. */
+@Composable
+private fun LanguageSetting(preferences: UserPreferences) {
+    val context = LocalContext.current
+    val prefsRepo = remember { (context.applicationContext as MotionForgeApplication).container.preferences }
+    val scope = rememberCoroutineScope()
+    var open by rememberSaveable { mutableStateOf(false) }
+    val langs = eu.motionforge.app.core.i18n.I18n.LANGUAGES
+    val current = eu.motionforge.app.core.i18n.I18n.resolve(preferences.language)
+    // language names are shown in their own language, so they are never translated
+    val name = langs.first { it.first == current }.second
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+        androidx.compose.material3.Text(if (preferences.language.isEmpty()) "$name (" + eu.motionforge.app.core.i18n.tr("phone language") + ")" else name)
+    }
+    Text(
+        "Screens, lessons and spoken cues. Translations are machine-made and may contain mistakes; the voice uses your phone's voice for the language when it has one, otherwise English.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text("Language") },
+            text = {
+                Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                    val options = listOf("" to eu.motionforge.app.core.i18n.tr("Phone language")) + langs
+                    options.forEach { (code, label) ->
+                        val selected = preferences.language == code
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .selectable(selected = selected, role = Role.RadioButton, onClick = {
+                                    open = false
+                                    scope.launch { prefsRepo.setLanguage(code) }
+                                }),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            androidx.compose.material3.RadioButton(selected = selected, onClick = null)
+                            androidx.compose.material3.Text(label, modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { open = false }) { Text("Cancel") } },
+        )
     }
 }

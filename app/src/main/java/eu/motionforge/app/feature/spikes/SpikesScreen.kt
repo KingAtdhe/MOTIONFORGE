@@ -1,7 +1,7 @@
 package eu.motionforge.app.feature.spikes
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import eu.motionforge.app.core.i18n.Text
 import androidx.compose.runtime.Composable
 import eu.motionforge.app.core.design.Eyebrow
 import eu.motionforge.app.core.design.Panel
