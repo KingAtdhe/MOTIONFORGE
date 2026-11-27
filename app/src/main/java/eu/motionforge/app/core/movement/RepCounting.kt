@@ -158,6 +158,13 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
     KICK_BACK("Leg lift check", "Phone at floor level at a front corner on the working leg's side, whole body in view.",
         "Lift the leg with control. Each lift is counted when the knee comes back down.",
         "That lift was small. Lift a little more if it's comfortable."),
+    // ---- added 2026-11-27 (mobility batch 9), checked on rendered videos of both coaches ----
+    LEG_PENDULUM("Leg swing check", "Stand side-on to the phone with your whole body in view.",
+        "Swing from the hip. Each swing forward and each swing back is counted.",
+        "That swing was small. Swing a little further if it's comfortable."),
+    HIP_CIRCLE("Hip circle check", "Face the phone with your whole body, feet included, in view.",
+        "Circle the hips slowly. Each circle is counted when the hips come round.",
+        "That circle was small. Draw it a little wider if it's comfortable."),
     ;
 
     companion object {
@@ -194,6 +201,8 @@ enum class CountedMove(val checkName: String, val framing: String, val idle: Str
             "superman" -> SUPERMAN
             "cat_cow" -> CAT_COW
             "glute_kickback", "side_leg_raise" -> LEG_SWING
+            "leg_swings" -> LEG_PENDULUM
+            "hip_circles" -> HIP_CIRCLE
             "butt_kicks" -> BUTT_KICK
             "standing_torso_twist" -> TWIST
             "standing_side_bend" -> SIDE_BEND

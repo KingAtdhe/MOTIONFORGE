@@ -220,3 +220,55 @@ class ZigZagRepCounter(
         return RepUpdate(count, if (dir == 0) RepPhase.TOP else RepPhase.BOTTOM, x, event)
     }
 }
+
+/**
+ * Pendulum movements (leg swings): the signed signal swings from one side of its middle (0) to the other. A swing is
+ * counted when the signal reaches at least [side] on the opposite side of the last side it reached, having travelled
+ * at least [travel] from its furthest point there. A movement that stays on one side and comes back (a lunge step,
+ * a heel kicked up behind) never counts, and neither does a slow change of side (longer than [maxRepMs] from the
+ * furthest point, as when stepping into and out of a split stance). A tracking gap longer than [MAX_BLIP_MS] forgets
+ * the last side.
+ */
+class PendulumRepCounter(
+    private val travel: Double,
+    private val side: Double,
+    private val minRepMs: Long = 250,
+    private val maxRepMs: Long = 1_500,
+    private val read: (PoseReader) -> Double?,
+) : RepCounter {
+    private var count = 0
+    private var lastSide = 0
+    private var extreme = 0.0
+    private var sinceMs = 0L
+    private var lastGoodMs = -1L
+    private val window = ArrayDeque<Double>()
+    override val repetitions: Int get() = count
+
+    override fun reset() { count = 0; lose() }
+    private fun lose() { lastSide = 0; window.clear(); lastGoodMs = -1L }
+
+    override fun update(frame: PoseFrame, tracking: Boolean): RepUpdate {
+        val raw = if (tracking) read(PoseReader(frame)) else null
+        if (raw == null) {
+            if (lastGoodMs >= 0 && frame.timestampMs - lastGoodMs <= MAX_BLIP_MS) return RepUpdate(count, RepPhase.UNKNOWN, null)
+            lose(); return RepUpdate(count, RepPhase.UNKNOWN, null)
+        }
+        lastGoodMs = frame.timestampMs
+        window.addLast(raw)
+        while (window.size > 2) window.removeFirst()
+        val x = window.average()
+        val t = frame.timestampMs
+        var event: RepEvent? = null
+        val s = if (x >= side) 1 else if (x <= -side) -1 else 0
+        when {
+            s == 0 -> {}
+            lastSide == 0 -> { lastSide = s; extreme = x; sinceMs = t }
+            s == lastSide -> if (abs(x) > abs(extreme)) { extreme = x; sinceMs = t }
+            else -> {
+                if (abs(x - extreme) >= travel && t - sinceMs in minRepMs..maxRepMs) { count++; event = RepEvent.RepCompleted(count, emptySet()) }
+                lastSide = s; extreme = x; sinceMs = t
+            }
+        }
+        return RepUpdate(count, if (s == 0) RepPhase.TOP else RepPhase.BOTTOM, x, event)
+    }
+}

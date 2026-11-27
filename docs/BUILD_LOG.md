@@ -1383,3 +1383,41 @@ published debug APK's assets for the local MediaPipe runs.
   ("12 reps, target 12 reached (experimental count)", "Exercise 2 of 5", "0:40 left") instead of one glued string.
 - Workflow for new text: run `python3 tools/i18n/extract.py`, translate the new strings into every table,
   `python3 tools/i18n/check.py` must pass (CI's `I18nTablesTest` fails on a missing translation).
+
+## 2026-11-27 (7) — Camera checks for the mobility lessons (batch 9)
+
+All five batch-9 lessons now have a live camera check (they were guided only). Only the standing quad stretch, the
+warm-up march and the footwork drills stay without one.
+- **Leg swings** (`CountedMove.LEG_PENDULUM`, new `PendulumRepCounter`): side-on, each swing forward and each swing back
+  is counted when the swinging leg's hip→ankle line passes from one side of vertical to the other (≥ 8° each side,
+  ≥ 25° from the furthest point, within 1.5 s). Read only while the standing leg is near vertical (≤ 12°) and the
+  swinging leg clearly further out (≥ 6° more), so a lunge or a split stance never reads. A movement that stays on one
+  side (heel kicked up behind, a step back into a lunge) never counts. The demo (4 swings each leg) reads 14 = 7 side
+  changes per leg.
+- **Hip circles** (`CountedMove.HIP_CIRCLE`): facing the phone, the hip centre travels side to side over the middle of
+  the ankles (±0.1 torso lengths); one excursion across and back is one circle (travel 0.09, ≥ 0.5 s). Both feet must
+  be planted and apart: a foot lifted or travelling blocks the reading for 1 s, so marching, side leg raises and
+  skater steps never count (they did before that rule: 3, 2 and 3).
+- **Standing hamstring stretch** (`HoldCheck.HAMSTRING`): side-on, torso tipped forward 20–60°, feet apart, the front
+  foot (the one the torso tips toward) ≥ 0.25 torso lengths ahead of the hips with its knee over 115° and the back knee
+  under 152°. The pose model reads the male coach's long front leg at only ~125–130°, so the front-knee bar is low;
+  the bent back knee keeps good mornings (both knees ~160°, feet apart when seen from a corner) out.
+- **Standing calf stretch** (`HoldCheck.CALF`): side-on, torso leaning 7–30°, feet ≥ 0.5 apart, one leg long (over
+  145°) reaching back ≥ 20° from vertical, the other knee ≥ 20° more bent, and the lean away from the long leg.
+- **Squat hold** (`HoldCheck.SQUAT_HOLD`): torso under 45° from upright, both knees under 120°, knees within 0.4 torso
+  lengths below the hips (standing: ~0.8). A normal squat rep passes the bottom too quickly to add a second.
+- Side-on, the far knee and ankle are rated as low as ~0.25 visibility while still placed well; the split-stance
+  checks accept 0.2 there (the first try at 0.3 lost the second half of each hold).
+
+**Validation** (`RenderedVideoRepTest`, `expected.txt` section "2026-11-27 mobility"): 14 new videos, every lesson on
+both coaches plus front-corner views (leg swings, hamstring, calf, squat hold), and negatives from the existing
+fixtures: marching, high-knee march, butt kicks, lunges (incl. leaning), forward lunge, split squat, calf raises, squats
+(front, side), sumo, goblet squat, good mornings (side, corner), RDL, single-leg RDL, kettlebell swing, side leg
+raises, skater steps, twists, side bends, wall push-ups, pull-back, boxing stance, child's pose, and each new lesson's
+video against the other new checks. **Known limit:** the hamstring and calf stretches seen from a front corner are
+timed on one side only (3 s of 6–7): with the other foot in front, both feet line up with the camera and can't be told
+apart — both lessons already ask for side-on. Thresholds are first hypotheses for coach review; nothing was checked on a phone.
+**Tests:** local Kotlin compile + `RenderedVideoRepTest` and the movement unit tests (new `PendulumRepCounter` test,
+mappings) with kotlinc; the Android build and the rest in CI. Catalogue: the five lessons are `limited_rule_based`
+with camera texts (`ExerciseCatalogParserTest` checks it). Translations: 18 new strings in all 23 tables
+(`tools/i18n/parts_batch9_checks.py`), `check.py` clean.
