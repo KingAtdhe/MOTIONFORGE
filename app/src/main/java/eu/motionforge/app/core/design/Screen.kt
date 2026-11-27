@@ -45,7 +45,7 @@ fun ScreenHeader(title: String, onBack: (() -> Unit)?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (onBack != null) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = eu.motionforge.app.core.i18n.tr("Back"))
             }
         }
         Text(

@@ -198,13 +198,13 @@ private fun SearchBar(query: String, onQuery: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onQuery,
-        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Search lessons" },
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Search lessons") },
         placeholder = { Text("Search moves, e.g. squat, abs, jab", color = MfColors.Graphite) },
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQuery(""); focus.clearFocus() }) {
-                    Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                    Icon(Icons.Filled.Close, contentDescription = eu.motionforge.app.core.i18n.tr("Clear search"))
                 }
             }
         },

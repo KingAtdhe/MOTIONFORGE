@@ -247,7 +247,7 @@ private fun TodayPlate(plan: SessionPlan, coach: Coach, active: Int, onStart: ()
             .clickable(onClick = onStart)
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                contentDescription = "Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves"
+                contentDescription = eu.motionforge.app.core.i18n.tr("Start today's session: ${plan.title}, about $minutes minutes, ${moves.size} moves")
             },
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -398,7 +398,7 @@ private fun PlanSection(
                         .fillMaxWidth()
                         .clickable { onChoose(p.id) }
                         .padding(vertical = 8.dp)
-                        .semantics(mergeDescendants = true) { role = Role.Button; contentDescription = "Start plan ${p.name}. ${p.summary}" },
+                        .semantics(mergeDescendants = true) { role = Role.Button; contentDescription = eu.motionforge.app.core.i18n.tr("Start plan ${p.name}. ${p.summary}") },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

@@ -321,7 +321,7 @@ private fun PlacementDiagram(modifier: Modifier = Modifier) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val label = MaterialTheme.typography.labelMedium
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
-    Canvas(modifier.semantics { contentDescription = "The phone stands at hip height about 2 metres in front of you, tilted to see your whole body" }) {
+    Canvas(modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("The phone stands at hip height about 2 metres in front of you, tilted to see your whole body") }) {
         val floor = size.height - 18f
         drawLine(muted, Offset(0f, floor), Offset(size.width, floor), 2f)
         // phone on a stand
@@ -449,7 +449,7 @@ private fun RunningStage(
                     style = MfType.NumeralHuge,
                     color = if (paused) MfColors.OnNightMuted else MfColors.Yellow,
                     modifier = Modifier.scale(pulse.value).semantics {
-                        contentDescription = if (countsReps) "${state.stepReps} reps" else "${state.remainingInStep} seconds left"
+                        contentDescription = eu.motionforge.app.core.i18n.tr(if (countsReps) "${state.stepReps} reps" else "${state.remainingInStep} seconds left")
                     },
                 )
                 Spacer(Modifier.width(12.dp))
@@ -601,7 +601,7 @@ private fun PausedControls(
             }
             TextButton(
                 onClick = { onVoiceCuesChange(!voiceCues) },
-                modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = if (voiceCues) "Voice coach on, tap to mute" else "Voice coach muted, tap to turn on" },
+                modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = eu.motionforge.app.core.i18n.tr(if (voiceCues) "Voice coach on, tap to mute" else "Voice coach muted, tap to turn on") },
             ) { Text(if (voiceCues) "Voice on" else "Voice muted", color = if (voiceCues) Color.White else MfColors.OnNightMuted) }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
@@ -663,12 +663,21 @@ private fun SummaryStage(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 eu.motionforge.app.core.design.SectionHeader("What you did")
                 state.results.forEach { r ->
-                    val repText = r.repetitions?.let { n ->
-                        val goal = r.targetReps?.let { t -> if (n >= t) " — target $t reached" else " of a $t target" }.orEmpty()
-                        ", $n reps$goal (experimental count)"
-                    }.orEmpty()
-                    val heldText = r.heldSeconds?.takeIf { it > 0 }?.let { ", held in position ${formatClock(it)} (experimental)" }.orEmpty()
-                    Text("${r.name}, ${formatClock(r.elapsedSeconds)}$repText$heldText", style = MaterialTheme.typography.bodyLarge)
+                    // built from translatable parts (one sentence-like piece each), joined with commas
+                    val parts = buildList {
+                        add(eu.motionforge.app.core.i18n.tr(r.name))
+                        add(formatClock(r.elapsedSeconds))
+                        r.repetitions?.let { n ->
+                            val t = r.targetReps
+                            add(eu.motionforge.app.core.i18n.tr(when {
+                                t == null -> "$n reps (experimental count)"
+                                n >= t -> "$n reps, target $t reached (experimental count)"
+                                else -> "$n reps of a $t target (experimental count)"
+                            }))
+                        }
+                        r.heldSeconds?.takeIf { it > 0 }?.let { add(eu.motionforge.app.core.i18n.tr("held in position ${formatClock(it)} (experimental)")) }
+                    }
+                    Text(parts.joinToString(", "), style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
                         Text("Tracking was mostly unavailable, so nothing was counted.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -730,7 +739,7 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .size(48.dp)
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-            .semantics { contentDescription = "Effort $n of 10" },
+            .semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Effort $n of 10") },
         shape = PlateShape,
         color = if (selected) MfColors.Ink else MaterialTheme.colorScheme.surfaceContainer,
     ) {
