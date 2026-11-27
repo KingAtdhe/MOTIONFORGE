@@ -25,6 +25,10 @@ class RemindersAlarmTest {
     private val now = ZonedDateTime.of(2026, 11, 25, 9, 0, 0, 0, ZoneId.systemDefault())
     private val prefs = UserPreferences(onboardingComplete = true, focus = null, goal = null, lastViewedExerciseId = null, reminderOn = true)
 
+    /** The app's start-up re-arm runs on a background thread: let it finish before the test touches alarms. */
+    @org.junit.Before
+    fun waitForStartup() = kotlinx.coroutines.runBlocking { app.reminderInit.join() }
+
     @Test
     fun armsTheNextReminderAndCancelsWhenTurnedOff() {
         val next = Reminders.apply(app, prefs, now)

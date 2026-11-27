@@ -1336,3 +1336,6 @@ published debug APK's assets for the local MediaPipe runs.
 - With the camera, each round runs the validated guard check (stance rules) on the stance-bounce lesson.
 - Snapshot keeps the round number and calls, so a closed app resumes mid-round. Tests: narrator call timing (passes
   locally with kotlinc), builder rounds / call tiers / ≤3 punches, snapshot round trip (CI).
+- Fix (found by CI on #26): the reminder tests raced the app's start-up re-arm (a background read of the stored
+  settings could cancel the test's alarm). Tests now wait for it (`MotionForgeApplication.reminderInit`), and
+  cancelling no longer cancels the PendingIntent itself, so an alarm armed in between can't be left orphaned.

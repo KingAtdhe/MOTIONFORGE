@@ -52,7 +52,7 @@ object Reminders {
         val am = context.getSystemService(AlarmManager::class.java)
         val next = if (prefs.reminderOn && prefs.onboardingComplete) prefs.reminder.nextAfter(now) else null
         if (next == null) {
-            pending(context, create = false)?.let { am.cancel(it); it.cancel() }
+            am.cancel(pending(context, create = true)!!)
             return null
         }
         am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next.toInstant().toEpochMilli(), pending(context, create = true)!!)
@@ -61,7 +61,8 @@ object Reminders {
 
     fun cancel(context: Context) {
         val am = context.getSystemService(AlarmManager::class.java)
-        pending(context, create = false)?.let { am.cancel(it); it.cancel() }
+        // the same PendingIntent identity cancels the alarm (it is not cancelled itself, so a later arm can't miss it)
+        am.cancel(pending(context, create = true)!!)
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
     }
 
