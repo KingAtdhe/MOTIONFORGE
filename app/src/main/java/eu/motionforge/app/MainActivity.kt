@@ -62,7 +62,8 @@ fun MotionForgeRoot() {
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         if (applied == null) return@Box
-        androidx.compose.runtime.key(applied) {
+        // every Text reads the language from here and redraws when it changes; navigation and screen state are kept
+        androidx.compose.runtime.CompositionLocalProvider(eu.motionforge.app.core.i18n.LocalLanguage provides applied) {
         when (val s = state) {
             AppUiState.Loading -> Unit // brief; preferences are local
             is AppUiState.NeedsOnboarding -> {

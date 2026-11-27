@@ -14,6 +14,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 
+/** The language currently shown; [Text] reads it so a change of language redraws the text in place. */
+val LocalLanguage = androidx.compose.runtime.staticCompositionLocalOf { "en" }
+
 /** The app's Text: Material 3 Text with the string shown in the chosen language ([I18n]). Same parameters. */
 @Composable
 fun Text(
@@ -35,6 +38,6 @@ fun Text(
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
     style: TextStyle = LocalTextStyle.current,
 ) = androidx.compose.material3.Text(
-    I18n.t(text), modifier, color, fontSize, fontStyle, fontWeight, fontFamily, letterSpacing, textDecoration, textAlign,
+    LocalLanguage.current.let { I18n.t(text) }, modifier, color, fontSize, fontStyle, fontWeight, fontFamily, letterSpacing, textDecoration, textAlign,
     lineHeight, overflow, softWrap, maxLines, minLines, onTextLayout, style,
 )
