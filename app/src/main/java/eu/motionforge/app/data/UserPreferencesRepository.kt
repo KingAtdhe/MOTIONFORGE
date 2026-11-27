@@ -32,6 +32,9 @@ data class UserPreferences(
     val activePlanId: String? = null,
     /** Plan sessions finished so far: the next one is this index. */
     val planSessionsDone: Int = 0,
+    /** Optional training reminder (off by default): on/off, the days and the time of day. */
+    val reminderOn: Boolean = false,
+    val reminder: eu.motionforge.app.feature.reminders.ReminderSchedule = eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -52,6 +55,12 @@ class UserPreferencesRepository(context: Context) {
                 voiceCues = p[VOICE_CUES] ?: true,
                 activePlanId = p[ACTIVE_PLAN],
                 planSessionsDone = p[PLAN_DONE] ?: 0,
+                reminderOn = p[REMINDER_ON] ?: false,
+                reminder = eu.motionforge.app.feature.reminders.ReminderSchedule(
+                    eu.motionforge.app.feature.reminders.ReminderSchedule.parseDays(p[REMINDER_DAYS])
+                        ?: eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT.days,
+                    (p[REMINDER_MINUTE] ?: eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT.minuteOfDay).coerceIn(0, 24 * 60 - 1),
+                ),
             )
         }
 
@@ -91,6 +100,14 @@ class UserPreferencesRepository(context: Context) {
         }
     }
 
+    suspend fun setReminder(on: Boolean, schedule: eu.motionforge.app.feature.reminders.ReminderSchedule) {
+        store.edit {
+            it[REMINDER_ON] = on
+            it[REMINDER_DAYS] = schedule.daysWire()
+            it[REMINDER_MINUTE] = schedule.minuteOfDay
+        }
+    }
+
     /** Local data reset: removes every stored preference and returns the app to onboarding. */
     suspend fun clearAll() {
         store.edit { it.clear() }
@@ -105,5 +122,8 @@ class UserPreferencesRepository(context: Context) {
         val VOICE_CUES = booleanPreferencesKey("voice_cues")
         val ACTIVE_PLAN = stringPreferencesKey("active_plan")
         val PLAN_DONE = androidx.datastore.preferences.core.intPreferencesKey("plan_sessions_done")
+        val REMINDER_ON = booleanPreferencesKey("reminder_on")
+        val REMINDER_DAYS = stringPreferencesKey("reminder_days")
+        val REMINDER_MINUTE = androidx.datastore.preferences.core.intPreferencesKey("reminder_minute")
     }
 }

@@ -6,6 +6,8 @@
     <!-- The running workout as an ongoing notification / Live Update (asked for when a session starts). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <!-- Only to re-arm the optional training reminder after a restart (nothing runs when reminders are off). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Camera is needed for live tracking but the app (demos, catalogue, progress) works without one. -->
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
@@ -36,6 +38,19 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/plate_paths" />
         </provider>
+
+        <!-- The optional training reminder (off by default; set in Profile). Not exported: only the system and the
+             app itself can trigger it. -->
+        <receiver
+            android:name=".feature.reminders.ReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".MainActivity"

@@ -2,6 +2,8 @@ package eu.motionforge.app
 
 import android.app.Application
 import android.content.Context
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import eu.motionforge.app.data.ActiveSessionStore
 import eu.motionforge.app.data.ClipManifestRepository
 import eu.motionforge.app.data.ExerciseRepository
@@ -25,5 +27,9 @@ class MotionForgeApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
         eu.motionforge.app.feature.session.WorkoutNotifier.clearStale(this)
+        // re-arm the optional reminder (an app force-stop drops alarms); a no-op while reminders are off
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+            runCatching { eu.motionforge.app.feature.reminders.Reminders.apply(this@MotionForgeApplication, container.preferences.preferences.first()) }
+        }
     }
 }
