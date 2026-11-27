@@ -22,9 +22,30 @@ sealed interface SessionStep {
         val targetReps: Int? = null,
         /** Held-position check for this step (plank, wall sit...; camera only), or null. */
         val holdCheck: HoldCheck? = null,
+        /** Shadow-boxing round number (a bell rings at its start and end), or null for an ordinary step. */
+        val round: Int? = null,
+        /** Combinations the coach calls out during a round, in order, one every [callEverySeconds]. */
+        val calls: List<String> = emptyList(),
+        val callEverySeconds: Int = 0,
     ) : SessionStep {
         /** The camera gives this step live feedback (counting, a hold check or the guard check). */
         val liveChecked: Boolean get() = countsReps || formDrill != null || holdCheck != null
+
+        /** The call to show [elapsed] seconds into the step (the latest one made), or null before the first. */
+        fun callAt(elapsed: Int): String? {
+            if (calls.isEmpty() || callEverySeconds <= 0 || elapsed < FIRST_CALL_SECOND) return null
+            return calls[((elapsed - FIRST_CALL_SECOND) / callEverySeconds) % calls.size]
+        }
+
+        /** True on the second a new call is made (none in the last few seconds of the round). */
+        fun callsAt(elapsed: Int): Boolean =
+            calls.isNotEmpty() && callEverySeconds > 0 && elapsed >= FIRST_CALL_SECOND &&
+                (elapsed - FIRST_CALL_SECOND) % callEverySeconds == 0 && durationSeconds - elapsed > 3
+
+        companion object {
+            /** Seconds into a round before the first call: time to settle into the stance after the bell. */
+            const val FIRST_CALL_SECOND = 5
+        }
     }
 
     data class Rest(override val durationSeconds: Int, val nextName: String) : SessionStep

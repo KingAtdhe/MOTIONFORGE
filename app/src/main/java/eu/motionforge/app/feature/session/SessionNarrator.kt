@@ -48,6 +48,15 @@ object SessionNarrator {
         val step = after.currentStep
         val started = before.phase == SessionPhase.READY || after.stepIndex != before.stepIndex
         if (started) return listOf(announce(step, after.cameraUsed))
+        if (before.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.calls.isNotEmpty() && after.stepElapsed != before.stepElapsed) {
+            // a round: the coach calls combinations; no lesson tips in between
+            val e = after.stepElapsed
+            return when {
+                step.callsAt(e) -> listOf(CoachLine(step.callAt(e)!!, CuePriority.COUNT))
+                after.remainingInStep == 10 -> listOf(CoachLine("Ten seconds. Keep your hands up.", CuePriority.COUNT))
+                else -> emptyList()
+            }
+        }
         if (before.phase != SessionPhase.RUNNING || after.stepElapsed == before.stepElapsed) return emptyList()
 
         val lines = mutableListOf<CoachLine>()
@@ -66,7 +75,12 @@ object SessionNarrator {
     }
 
     private fun announce(step: SessionStep, camera: Boolean): CoachLine = when (step) {
-        is SessionStep.Work -> {
+        is SessionStep.Work -> if (step.round != null) {
+            val mins = step.durationSeconds / 60; val secs = step.durationSeconds % 60
+            val len = if (secs == 0) "$mins minute${if (mins == 1) "" else "s"}" else "${step.durationSeconds} seconds"
+            CoachLine("${step.name}. $len. Throw what I call." +
+                if (camera && step.formDrill != null) " I'll watch your guard." else "", CuePriority.ANNOUNCE)
+        } else {
             val extra = when {
                 camera && step.countsReps -> " I'll count your reps and check each one."
                 camera && step.holdCheck != null -> " I'll time your hold while you're in position."

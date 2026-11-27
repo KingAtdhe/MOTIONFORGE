@@ -388,6 +388,20 @@ private fun RunningStage(
             if (!reduceMotion) { pulse.snapTo(1.14f); pulse.animateTo(1f, tween(260)) }
         }
     }
+    // shadow-boxing rounds: the bell at the start and the end of each round
+    val bell = remember { eu.motionforge.app.core.coaching.RoundBell(context) }
+    DisposableEffect(Unit) { onDispose { bell.release() } }
+    var lastStepIndex by rememberSaveable { mutableIntStateOf(-1) }
+    LaunchedEffect(state.stepIndex) {
+        val prev = state.plan.steps.getOrNull(lastStepIndex) as? SessionStep.Work
+        val now = step as? SessionStep.Work
+        if (lastStepIndex != state.stepIndex && (prev?.round != null || (now?.round != null && state.stepElapsed == 0))) {
+            kotlinx.coroutines.delay(250) // after the shutter, so it doesn't land on the tap sound
+            bell.ring()
+        }
+        lastStepIndex = state.stepIndex
+    }
+    val totalRounds = remember(state.plan) { state.plan.steps.count { it is SessionStep.Work && it.round != null } }
     // a new move: the shutter closes and opens (a plain fade with reduced motion)
     val shutter = remember { Animatable(0f) }
     LaunchedEffect(state.stepIndex) {
@@ -409,7 +423,7 @@ private fun RunningStage(
         val headerPart: @Composable () -> Unit = {
             Text(
                 when (step) {
-                    is SessionStep.Work -> "Exercise ${state.workIndex} of ${state.plan.workCount}"
+                    is SessionStep.Work -> if (step.round != null) "Round ${step.round} of $totalRounds" else "Exercise ${state.workIndex} of ${state.plan.workCount}"
                     is SessionStep.Rest -> "Rest"
                 },
                 style = MaterialTheme.typography.titleMedium,
@@ -417,7 +431,7 @@ private fun RunningStage(
             )
             Text(
                 when (step) {
-                    is SessionStep.Work -> step.name
+                    is SessionStep.Work -> if (step.round != null) step.callAt(state.stepElapsed) ?: "Hands up" else step.name
                     is SessionStep.Rest -> "Next: ${step.nextName}"
                 },
                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp, lineHeight = 35.sp),
@@ -483,6 +497,7 @@ private fun RunningStage(
                 is SessionStep.Work -> {
                     val cues = exercisesById[step.exerciseId]?.commonCues.orEmpty()
                     when {
+                        step.round != null -> "Throw each call, then straight back to the guard. Stay light on your feet."
                         step.countsReps && cameraVisible && !tracking.allowsFeedback -> "Counting is paused until tracking is steady."
                         step.holdCheck != null && cameraVisible && !tracking.allowsFeedback -> "The hold timer is paused until tracking is steady."
                         cameraVisible && !step.liveChecked -> "The camera doesn't assess this move. Use it as a mirror."

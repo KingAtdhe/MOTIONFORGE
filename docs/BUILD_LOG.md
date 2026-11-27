@@ -1322,3 +1322,20 @@ published debug APK's assets for the local MediaPipe runs.
   are off it says so and links to the app's notification settings.
 - Tests: `ReminderScheduleTest` (next time, week wrap, DST, quiet after training, text; passes locally with kotlinc),
   `RemindersAlarmTest` (Robolectric: alarm armed / cancelled, notification shown once and not after training; CI).
+
+## 2026-11-27 (2) — Shadow-boxing rounds
+
+- **Boxing rounds** (Home → Build your own → "Boxing rounds", 5–20 min): warm-up, then as many rounds as fit
+  (90 s in a 5-minute session, otherwise 2 min), 45 s rest between, a cool-down stretch from 10 min.
+- **A bell** at the start and end of each round (`res/raw/round_bell.wav`, synthesised for the app, played with
+  SoundPool on device). The big title shows the current call; the header says "Round 2 of 4".
+- **Called combinations**: the voice coach calls one every 6 s (first at 5 s, none in the last 3 s) instead of lesson
+  tips. Only moves taught in the catalogue and at most three punches (`ShadowRounds.CALLS`): round 1 singles and the
+  1-2, round 2 adds hooks, uppercut-hook and defence (slip, roll, pull back), round 3+ adds three-punch combinations
+  and cover-cross. Stable order per day, never the same call twice in a row. No kicks, no partner work.
+- With the camera, each round runs the validated guard check (stance rules) on the stance-bounce lesson.
+- Snapshot keeps the round number and calls, so a closed app resumes mid-round. Tests: narrator call timing (passes
+  locally with kotlinc), builder rounds / call tiers / ≤3 punches, snapshot round trip (CI).
+- Fix (found by CI on #26): the reminder tests raced the app's start-up re-arm (a background read of the stored
+  settings could cancel the test's alarm). Tests now wait for it (`MotionForgeApplication.reminderInit`), and
+  cancelling no longer cancels the PendingIntent itself, so an alarm armed in between can't be left orphaned.
