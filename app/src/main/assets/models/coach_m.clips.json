@@ -259,6 +259,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "calf_stretch",
+      "durationSeconds": 14.233,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "cat_cow",
       "durationSeconds": 3.1,
       "reviewStatus": "draft_pending_coach_review"
@@ -439,6 +444,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "hamstring_stretch",
+      "durationSeconds": 14.233,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "heel_taps",
       "durationSeconds": 4.0,
       "reviewStatus": "draft_pending_coach_review"
@@ -451,6 +461,11 @@
     {
       "name": "high_plank",
       "durationSeconds": 4.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "hip_circles",
+      "durationSeconds": 11.8,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -511,6 +526,11 @@
     {
       "name": "knee_pushup_up",
       "durationSeconds": 1.167,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "leg_swing",
+      "durationSeconds": 11.967,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -611,6 +631,11 @@
     {
       "name": "squat_down",
       "durationSeconds": 1.967,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "squat_hold",
+      "durationSeconds": 8.467,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

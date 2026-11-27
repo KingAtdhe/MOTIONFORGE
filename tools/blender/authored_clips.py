@@ -2797,5 +2797,10 @@ def build_all(arm, height, name):
     RETIME.update(cst.RETIME)
     for name, fn in cst.CLIPS:
         r.write(name, fn(r, st))
+    # batch 9 — mobility (2026-11-27)
+    import clips_mobility as cmo
+    RETIME.update(cmo.RETIME)
+    for name, fn in cmo.CLIPS:
+        r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

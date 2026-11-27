@@ -47,6 +47,7 @@ class DemoClipsTest {
         "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps",
         "single_leg_bridge", "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold",
         "quad_stretch", "shoulder_stretch", "triceps_stretch", "chest_opener", "hip_flexor_stretch",
+        "leg_swing", "hip_circles", "hamstring_stretch", "squat_hold", "calf_stretch",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */

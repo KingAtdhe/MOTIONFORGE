@@ -30,6 +30,7 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     STRETCH("stretch", "Stretch & recover", TrainingCategory.FITNESS, listOf(
         "cat_cow", "childs_pose", "standing_quad_stretch", "cross_body_shoulder_stretch", "overhead_triceps_stretch",
         "chest_opener_stretch", "kneeling_hip_flexor_stretch", "standing_side_bend", "standing_torso_twist", "arm_circles",
+        "leg_swings", "hip_circles", "standing_hamstring_stretch", "squat_hold", "standing_calf_stretch",
     )),
     // appended last: Home keeps the chosen focus as an index
     ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
@@ -49,7 +50,7 @@ object SessionBuilder {
     val MINUTES = listOf(5, 10, 15, 20)
     private const val WARM_UP_ID = "standing_mobility_warmup"
     private val COOL_DOWN = listOf("standing_quad_stretch", "cross_body_shoulder_stretch", "kneeling_hip_flexor_stretch",
-        "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose")
+        "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose", "standing_hamstring_stretch", "standing_calf_stretch")
 
     /**
      * "build-<focus>-<minutes>-<d|n>-<day>-L<level>": d = dumbbells. The day and level keep a session the same after a
