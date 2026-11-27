@@ -34,6 +34,11 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     )),
     // appended last: Home keeps the chosen focus as an index
     ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
+    // intervals: short work, short rest; low-impact moves at level 1, jumps from level 2 (SessionBuilder.cardioSuits)
+    CARDIO("cardio", "Cardio & HIIT", TrainingCategory.FITNESS, listOf(
+        "step_jack", "high_knee_march", "butt_kicks", "skater_step", "slow_mountain_climber", "fast_feet", "boxing_speed_punches",
+        "jumping_jack", "high_knees", "butt_kick_jog", "skater_hop", "plank_jack", "mountain_climber",
+    )),
     ;
 
     companion object {
@@ -93,6 +98,19 @@ object SessionBuilder {
     private val EASY_ONLY = setOf("wall_push_up", "knee_push_up")
     private fun suits(id: String, level: Int) = when (level) { 1 -> id !in HARD_ONLY; 3 -> id !in EASY_ONLY; else -> true }
 
+    /** Cardio: jumps only from level 2 (the hardest three from level 3); level 3 drops the low-impact versions. */
+    private val CARDIO_JUMPS = setOf("jumping_jack", "high_knees", "butt_kick_jog")
+    private val CARDIO_HARD = setOf("skater_hop", "plank_jack", "mountain_climber")
+    private val CARDIO_LOW = setOf("step_jack", "high_knee_march", "butt_kicks", "skater_step", "slow_mountain_climber")
+    fun cardioSuits(id: String, level: Int) = when (level) {
+        1 -> id !in CARDIO_JUMPS && id !in CARDIO_HARD
+        2 -> id !in CARDIO_HARD
+        else -> id !in CARDIO_LOW
+    }
+    /** Interval work and rest (seconds) in Cardio & HIIT, by level. */
+    fun intervalWork(level: Int) = when (level) { 3 -> 40; 2 -> 35; else -> 30 }
+    fun intervalRest(level: Int) = when (level) { 3 -> 15; 2 -> 20; else -> 30 }
+
     private fun usable(e: Exercise, dumbbells: Boolean): Boolean {
         val needs = e.equipment.filter { !it.contains("(optional)") && !it.contains("(recommended)") }
         return needs.all { dumbbells && it.startsWith("Dumbbell") }
@@ -134,11 +152,13 @@ object SessionBuilder {
                 val stance = all.filter { it.id == SessionPlanner.STANCE_ID }
                 stance + shuffled(all - stance.toSet(), seed)
             }
+            SessionFocus.CARDIO -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { cardioSuits(it.id, p.level) }, seed)
             else -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { usable(it, p.dumbbells) }, seed)
-        }.filter { suits(it.id, p.level) }
+        }.filter { p.focus == SessionFocus.CARDIO || suits(it.id, p.level) }
         if (pool.isEmpty()) return null
         val target = p.minutes * 60
-        val rest = SessionPlanner.REST_SECONDS
+        val cardio = p.focus == SessionFocus.CARDIO
+        val rest = if (cardio) intervalRest(p.level) else SessionPlanner.REST_SECONDS
         val steps = mutableListOf<SessionStep>()
         var total = 0
         fun add(e: Exercise, seconds: Int) {
@@ -151,7 +171,7 @@ object SessionBuilder {
             shuffled(COOL_DOWN.mapNotNull { byId[it] }, seed).take(if (p.minutes >= 15) 2 else 1)
         } else emptyList()
         val coolDownTime = coolDown.size * (45 + rest)
-        val each = if (stretching) 50 else workSeconds(p.level)
+        val each = when { stretching -> 50; cardio -> intervalWork(p.level); else -> workSeconds(p.level) }
         // a short list is gone through again in rounds (never the same move twice in a row)
         var last: String? = null
         rounds@ for (round in 0 until 4) for (e in pool) {

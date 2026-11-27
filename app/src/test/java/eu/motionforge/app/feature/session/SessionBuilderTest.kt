@@ -153,4 +153,22 @@ class SessionBuilderTest {
         assertEquals(SessionBuilder.Params(SessionFocus.CORE, 10, false, 20_100, 1), SessionBuilder.parseKey("build-core-10-n-20100"))
         assertNull(SessionBuilder.parseKey("build-core-10-n-20100-L9"))
     }
+
+    @Test
+    fun cardioIsIntervalsAndJumpsComeWithLevels() {
+        for (level in SessionBuilder.LEVELS) {
+            val p = build(SessionFocus.CARDIO, 15, level = level)
+            val works = p.steps.filterIsInstance<SessionStep.Work>().filter { it.exerciseId in SessionFocus.CARDIO.ids }
+            assertTrue("$level: ${works.size} intervals", works.size >= 6)
+            works.forEach { assertEquals(SessionBuilder.intervalWork(level), it.durationSeconds) }
+            val ids = works.map { it.exerciseId }.toSet()
+            when (level) {
+                1 -> assertTrue("no jumps at level 1: $ids", ids.none { it in setOf("jumping_jack", "high_knees", "skater_hop", "plank_jack", "mountain_climber") })
+                3 -> assertTrue("no low-impact versions at level 3: $ids", ids.none { it in setOf("step_jack", "high_knee_march", "butt_kicks") })
+            }
+            // the rest before each interval is the level's interval rest
+            p.steps.zipWithNext().filter { (a, b) -> a is SessionStep.Rest && (b as? SessionStep.Work)?.exerciseId in SessionFocus.CARDIO.ids }
+                .forEach { (a, _) -> assertEquals(SessionBuilder.intervalRest(level), a.durationSeconds) }
+        }
+    }
 }

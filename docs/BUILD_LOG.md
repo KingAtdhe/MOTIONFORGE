@@ -1478,3 +1478,28 @@ The owner asked for streaks and badges. The product spec rules out *pressure-bas
   one quiet line under the week ticks; the session summary → "New badge" after saving when one was earned.
 - `feature/progress/Milestones.kt` (pure logic, `MilestonesTest`: 11 tests, run locally with kotlinc) and
   `MilestonesUi.kt`. Translations: 55 strings in all 23 tables (`tools/i18n/parts_milestones.py`), `check.py` clean.
+
+## 2026-11-28 (2) — Cardio & HIIT
+
+The owner asked for more exercises, including cardio. Eight new lessons (136 in total), all **guided, not scored**:
+jumping jack, high knees, butt kicks (jog), fast feet, skater hop, plank jack, mountain climber, and boxing speed
+punches. The camera counters are not wired to them until they are checked against rendered videos, so each lesson
+says plainly that the camera does not assess it yet and how to place the phone. Each jumping move says to land
+softly, keep a pace you could still talk at, stop if dizzy, short of breath or in pain, and swap for a low-impact version.
+
+- **New session focus "Cardio & HIIT"** (Fitness) on Home. Interval work/rest by level: 30/30 s, 35/20 s, 40/15 s.
+  Level 1 has no jumps and no hard moves (step jack, march, butt kicks, skater step, slow mountain climber, fast feet,
+  speed punches), level 2 adds jumping jack, high knees and the kick jog, level 3 adds skater hop, plank jack and mountain
+  climber and drops the low-impact versions. The dumbbell toggle is hidden for this focus. `SessionBuilderTest` covers it.
+- **Animation** (`tools/blender/clips_cardio.py`, batch 10): 8 new clips for both coaches (154 authored). Jumping clips
+  are marked AIRBORNE so the floor-contact pass never pulls a jump down onto the floor; plank jack and mountain climber
+  keep the hands planted. QC: jerk check against the existing slow versions; butt_kick_jog first showed a 2 cm leg
+  over-reach and a knee jerk spike (the heel's blend back home passed outside the leg's reach), fixed by clamping
+  the ankle target inside 98.5 % of the leg length (over-reach gone, knee jerk halved, the rest is the fast heel
+  swing itself). Motion studies rendered and checked frame by frame for both coaches.
+- **Translations:** 98 new strings in all 23 tables (`parts_batch10.py`, `parts_batch10b.py`, `parts_batch10c.py`);
+  lesson phrasing reuses already-translated lines where possible. `check.py` clean.
+- **Tests run locally** (kotlinc 2.0.21 + JUnit): SessionBuilderTest, ExerciseCatalogParserTest, DemoClipsTest.
+  CI runs the full suite.
+- **Known limits:** the new moves are not camera-counted yet; candidate counters (ARM_LIFT for jumping jack, KNEE_LIFT,
+  BUTT_KICK, SKATE, CLIMBER) need rendered-video fixtures before any lesson moves to limited rule-based tracking.

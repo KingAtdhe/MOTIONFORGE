@@ -2715,7 +2715,8 @@ PROPS_BY_CLIP.update({
     "db_calf_raise": ("dumbbell_L", "dumbbell_R"), "kb_swing": ("kettlebell",), "bench_dip": ("bench_dip",),
     "wall_pushup": ("wall_front",), "wall_sit": ("wall_back",),
 })
-LIFE_FLOOR = LIFE_FLOOR + ("crunch", "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps", "single_leg_bridge",
+PLANTED_HANDS = PLANTED_HANDS + ("plank_jack", "mountain_climber")
+LIFE_FLOOR = LIFE_FLOOR + ("plank_jack", "mountain_climber", "crunch", "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps", "single_leg_bridge",
                            "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold", "db_floor_press", "bench_dip", "wall_pushup")
 
 
@@ -2801,6 +2802,11 @@ def build_all(arm, height, name):
     import clips_mobility as cmo
     RETIME.update(cmo.RETIME)
     for name, fn in cmo.CLIPS:
+        r.write(name, fn(r, st))
+    # batch 10 — cardio & HIIT (2026-11-28)
+    import clips_cardio as cca
+    RETIME.update(cca.RETIME)
+    for name, fn in cca.CLIPS:
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]
