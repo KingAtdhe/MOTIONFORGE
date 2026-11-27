@@ -27,11 +27,12 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
         "standing_side_bend", "standing_torso_twist",
     )),
     BOXING("boxing", "Boxing", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()),  // every fighting lesson but footwork
-    ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
     STRETCH("stretch", "Stretch & recover", TrainingCategory.FITNESS, listOf(
         "cat_cow", "childs_pose", "standing_quad_stretch", "cross_body_shoulder_stretch", "overhead_triceps_stretch",
         "chest_opener_stretch", "kneeling_hip_flexor_stretch", "standing_side_bend", "standing_torso_twist", "arm_circles",
     )),
+    // appended last: Home keeps the chosen focus as an index
+    ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
     ;
 
     companion object {
