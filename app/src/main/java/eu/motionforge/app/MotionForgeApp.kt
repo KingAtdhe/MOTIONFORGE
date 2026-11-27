@@ -177,6 +177,11 @@ fun MotionForgeApp(
                         unfinished = null
                     },
                     sessionsThisWeek = sessionsThisWeek,
+                    buildLevel = remember(history) {
+                        eu.motionforge.app.feature.session.SessionBuilder.levelFor(
+                            history.orEmpty().filter { it.completed }.map { it.startedAtMillis }, System.currentTimeMillis(),
+                        )
+                    },
                     trainedDaysThisWeek = weekSummary?.trainedDaysThisWeek.orEmpty(),
                     onRetry = catalogViewModel::load,
                     activePlan = activePlan,

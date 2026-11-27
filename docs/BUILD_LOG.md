@@ -1339,3 +1339,13 @@ published debug APK's assets for the local MediaPipe runs.
 - Fix (found by CI on #26): the reminder tests raced the app's start-up re-arm (a background read of the stored
   settings could cancel the test's alarm). Tests now wait for it (`MotionForgeApplication.reminderInit`), and
   cancelling no longer cancels the PendingIntent itself, so an alarm armed in between can't be left orphaned.
+
+## 2026-11-27 (3) — Build-your-own levels (harder as you train)
+
+- **Level 1–3** from sessions finished in the last six weeks (0–3 → 1, 4–9 → 2, 10+ → 3), so it eases back after a
+  break. Level 1: 40 s moves and the hardest variants left out (full push-up, single-leg RDL / bridge, skater, dips);
+  level 2: 45 s, every move; level 3: 50 s and wall / knee push-ups left out. Boxing rounds rest 45 / 40 / 30 s.
+- Home shows "level N of 3", the move length and how many sessions the next level needs. The level is in the session
+  key (`…-L2`), so a restarted session stays the same; older keys read as level 1.
+- Tests: every level × focus × length stays in its time window with no move back to back; level thresholds and the
+  six-week window; variants and move lengths by level; key round trip (CI).

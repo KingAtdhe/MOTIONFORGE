@@ -42,7 +42,7 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
 
 /**
  * "Build your own session": a focus, a length and whether there are dumbbells. Warm-up first, then moves from the
- * focus (a different order each day, so the same choice isn't the same workout every time), each about 40 s with 15 s
+ * focus (a different order each day, so the same choice isn't the same workout every time), 40–50 s by level ([levelFor]) with 15 s
  * rests, then a short cool-down stretch for sessions of 10 minutes or more. Pure Kotlin, unit-tested.
  */
 object SessionBuilder {
@@ -51,20 +51,46 @@ object SessionBuilder {
     private val COOL_DOWN = listOf("standing_quad_stretch", "cross_body_shoulder_stretch", "kneeling_hip_flexor_stretch",
         "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose")
 
-    /** "build-<focus>-<minutes>-<d|n>-<day>": d = dumbbells. The day keeps a session the same after a restart. */
-    fun key(focus: SessionFocus, minutes: Int, dumbbells: Boolean, day: Long) = "build-${focus.wire}-$minutes-${if (dumbbells) "d" else "n"}-$day"
+    /**
+     * "build-<focus>-<minutes>-<d|n>-<day>-L<level>": d = dumbbells. The day and level keep a session the same after a
+     * restart (keys from before levels, without "-L…", read as level 1).
+     */
+    fun key(focus: SessionFocus, minutes: Int, dumbbells: Boolean, day: Long, level: Int = 1) =
+        "build-${focus.wire}-$minutes-${if (dumbbells) "d" else "n"}-$day-L$level"
 
     fun parseKey(key: String): Params? {
         val p = key.split('-')
-        if (p.size != 5 || p[0] != "build") return null
+        if (p.size !in 5..6 || p[0] != "build") return null
         val focus = SessionFocus.ofWire(p[1]) ?: return null
         val minutes = p[2].toIntOrNull()?.takeIf { it in MINUTES } ?: return null
         val db = when (p[3]) { "d" -> true; "n" -> false; else -> return null }
         val day = p[4].toLongOrNull() ?: return null
-        return Params(focus, minutes, db, day)
+        val level = if (p.size == 6) p[5].removePrefix("L").toIntOrNull()?.takeIf { it in LEVELS } ?: return null else 1
+        return Params(focus, minutes, db, day, level)
     }
 
-    data class Params(val focus: SessionFocus, val minutes: Int, val dumbbells: Boolean, val day: Long)
+    data class Params(val focus: SessionFocus, val minutes: Int, val dumbbells: Boolean, val day: Long, val level: Int = 1)
+
+    /**
+     * Sessions get harder as you train: the level comes from sessions finished in the last [LEVEL_WINDOW_DAYS] days
+     * (0–3 → 1, 4–9 → 2, 10+ → 3), so it also eases back after a break. Level 1: 40 s moves, the hardest variants left
+     * out; level 2: 45 s, every move; level 3: 50 s and the easiest variants (wall / knee push-ups) left out.
+     */
+    val LEVELS = 1..3
+    const val LEVEL_WINDOW_DAYS = 42
+    fun levelFor(completedSessionStarts: List<Long>, nowMillis: Long): Int {
+        val since = nowMillis - LEVEL_WINDOW_DAYS * 24L * 60 * 60 * 1000
+        val n = completedSessionStarts.count { it in since..nowMillis }
+        return when { n >= 10 -> 3; n >= 4 -> 2; else -> 1 }
+    }
+    /** Sessions needed in the window for the next level, or null at the top. */
+    fun sessionsForNextLevel(level: Int): Int? = when (level) { 1 -> 4; 2 -> 10; else -> null }
+    fun workSeconds(level: Int) = when (level) { 3 -> 50; 2 -> 45; else -> 40 }
+    /** Rest between rounds in boxing rounds, by level. */
+    fun roundRest(level: Int) = when (level) { 3 -> 30; 2 -> 40; else -> 45 }
+    private val HARD_ONLY = setOf("push_up", "single_leg_rdl", "single_leg_glute_bridge", "skater_step", "bench_dip")
+    private val EASY_ONLY = setOf("wall_push_up", "knee_push_up")
+    private fun suits(id: String, level: Int) = when (level) { 1 -> id !in HARD_ONLY; 3 -> id !in EASY_ONLY; else -> true }
 
     private fun usable(e: Exercise, dumbbells: Boolean): Boolean {
         val needs = e.equipment.filter { !it.contains("(optional)") && !it.contains("(recommended)") }
@@ -108,7 +134,7 @@ object SessionBuilder {
                 stance + shuffled(all - stance.toSet(), seed)
             }
             else -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { usable(it, p.dumbbells) }, seed)
-        }
+        }.filter { suits(it.id, p.level) }
         if (pool.isEmpty()) return null
         val target = p.minutes * 60
         val rest = SessionPlanner.REST_SECONDS
@@ -124,7 +150,7 @@ object SessionBuilder {
             shuffled(COOL_DOWN.mapNotNull { byId[it] }, seed).take(if (p.minutes >= 15) 2 else 1)
         } else emptyList()
         val coolDownTime = coolDown.size * (45 + rest)
-        val each = if (stretching) 50 else 40
+        val each = if (stretching) 50 else workSeconds(p.level)
         // a short list is gone through again in rounds (never the same move twice in a row)
         var last: String? = null
         rounds@ for (round in 0 until 4) for (e in pool) {
@@ -138,8 +164,7 @@ object SessionBuilder {
         return SessionPlan("${p.focus.label}, ${p.minutes} min", p.focus.category, steps)
     }
 
-    /** Rest between rounds, and a round's length (shorter rounds in a 5-minute session). */
-    const val ROUND_REST = 45
+    /** A round's length (shorter rounds in a 5-minute session). */
     fun roundSeconds(minutes: Int) = if (minutes <= 5) 90 else 120
 
     /**
@@ -159,9 +184,10 @@ object SessionBuilder {
         val coolDown = if (p.minutes >= 10) shuffled(COOL_DOWN.mapNotNull { byId[it] }, seed).take(if (p.minutes >= 15) 2 else 1) else emptyList()
         val coolDownTime = coolDown.size * (45 + rest)
         var n = 0
-        while (n == 0 || total + ROUND_REST + len + coolDownTime <= target + 20) {
+        val roundRest = roundRest(p.level)
+        while (n == 0 || total + roundRest + len + coolDownTime <= target + 20) {
             val r = n + 1
-            if (steps.isNotEmpty()) { val gap = if (n == 0) rest else ROUND_REST; steps += SessionStep.Rest(gap, "Round $r"); total += gap }
+            if (steps.isNotEmpty()) { val gap = if (n == 0) rest else roundRest; steps += SessionStep.Rest(gap, "Round $r"); total += gap }
             steps += work(lesson, len).copy(
                 name = "Round $r",
                 round = r,
