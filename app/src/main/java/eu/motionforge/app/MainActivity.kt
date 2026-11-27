@@ -23,7 +23,7 @@ import eu.motionforge.app.feature.onboarding.OnboardingViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen() // launch screen: MOTIONFORGE mark on the night background
+        installSplashScreen() // system launch screen: the icon's pair on the yellow disc, on black
         super.onCreate(savedInstanceState)
         // light "gym floor" chrome: dark status/navigation icons whatever the phone's dark-mode setting
         val ground = android.graphics.Color.rgb(0xE8, 0xE8, 0xE4)
@@ -33,7 +33,12 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             MotionForgeTheme {
-                MotionForgeRoot()
+                // the app's own launch art once per cold start (not again on rotation or when Android recreates the screen)
+                var intro by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(savedInstanceState == null) }
+                Box(Modifier.fillMaxSize()) {
+                    MotionForgeRoot()
+                    if (intro) eu.motionforge.app.core.design.LaunchIntro(onDone = { intro = false })
+                }
             }
         }
     }

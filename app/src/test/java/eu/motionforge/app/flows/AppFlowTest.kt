@@ -65,7 +65,8 @@ class AppFlowTest {
             app.container.sessions.deleteAll()
         }
         app.container.activeSession.clear()
-        pump(300, 100)
+        // past the launch art (LaunchIntro, ~1.3 s) so taps reach the app
+        pump(1600, 100)
     }
 
     // ------------------------------------------------------------------------------------------------ helpers
@@ -371,7 +372,8 @@ class EveryLessonTest {
             app.container.sessions.deleteAll()
         }
         app.container.activeSession.clear()
-        pump(300, 100)
+        // past the launch art (LaunchIntro, ~1.3 s) so taps reach the app
+        pump(1600, 100)
     }
 
     private fun pump(ms: Long = 200, sleep: Long = 30) {

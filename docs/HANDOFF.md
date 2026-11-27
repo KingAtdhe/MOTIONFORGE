@@ -29,7 +29,7 @@ Read this first when continuing in a new chat. Then `CLAUDE.md` and the newest e
 - **Languages:** all 24 EU languages (Profile → Language), translation tables in `assets/i18n/<lang>.json`,
   machine-translated and not reviewed by native speakers. New text: `python3 tools/i18n/extract.py`, translate,
   `python3 tools/i18n/check.py`.
-- **Design:** v5 "motion lab" (see BUILD_LOG 22 Nov).
+- **Design:** v5 "motion lab" (see BUILD_LOG 22 Nov). Icon and launch screen v6 from the owner's flexing-poses art (BUILD_LOG 27 Nov (8), `tools/branding_v6`).
 
 ## Rendered-video pose tests (how the camera checks are validated)
 1. Blender: `python3 -m venv bpyenv && bpyenv/bin/pip install bpy==5.3.0 mediapipe pillow numpy`.
