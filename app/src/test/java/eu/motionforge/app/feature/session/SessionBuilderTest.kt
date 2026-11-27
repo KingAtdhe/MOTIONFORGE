@@ -15,7 +15,7 @@ class SessionBuilderTest {
     private val catalog = ExerciseCatalogParser.parse(File("src/main/assets/${ExerciseCatalogParser.ASSET_PATH}").readText())
     private val byId = catalog.associateBy { it.id }
     private val COOL_DOWN = setOf("standing_quad_stretch", "cross_body_shoulder_stretch", "kneeling_hip_flexor_stretch",
-        "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose")
+        "overhead_triceps_stretch", "chest_opener_stretch", "childs_pose", "standing_hamstring_stretch", "standing_calf_stretch")
 
     private fun build(f: SessionFocus, min: Int, db: Boolean = false, day: Long = 20_000, level: Int = 1) =
         SessionBuilder.build(catalog, SessionBuilder.Params(f, min, db, day, level))!!

@@ -1349,3 +1349,12 @@ published debug APK's assets for the local MediaPipe runs.
   key (`…-L2`), so a restarted session stays the same; older keys read as level 1.
 - Tests: every level × focus × length stays in its time window with no move back to back; level thresholds and the
   six-week window; variants and move lengths by level; key round trip (CI).
+
+## 2026-11-27 (4) — Mobility content (batch 9)
+
+- **5 mobility lessons** (catalogue 123 → 128), animated for both coaches with motion studies: leg swings, hip
+  circles, standing hamstring stretch, deep squat hold, standing calf stretch (`tools/blender/clips_mobility.py`,
+  `tools/lessons_batch9.py`). Checked on study renders of both coaches; the first calf stretch put the hips too far
+  back (back knee bent) and was moved forward; hip circles widened so the circle reads.
+- Guided only (`guided_not_scored`): no camera rule has been validated on rendered videos for them yet.
+- Build your own → Stretch & recover now draws from them too; the hamstring and calf stretches join the cool-downs.

@@ -109,6 +109,12 @@ SHOTS = {
     "overhead_triceps_stretch": ("triceps_stretch", ("far", "hand_R"), 25),
     "chest_opener_stretch": ("chest_opener", ("far", "hand_R"), 45),
     "kneeling_hip_flexor_stretch": ("hip_flexor_stretch", ("far", "hips"), 75),
+    # batch 9 — mobility
+    "leg_swings": ("leg_swing", 0.166, 70),
+    "hip_circles": ("hip_circles", 0.3, 20),
+    "standing_hamstring_stretch": ("hamstring_stretch", ("far", "hips"), 70),
+    "squat_hold": ("squat_hold", 0.5, 25),
+    "standing_calf_stretch": ("calf_stretch", 0.26, 70),
     "boxing_body_cross": ("boxing_body_cross", ("far", "hand_R"), -45),
     "boxing_body_hook": ("boxing_body_hook", ("far", "hand_L"), -40),
     "boxing_rear_body_hook": ("boxing_rear_body_hook", ("far", "hand_R"), -40),

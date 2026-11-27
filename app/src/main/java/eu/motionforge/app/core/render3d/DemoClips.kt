@@ -127,6 +127,8 @@ object DemoSequence {
         "boxing_stance_bounce" to "Bounce in your stance", "boxing_pull_counter" to "Pull back, then cross",
         "quad_stretch" to "Heel to the seat", "shoulder_stretch" to "Arm across the chest", "triceps_stretch" to "Hand behind the head",
         "chest_opener" to "Hands back, chest up", "hip_flexor_stretch" to "Kneel and press the hips forward",
+        "leg_swing" to "Swing from the hip", "hip_circles" to "Slow hip circles", "hamstring_stretch" to "Heel forward, hips back",
+        "squat_hold" to "Sit low, chest up", "calf_stretch" to "Back heel down, lean in",
     )
 
     /**
