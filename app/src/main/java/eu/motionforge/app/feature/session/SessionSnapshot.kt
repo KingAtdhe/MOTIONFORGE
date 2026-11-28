@@ -86,6 +86,8 @@ data class SessionSnapshot(
             put("stepTracked", st.stepTracked)
             put("stepReps", st.stepReps)
             put("stepHeld", st.stepHeld)
+            put("stepFlagged", st.stepFlagged)
+            put("stepShallow", st.stepShallow)
             put("endedEarly", st.endedEarly)
             put("results", buildJsonArray {
                 st.results.forEach { r ->
@@ -98,6 +100,8 @@ data class SessionSnapshot(
                         put("quality", r.trackingQuality.wireName)
                         r.targetReps?.let { put("targetReps", it) }
                         r.heldSeconds?.let { put("held", it) }
+                        r.cleanReps?.let { put("clean", it) }
+                        r.shallowReps?.let { put("shallow", it) }
                     })
                 }
             })
@@ -143,6 +147,8 @@ data class SessionSnapshot(
                     trackingQuality = TrackingQuality.entries.first { it.wireName == r.str("quality") },
                     targetReps = r["targetReps"]?.jsonPrimitive?.intOrNull,
                     heldSeconds = r["held"]?.jsonPrimitive?.intOrNull,
+                    cleanReps = r["clean"]?.jsonPrimitive?.intOrNull,
+                    shallowReps = r["shallow"]?.jsonPrimitive?.intOrNull,
                 )
             }
             val state = SessionState(
@@ -156,6 +162,8 @@ data class SessionSnapshot(
                 stepTracked = o.int("stepTracked"),
                 stepReps = o.int("stepReps"),
                 stepHeld = o["stepHeld"]?.jsonPrimitive?.intOrNull ?: 0,
+                stepFlagged = o["stepFlagged"]?.jsonPrimitive?.intOrNull ?: 0,
+                stepShallow = o["stepShallow"]?.jsonPrimitive?.intOrNull ?: 0,
                 results = results,
                 endedEarly = o.getValue("endedEarly").jsonPrimitive.boolean,
             )

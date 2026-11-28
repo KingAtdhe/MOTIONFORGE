@@ -139,8 +139,8 @@ class ScreenshotTest {
                     i.toLong(), "Short fitness session", if (i % 2 == 0) TrainingCategory.FITNESS else TrainingCategory.FIGHTING_FUNDAMENTALS,
                     now - i * 2 * day, 420 + 60 * i, 6, true,
                     listOf(
-                        ExerciseRecord("bodyweight_squat", "Bodyweight Squat", 60, 12 - i, "good"),
-                        ExerciseRecord("knee_push_up", "Knee Push-up", 45, 9 - (i % 2), "good"),
+                        ExerciseRecord("bodyweight_squat", "Bodyweight Squat", 60, 12 - i, "good", null, 10 - i, 1),
+                        ExerciseRecord("knee_push_up", "Knee Push-up", 45, 9 - (i % 2), "good", null, 8 - (i % 2), 0),
                     ),
                 )
             },

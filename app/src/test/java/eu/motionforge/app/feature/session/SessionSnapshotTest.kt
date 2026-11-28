@@ -68,4 +68,22 @@ class SessionSnapshotTest {
         assertFalse(snap.isExpired(1_000_000L + 60_000))
         assertTrue(snap.isExpired(1_000_000L + SessionSnapshot.MAX_AGE_MILLIS + 1))
     }
+
+    @Test
+    fun roundTripKeepsFormTallies() {
+        var s = SessionEngine.reduce(SessionState(plan), SessionEvent.Start(cameraUsed = true))
+        repeat(56) { s = SessionEngine.reduce(s, SessionEvent.Tick(tracking = true)) }      // into the squat
+        s = listOf(SessionEvent.RepFlagged, SessionEvent.RepCounted, SessionEvent.ShallowAttempt, SessionEvent.RepCounted)
+            .fold(s) { a, e -> SessionEngine.reduce(a, e) }
+        assertEquals(1, s.stepFlagged)
+        assertEquals(1, s.stepShallow)
+        val snap = SessionSnapshot("quick", s, 1_000L, 2_000L)
+        assertEquals(snap, SessionSnapshot.decode(SessionSnapshot.encode(snap)))
+        repeat(40) { s = SessionEngine.reduce(s, SessionEvent.Tick(tracking = true)) }      // the squat closes
+        val closed = SessionSnapshot("quick", s, 1_000L, 2_000L)
+        val back = SessionSnapshot.decode(SessionSnapshot.encode(closed))!!
+        val squat = back.state.results.first { it.exerciseId == "bodyweight_squat" }
+        assertEquals(1, squat.cleanReps)
+        assertEquals(1, squat.shallowReps)
+    }
 }

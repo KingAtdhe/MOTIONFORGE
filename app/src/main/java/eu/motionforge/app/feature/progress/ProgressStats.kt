@@ -11,6 +11,10 @@ data class ExerciseRecord(
     val exerciseId: String, val name: String, val durationSeconds: Int, val repetitions: Int?, val trackingQuality: String,
     /** Seconds held in position (hold checks), null when not measured. */
     val heldSeconds: Int? = null,
+    /** Counted reps with no possible form adjustment flagged (form-rule moves only), null when not measured. */
+    val cleanReps: Int? = null,
+    /** Attempts too shallow to count (same condition as [cleanReps]). */
+    val shallowReps: Int? = null,
 )
 
 data class SessionRecord(

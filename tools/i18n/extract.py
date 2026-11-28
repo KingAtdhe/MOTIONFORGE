@@ -21,7 +21,7 @@ for f in sorted(glob.glob("app/src/main/java/**/*.kt", recursive=True)):
     text = re.sub(r'"\s*\+\s*"', '', open(f, encoding="utf-8").read())
     for line in text.split("\n"):
         st = line.strip()
-        if st.startswith(("import ", "package ", "//", "*", "/*", "@")) or "Log." in st or "require(" in st or "error(" in st:
+        if st.startswith(("import ", "package ", "//", "*", "/*", "@")) or "Log." in st or "require(" in st or "error(" in st or "execSQL(" in st:
             continue
         for m in LIT.finditer(line):
             raw = m.group(1)

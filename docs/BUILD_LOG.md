@@ -1555,3 +1555,27 @@ leg lift and side plank. Each says how to place the phone (at floor level) and w
 - **Translations:** 71 strings in all 23 tables (`parts_batch11.py`, `parts_batch11b.py`), `check.py` clean.
 - **Tests run locally** (kotlinc + JUnit): SessionBuilderTest, ExerciseCatalogParserTest, DemoClipsTest,
   ChallengesTest, MilestonesTest — 63 tests, all passing.
+
+## 2026-11-28 (5) — Form score
+
+The owner asked for a form score. It is built only from what the camera's rep counters already measure, on the
+moves whose counters check form rules on every rep (squat, push-up and lunge families):
+
+- **Score** = reps with no possible form adjustment flagged ÷ all attempts (counted reps + attempts too shallow to
+  count). Shown only with at least 5 attempts (one odd rep cannot swing it), only when the set was tracked well
+  enough to count reps (the same rule as the rep count), never for guided or uncounted moves.
+- **Session summary:** a "Form check" panel ("18 of 20 reps with nothing flagged", 90 %) that says plainly it covers
+  squats, push-ups and lunges only, checks a few simple rules, and does not judge technique beyond them; each
+  exercise line adds "N of M with nothing flagged".
+- **You page:** a "Form" section per exercise (latest %, bars for the last 8 sets).
+- **Engine:** two new events, `RepFlagged` (sent just before its `RepCounted`, so a rep that ends a set stays in that
+  set) and `ShallowAttempt`; each step result carries `cleanReps` / `shallowReps`, kept across a process restart
+  (snapshot) and saved. **Database version 3** with a non-destructive migration (two nullable columns; older sessions
+  simply have no score).
+- `feature/progress/FormScore.kt` (pure) + `FormScoreUi.kt`. Tests (kotlinc + JUnit, all passing): `FormScoreTest` (4),
+  `SessionEngineTest.formTallyCountsFlaggedAndShallowRepsOnlyForFormRuleMoves`, `SessionSnapshotTest.roundTripKeepsFormTallies`;
+  88 tests across the logic suites run locally. Screenshot `05_progress` now includes the Form section.
+- i18n: the extractor now skips `execSQL(` lines (a SQL statement had been picked up as a string to translate).
+  7 strings in all 23 tables (`parts_form.py`), `check.py` clean.
+- Not verified locally: Compose screens and the Room migration on a device (no Android SDK here); CI compiles and runs
+  the Robolectric suites.

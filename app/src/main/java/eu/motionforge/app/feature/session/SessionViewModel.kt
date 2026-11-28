@@ -222,10 +222,13 @@ class SessionViewModel(
             update.event?.let { ev ->
                 lastRepEvent = ev
                 say(SessionNarrator.repLine(ev))
+                if (ev is RepEvent.ShallowRep) onEvent(SessionEvent.ShallowAttempt)
             }
             if (counter.repetitions > before) {
                 val target = step.targetReps
                 if (target != null && counter.repetitions >= target) say(CoachLine(SessionNarrator.TARGET_REACHED, eu.motionforge.app.core.coaching.CuePriority.ANNOUNCE))
+                // a possible form adjustment on this rep: tallied first, so a rep that ends the set stays in its set
+                if ((update.event as? RepEvent.RepCompleted)?.issues?.isNotEmpty() == true) onEvent(SessionEvent.RepFlagged)
                 onEvent(SessionEvent.RepCounted)
             }
         }

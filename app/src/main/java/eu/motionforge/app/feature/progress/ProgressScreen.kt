@@ -138,6 +138,8 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(
                 }
             }
         }
+        val form = remember(history) { FormScore.trends(history) }
+        FormTrendsSection(form)
         val holds = remember(history) { ProgressStats.holdTrends(history) }
         if (holds.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {

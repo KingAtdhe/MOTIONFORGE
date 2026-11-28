@@ -682,6 +682,9 @@ private fun SummaryStage(
                             }))
                         }
                         r.heldSeconds?.takeIf { it > 0 }?.let { add(eu.motionforge.app.core.i18n.tr("held in position ${formatClock(it)} (experimental)")) }
+                        eu.motionforge.app.feature.progress.FormScore.of(r.asRecord())?.let {
+                            add(eu.motionforge.app.core.i18n.tr("${it.clean} of ${it.attempts} with nothing flagged"))
+                        }
                     }
                     Text(parts.joinToString(", "), style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
@@ -689,6 +692,10 @@ private fun SummaryStage(
                     }
                 }
             }
+        }
+
+        eu.motionforge.app.feature.progress.FormScore.ofSets(state.results.map { it.asRecord() })?.let { tally ->
+            eu.motionforge.app.feature.progress.FormCheckPanel(tally)
         }
 
         when {
@@ -762,3 +769,8 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
 private fun restorePortrait(activity: android.app.Activity) {
     activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 }
+
+/** A step's result as a saved-exercise record (for the form score). */
+private fun StepResult.asRecord() = eu.motionforge.app.feature.progress.ExerciseRecord(
+    exerciseId, name, elapsedSeconds, repetitions, trackingQuality.wireName, heldSeconds, cleanReps, shallowReps,
+)

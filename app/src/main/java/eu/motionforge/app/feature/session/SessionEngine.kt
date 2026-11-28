@@ -129,6 +129,10 @@ data class StepResult(
     val targetReps: Int? = null,
     /** Seconds held in position (hold checks), null when not measured or tracking was mostly unavailable. */
     val heldSeconds: Int? = null,
+    /** Counted reps with no possible form adjustment flagged; only for moves with form rules, null otherwise. */
+    val cleanReps: Int? = null,
+    /** Attempts the counter saw but did not count (too shallow); same condition as [cleanReps]. */
+    val shallowReps: Int? = null,
 )
 
 data class SessionState(
@@ -143,6 +147,10 @@ data class SessionState(
     val stepReps: Int = 0,
     /** Whole seconds held in position in the current step (hold checks; camera only). */
     val stepHeld: Int = 0,
+    /** Reps in the current step that came with a possible form adjustment (form-rule moves only). */
+    val stepFlagged: Int = 0,
+    /** Attempts in the current step that were too shallow to count. */
+    val stepShallow: Int = 0,
     val results: List<StepResult> = emptyList(),
     val endedEarly: Boolean = false,
 ) {
@@ -169,6 +177,13 @@ sealed interface SessionEvent {
     data object Stop : SessionEvent
     data object RepCounted : SessionEvent
 
+    /** The rep about to be counted came with a possible form adjustment. Sent just before its [RepCounted], so a rep
+     *  that ends the set still belongs to that set. */
+    data object RepFlagged : SessionEvent
+
+    /** The counter saw an attempt that was too shallow to count. */
+    data object ShallowAttempt : SessionEvent
+
     /** The hold check has seen [seconds] whole seconds in position in this step (never decreases). */
     data class HoldProgress(val seconds: Int) : SessionEvent
 }
@@ -187,6 +202,14 @@ object SessionEngine {
                 // target reached: the set is done, move on (the time cap no longer matters)
                 if (step.targetReps != null && counted.stepReps >= step.targetReps) advance(counted) else counted
             } else s
+        }
+        SessionEvent.RepFlagged -> {
+            val step = s.currentStep
+            if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps) s.copy(stepFlagged = minOf(s.stepFlagged + 1, s.stepReps + 1)) else s
+        }
+        SessionEvent.ShallowAttempt -> {
+            val step = s.currentStep
+            if (s.phase == SessionPhase.RUNNING && step is SessionStep.Work && step.countsReps) s.copy(stepShallow = s.stepShallow + 1) else s
         }
         is SessionEvent.HoldProgress -> {
             val step = s.currentStep
@@ -219,7 +242,10 @@ object SessionEngine {
         val quality = TrackingQuality.of(s.cameraUsed, s.stepTracked, s.stepElapsed)
         val reps = if (step.countsReps && (quality == TrackingQuality.GOOD || quality == TrackingQuality.PARTIAL)) s.stepReps else null
         val held = if (step.holdCheck != null && s.cameraUsed && (quality == TrackingQuality.GOOD || quality == TrackingQuality.PARTIAL)) s.stepHeld else null
-        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality, step.targetReps, held))
+        val ruled = reps != null && eu.motionforge.app.feature.progress.FormScore.hasRules(step.exerciseId)
+        val clean = if (ruled) (s.stepReps - s.stepFlagged).coerceAtLeast(0) else null
+        val shallow = if (ruled) s.stepShallow else null
+        return s.copy(results = s.results + StepResult(step.exerciseId, step.name, s.results.size + 1, s.stepElapsed, reps, quality, step.targetReps, held, clean, shallow))
     }
 
     private fun advance(s: SessionState): SessionState {
@@ -228,7 +254,7 @@ object SessionEngine {
         return if (next >= s.plan.steps.size) {
             closed.copy(phase = SessionPhase.FINISHED, remainingInStep = 0)
         } else {
-            closed.copy(stepIndex = next, remainingInStep = s.plan.steps[next].durationSeconds, stepElapsed = 0, stepTracked = 0, stepReps = 0, stepHeld = 0)
+            closed.copy(stepIndex = next, remainingInStep = s.plan.steps[next].durationSeconds, stepElapsed = 0, stepTracked = 0, stepReps = 0, stepHeld = 0, stepFlagged = 0, stepShallow = 0)
         }
     }
 }
