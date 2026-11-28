@@ -77,6 +77,7 @@ fun TrainScreen(
     onOpenLesson: (String) -> Unit,
     onRetry: () -> Unit,
     onQuery: (String) -> Unit = {},
+    onLevel: (LevelFilter) -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf(false) }
     // A lazy list: only the rows on screen are built and their motion strips decoded (118 strips decode to ~60 MB;
@@ -102,6 +103,7 @@ fun TrainScreen(
                     val extra = listOfNotNull(
                         filter.duration.takeIf { it != DurationFilter.ANY },
                         filter.equipment.takeIf { it != EquipmentFilter.ANY },
+                        filter.level.takeIf { it != LevelFilter.ANY },
                     ).size
                     TextButton(onClick = { sheet = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text(if (extra > 0) "Filters ($extra)" else "Filters", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onBackground)
@@ -183,9 +185,17 @@ fun TrainScreen(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     compact = true,
                 )
+                Eyebrow("Level")
+                SegmentedPill(
+                    options = LevelFilter.entries.map { it.label },
+                    selectedIndex = LevelFilter.entries.indexOf(filter.level),
+                    onSelect = { onLevel(LevelFilter.entries[it]) },
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    compact = true,
+                )
                 Spacer(Modifier.height(4.dp))
                 PrimaryButton("Show lessons", onClick = { sheet = false })
-                SecondaryButton("Clear length and equipment", onClick = { onDuration(DurationFilter.ANY); onEquipment(EquipmentFilter.ANY); sheet = false })
+                SecondaryButton("Clear length, equipment and level", onClick = { onDuration(DurationFilter.ANY); onEquipment(EquipmentFilter.ANY); onLevel(LevelFilter.ANY); sheet = false })
             }
         }
     }

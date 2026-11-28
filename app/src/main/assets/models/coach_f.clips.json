@@ -10,7 +10,7 @@
     },
     {
       "name": "band_pull_apart",
-      "durationSeconds": 2.6,
+      "durationSeconds": 2.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -21,6 +21,11 @@
     {
       "name": "bench_dip",
       "durationSeconds": 2.433,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "bicycle_crunch",
+      "durationSeconds": 4.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -150,7 +155,7 @@
     },
     {
       "name": "boxing_lead_hook",
-      "durationSeconds": 1.6,
+      "durationSeconds": 1.567,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -224,6 +229,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "boxing_speed_punches",
+      "durationSeconds": 2.8,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "boxing_stance",
       "durationSeconds": 3.2,
       "reviewStatus": "draft_pending_coach_review"
@@ -246,6 +256,11 @@
     {
       "name": "boxing_uppercuts",
       "durationSeconds": 2.067,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "butt_kick_jog",
+      "durationSeconds": 3.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -276,6 +291,11 @@
     {
       "name": "childs_pose",
       "durationSeconds": 5.633,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "close_grip_pushup",
+      "durationSeconds": 5.333,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -379,6 +399,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "fast_feet",
+      "durationSeconds": 2.867,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "fire_hydrant",
       "durationSeconds": 5.633,
       "reviewStatus": "draft_pending_coach_review"
@@ -434,8 +459,13 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "glute_bridge_march",
+      "durationSeconds": 2.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "glute_kickback",
-      "durationSeconds": 5.2,
+      "durationSeconds": 5.167,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -456,6 +486,11 @@
     {
       "name": "high_knee_march",
       "durationSeconds": 4.4,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "high_knees",
+      "durationSeconds": 3.533,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -484,6 +519,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "hollow_hold",
+      "durationSeconds": 1.833,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "idle_neutral",
       "durationSeconds": 4.0,
       "reviewStatus": "draft_pending_coach_review"
@@ -496,6 +536,16 @@
     {
       "name": "incline_pushup_up",
       "durationSeconds": 1.167,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "jump_squat",
+      "durationSeconds": 5.233,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "jumping_jack",
+      "durationSeconds": 4.2,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -520,7 +570,7 @@
     },
     {
       "name": "knee_pushup_down",
-      "durationSeconds": 1.633,
+      "durationSeconds": 1.6,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -529,8 +579,18 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "leg_raise",
+      "durationSeconds": 2.633,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "leg_swing",
       "durationSeconds": 11.6,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "mountain_climber",
+      "durationSeconds": 2.633,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -546,6 +606,16 @@
     {
       "name": "plank_hold",
       "durationSeconds": 4.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "plank_jack",
+      "durationSeconds": 4.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "plank_leg_lift",
+      "durationSeconds": 3.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -599,6 +669,16 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "side_plank",
+      "durationSeconds": 1.833,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "side_plank_knees",
+      "durationSeconds": 1.833,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "single_leg_balance",
       "durationSeconds": 6.333,
       "reviewStatus": "draft_pending_coach_review"
@@ -611,6 +691,11 @@
     {
       "name": "single_leg_rdl",
       "durationSeconds": 7.333,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "skater_hop",
+      "durationSeconds": 2.5,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

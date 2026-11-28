@@ -21,6 +21,22 @@ class CatalogFilterTest {
     }
 
     @Test
+    fun levelFilterSplitsTheCatalogue() {
+        val beginner = CatalogFilter(level = LevelFilter.BEGINNER).apply(catalog)
+        val intermediate = CatalogFilter(level = LevelFilter.INTERMEDIATE).apply(catalog)
+        assertTrue(CatalogFilter(level = LevelFilter.INTERMEDIATE).isActive)
+        assertTrue(intermediate.isNotEmpty() && beginner.isNotEmpty())
+        assertEquals(catalog.size, beginner.size + intermediate.size)
+        assertTrue(intermediate.all { it.level == eu.motionforge.app.core.model.Level.INTERMEDIATE })
+        assertTrue("push_up" in intermediate.map { it.id } && "knee_push_up" in beginner.map { it.id })
+        // both categories have intermediate lessons, and a beginner start in each
+        for (c in TrainingCategory.entries) {
+            assertTrue(c.name, intermediate.any { it.category == c })
+            assertTrue(c.name, beginner.count { it.category == c } > 10)
+        }
+    }
+
+    @Test
     fun categoryFilter() {
         val fighting = CatalogFilter(category = TrainingCategory.FIGHTING_FUNDAMENTALS).apply(catalog)
         assertTrue(fighting.isNotEmpty())

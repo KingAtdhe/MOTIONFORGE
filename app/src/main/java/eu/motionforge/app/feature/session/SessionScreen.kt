@@ -106,6 +106,8 @@ fun SessionScreen(
     val tracking by viewModel.tracking.collectAsStateWithLifecycle()
     val coaching by viewModel.coaching.collectAsStateWithLifecycle()
     val save by viewModel.save.collectAsStateWithLifecycle()
+    val newBadges by viewModel.newBadges.collectAsStateWithLifecycle()
+    val completedChallenges by viewModel.completedChallenges.collectAsStateWithLifecycle()
 
     // Voice coach: the phone's text-to-speech, alive while this screen is.
     val appContext = LocalContext.current.applicationContext
@@ -171,6 +173,8 @@ fun SessionScreen(
         }
         SessionPhase.FINISHED -> SummaryStage(
             state, save, coach, remember(state.phase) { viewModel.plateFrames() }, exercisesById,
+            newBadges = newBadges,
+            completedChallenges = completedChallenges,
             onSave = viewModel::saveSession,
             onClose = { viewModel.onClosed(); onClose() },
             onOpenProgress = { viewModel.onClosed(); onOpenProgress() },
@@ -621,6 +625,8 @@ private fun SummaryStage(
     coach: Coach,
     plate: List<eu.motionforge.app.core.pose.PoseFrame>,
     exercisesById: Map<String, Exercise>,
+    newBadges: List<eu.motionforge.app.feature.progress.Badge>,
+    completedChallenges: List<eu.motionforge.app.feature.progress.Challenge> = emptyList(),
     onSave: (Int?) -> Unit,
     onClose: () -> Unit,
     onOpenProgress: () -> Unit,
@@ -676,6 +682,9 @@ private fun SummaryStage(
                             }))
                         }
                         r.heldSeconds?.takeIf { it > 0 }?.let { add(eu.motionforge.app.core.i18n.tr("held in position ${formatClock(it)} (experimental)")) }
+                        eu.motionforge.app.feature.progress.FormScore.of(r.asRecord())?.let {
+                            add(eu.motionforge.app.core.i18n.tr("${it.clean} of ${it.attempts} with nothing flagged"))
+                        }
                     }
                     Text(parts.joinToString(", "), style = MaterialTheme.typography.bodyLarge)
                     if (r.trackingQuality == TrackingQuality.UNAVAILABLE) {
@@ -685,6 +694,10 @@ private fun SummaryStage(
             }
         }
 
+        eu.motionforge.app.feature.progress.FormScore.ofSets(state.results.map { it.asRecord() })?.let { tally ->
+            eu.motionforge.app.feature.progress.FormCheckPanel(tally)
+        }
+
         when {
             !state.isSaveable -> {
                 Panel { Text("This session was too short to save.", style = MaterialTheme.typography.bodyLarge) }
@@ -692,6 +705,8 @@ private fun SummaryStage(
             }
             save == SaveState.SAVED -> {
                 Panel { Text("Saved to your progress on this phone.", style = MaterialTheme.typography.bodyLarge) }
+                eu.motionforge.app.feature.progress.CompletedChallengesPanel(completedChallenges)
+                eu.motionforge.app.feature.progress.NewBadgesPanel(newBadges)
                 PrimaryButton("See progress", onClick = onOpenProgress)
                 TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Done") }
             }
@@ -754,3 +769,8 @@ private fun EffortChip(n: Int, selected: Boolean, onClick: () -> Unit) {
 private fun restorePortrait(activity: android.app.Activity) {
     activity.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 }
+
+/** A step's result as a saved-exercise record (for the form score). */
+private fun StepResult.asRecord() = eu.motionforge.app.feature.progress.ExerciseRecord(
+    exerciseId, name, elapsedSeconds, repetitions, trackingQuality.wireName, heldSeconds, cleanReps, shallowReps,
+)

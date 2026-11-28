@@ -116,7 +116,7 @@
     "id": "push_up",
     "name": "Push-up",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -2405,7 +2405,7 @@
     "id": "single_leg_rdl",
     "name": "Single-Leg Romanian Deadlift",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 50,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -2905,7 +2905,7 @@
     "id": "kettlebell_swing",
     "name": "Kettlebell Swing",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -2944,7 +2944,7 @@
     "id": "bench_dip",
     "name": "Bench Dip (Bent Knees)",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 40,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -3178,7 +3178,7 @@
     "id": "plank_shoulder_taps",
     "name": "Plank Shoulder Taps",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 40,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -3217,7 +3217,7 @@
     "id": "single_leg_glute_bridge",
     "name": "Single-Leg Glute Bridge",
     "category": "fitness",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "side",
     "analysisMode": "limited_rule_based",
@@ -3523,7 +3523,7 @@
     "id": "boxing_jab_body_cross",
     "name": "Jab, Cross to the Body",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 50,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -3560,7 +3560,7 @@
     "id": "boxing_body_head_jab",
     "name": "Jab Body-Head",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -3782,7 +3782,7 @@
     "id": "boxing_block_cross",
     "name": "Cover and Cross",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -3819,7 +3819,7 @@
     "id": "boxing_jab_slip",
     "name": "Jab and Slip",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -3856,7 +3856,7 @@
     "id": "boxing_slip_cross",
     "name": "Slip and Cross",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "guided_limited_feedback",
@@ -3893,7 +3893,7 @@
     "id": "boxing_roll_hook",
     "name": "Roll and Hook",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 50,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -3930,7 +3930,7 @@
     "id": "boxing_pull_counter",
     "name": "Pull Back and Cross",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 45,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -4004,7 +4004,7 @@
     "id": "boxing_uppercut_hook",
     "name": "Lead Uppercut-Lead Hook (5-3)",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 50,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -4041,7 +4041,7 @@
     "id": "boxing_hook_cross",
     "name": "Lead Hook-Cross (3-2)",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 50,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -4078,7 +4078,7 @@
     "id": "boxing_cross_hook_cross",
     "name": "Cross-Hook-Cross (2-3-2)",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 55,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -4115,7 +4115,7 @@
     "id": "boxing_one_two_uppercut",
     "name": "Jab-Cross-Lead Uppercut (1-2-5)",
     "category": "fighting_fundamentals",
-    "level": "beginner",
+    "level": "intermediate",
     "durationSeconds": 55,
     "recommendedView": "front_or_diagonal",
     "analysisMode": "limited_rule_based",
@@ -4935,6 +4935,735 @@
       }
     ],
     "limitations": "The camera times your stretch only while you're in the position (one leg long behind you, the front knee bent, leaning forward); it does not judge how far you stretch or how long you should hold. Stand side-on to the phone with your whole body in view. Experimental.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "jumping_jack",
+    "name": "Jumping Jack",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "jumping_jack",
+    "purpose": "Raise the heart rate with a classic full-body jump.",
+    "space": "About 2 × 2 m of clear, non-slip floor with room to move your arms.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "This is a jumping move: land softly on the balls of the feet with soft knees. Keep a pace you could still talk at, and stop if you feel dizzy, short of breath, unwell, or pain in the joints. Swap for the low-impact version whenever you need to.",
+    "instructions": [
+      "Stand with your feet close together and arms by your sides.",
+      "Jump the feet out wide as both arms sweep up overhead.",
+      "Jump the feet back together as the arms come down.",
+      "Keep a steady rhythm, landing softly each time."
+    ],
+    "commonCues": [
+      "Land softly.",
+      "Arms long overhead.",
+      "Steady rhythm."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Landing flat-footed and stiff",
+        "adjustment": "Land on the balls of the feet and let the knees bend."
+      },
+      {
+        "mistake": "Knees caving in on landing",
+        "adjustment": "Keep the knee in line with the toes."
+      },
+      {
+        "mistake": "Arms only half-way up",
+        "adjustment": "Reach all the way overhead, or slow down until you can."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "high_knees",
+    "name": "High Knees",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "high_knees",
+    "purpose": "A quick jog on the spot that drives the knees up and gets the heart pumping.",
+    "space": "About 2 × 2 m of clear, non-slip floor with room to move your arms.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "This is a jumping move: land softly on the balls of the feet with soft knees. Keep a pace you could still talk at, and stop if you feel dizzy, short of breath, unwell, or pain in the joints. Swap for the low-impact version whenever you need to.",
+    "instructions": [
+      "Stand tall with the feet hip-width apart.",
+      "Jog on the spot, driving each knee up toward hip height.",
+      "Stay on the balls of the feet and pump the arms with the legs.",
+      "Keep the chest tall the whole time."
+    ],
+    "commonCues": [
+      "Knees up.",
+      "Light feet.",
+      "Pump the arms."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Leaning back to lift the knee",
+        "adjustment": "Keep the chest tall; lift only as high as you can upright."
+      },
+      {
+        "mistake": "Stamping the feet",
+        "adjustment": "Bounce lightly on the balls of the feet."
+      },
+      {
+        "mistake": "Arms still",
+        "adjustment": "Swing the arms in rhythm with the legs."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Stand side-on to the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "butt_kick_jog",
+    "name": "Butt Kicks",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "butt_kick_jog",
+    "purpose": "A quick jog on the spot that flicks the heels up behind to warm the legs.",
+    "space": "About 2 × 2 m of clear, non-slip floor with room to move your arms.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "This is a jumping move: land softly on the balls of the feet with soft knees. Keep a pace you could still talk at, and stop if you feel dizzy, short of breath, unwell, or pain in the joints. Swap for the low-impact version whenever you need to.",
+    "instructions": [
+      "Stand tall with the feet hip-width apart.",
+      "Jog on the spot, flicking each heel up behind toward your seat.",
+      "Keep the thigh pointing down; only the heel lifts.",
+      "Bounce lightly on the balls of the feet."
+    ],
+    "commonCues": [
+      "Heels up behind.",
+      "Knees point down.",
+      "Quick and light."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Knees swinging forward",
+        "adjustment": "Keep the thighs near vertical; only the lower leg moves."
+      },
+      {
+        "mistake": "Leaning forward",
+        "adjustment": "Stay tall through the chest."
+      },
+      {
+        "mistake": "Heavy landings",
+        "adjustment": "Land softly and quietly."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Stand side-on to the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "fast_feet",
+    "name": "Fast Feet",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "fast_feet",
+    "purpose": "Quick, light steps in a low ready stance for speed and conditioning.",
+    "space": "About 2 × 2 m of clear, non-slip floor with room to move your arms.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Keep the steps small and light. Stop if you feel dizzy, short of breath or unwell, or pain in the joints.",
+    "instructions": [
+      "Feet wider than the hips, knees bent, chest a little forward.",
+      "Step quickly on the spot on the balls of the feet.",
+      "Keep the steps small and the hips low.",
+      "Keep the arms relaxed and ready in front of you."
+    ],
+    "commonCues": [
+      "Small, quick steps.",
+      "Stay low.",
+      "On the balls of the feet."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Standing up tall as you speed up",
+        "adjustment": "Keep the knees bent and the hips low."
+      },
+      {
+        "mistake": "Big, slow steps",
+        "adjustment": "Keep the feet just off the floor and quick."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe steadily throughout the movement."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "skater_hop",
+    "name": "Skater Hop",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 40,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "skater_hop",
+    "purpose": "A side-to-side bound for leg power and balance.",
+    "space": "About 3 × 2 m of clear, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "This is a jumping move: land softly on the balls of the feet with soft knees. Keep a pace you could still talk at, and stop if you feel dizzy, short of breath, unwell, or pain in the joints. Swap for the low-impact version whenever you need to.",
+    "instructions": [
+      "Stand on one leg with the knee bent and the chest a little forward.",
+      "Push off and bound sideways onto the other foot.",
+      "Land softly on a bent knee, the free foot swinging behind you.",
+      "Pause for balance, then bound back."
+    ],
+    "commonCues": [
+      "Soft landing.",
+      "Knee over the toes.",
+      "Swing the arms across."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Landing on a straight leg",
+        "adjustment": "Bend the knee as the foot lands to absorb the bound."
+      },
+      {
+        "mistake": "Knees falling inward",
+        "adjustment": "Keep the knee in line with the toes."
+      },
+      {
+        "mistake": "Bounding too far too soon",
+        "adjustment": "Start with small bounds and widen as your balance allows."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "plank_jack",
+    "name": "Plank Jack",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "plank_jack",
+    "purpose": "Raise the heart rate while holding a strong high plank.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the hips level and the hands under the shoulders. Stop if you feel pain in the wrists, shoulders or back.",
+    "instructions": [
+      "Start in a high plank, hands under the shoulders, feet together.",
+      "Jump both feet out wide.",
+      "Jump them back together.",
+      "Keep the hips level and the core tight throughout."
+    ],
+    "commonCues": [
+      "Hips level.",
+      "Shoulders over hands.",
+      "Light feet."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips bouncing up and down",
+        "adjustment": "Make the jumps smaller and keep the body in one line."
+      },
+      {
+        "mistake": "Shoulders drifting behind the hands",
+        "adjustment": "Keep the shoulders stacked over the wrists."
+      },
+      {
+        "mistake": "Sagging lower back",
+        "adjustment": "Tighten the core and squeeze the glutes."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "mountain_climber",
+    "name": "Mountain Climber",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 30,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "mountain_climber",
+    "purpose": "Drive the knees in quickly from a high plank for conditioning and core strength.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the hips level and the hands under the shoulders. Slow down if the plank position changes, and stop if you feel pain in the wrists, shoulders or back.",
+    "instructions": [
+      "Start in a high plank with your hands under your shoulders.",
+      "Bring one knee toward your chest.",
+      "Switch legs quickly, one knee in as the other goes back.",
+      "Keep the hips level and the shoulders over the hands."
+    ],
+    "commonCues": [
+      "Shoulders over hands.",
+      "Hips level.",
+      "Quick knees."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips piking up",
+        "adjustment": "Make one straight line from head to heels."
+      },
+      {
+        "mistake": "Shoulders drifting back",
+        "adjustment": "Keep the shoulders over the wrists."
+      },
+      {
+        "mistake": "Bouncing the hips",
+        "adjustment": "Slow down until the hips stay still."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "boxing_speed_punches",
+    "name": "Speed Punches",
+    "category": "fighting_fundamentals",
+    "level": "beginner",
+    "durationSeconds": 30,
+    "recommendedView": "front_or_diagonal",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "boxing_speed_punches",
+    "purpose": "Quick, relaxed jab-cross pairs to build hand speed and conditioning.",
+    "space": "Clear space in front of you at least an arm's length plus a step. Nothing and nobody within reach.",
+    "equipment": [],
+    "safety": "Practise in the air only, without contact. Keep the punches relaxed and never lock the elbows. Stop if you feel pain in the shoulders, elbows or wrists.",
+    "instructions": [
+      "Start in your boxing stance, hands up.",
+      "Throw a quick jab, then a quick cross.",
+      "Bring each hand straight back to your face.",
+      "Keep a steady, relaxed rhythm with a light bounce."
+    ],
+    "commonCues": [
+      "Quick out, quick back.",
+      "Stay relaxed.",
+      "Hands home."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Dropping the hands between punches",
+        "adjustment": "Bring each hand back to your face before the next one."
+      },
+      {
+        "mistake": "Locking the elbows",
+        "adjustment": "Stop each punch just short of full extension."
+      },
+      {
+        "mistake": "Tensing up",
+        "adjustment": "Breathe out on each punch and keep the shoulders loose."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone or stand at a slight angle, with your upper body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "hollow_hold",
+    "name": "Hollow Hold (Tuck)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "hollow_hold",
+    "purpose": "Build deep core strength by holding a curled, braced position on your back.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the lower back pressed into the floor; if it lifts, bring the knees closer. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the knees bent and the feet on the floor.",
+      "Lift the legs into tabletop, knees over the hips.",
+      "Press the lower back into the floor and lift the head and shoulders.",
+      "Reach the arms long toward the knees and hold, breathing steadily."
+    ],
+    "commonCues": [
+      "Lower back stays down.",
+      "Ribs toward the hips.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Lower back arching off the floor",
+        "adjustment": "Bring the knees closer to the chest until the back stays down."
+      },
+      {
+        "mistake": "Straining the neck",
+        "adjustment": "Look at the ceiling, chin slightly tucked."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bent_knee_leg_raise",
+    "name": "Bent-Knee Leg Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "leg_raise",
+    "purpose": "Strengthen the lower abdominals by lifting and lowering the legs with control.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Lower only as far as the lower back stays down, and never let the legs drop. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back, arms on the floor beside you, knees bent.",
+      "Lift the feet just off the floor.",
+      "Raise the knees up over the hips, keeping the knees bent.",
+      "Lower slowly until the feet hover just above the floor, then lift again."
+    ],
+    "commonCues": [
+      "Lower back stays down.",
+      "Slow on the way down.",
+      "Feet never touch."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the legs",
+        "adjustment": "Make the movement smaller and slower."
+      },
+      {
+        "mistake": "Lower back arching off the floor",
+        "adjustment": "Lower the legs less far."
+      },
+      {
+        "mistake": "Pushing hard into the floor with the arms",
+        "adjustment": "Let the stomach do the work."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bicycle_crunch",
+    "name": "Bicycle Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "bicycle_crunch",
+    "purpose": "Work the abdominals and obliques with a slow, twisting crunch.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the hands light at the head and never pull on the neck. Move slowly. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the fingertips at your temples, elbows wide.",
+      "Lift the head and shoulders and bring the knees up.",
+      "Bring one knee in as the other leg lengthens low, and turn the opposite shoulder toward the bent knee.",
+      "Switch sides slowly, keeping the shoulders lifted."
+    ],
+    "commonCues": [
+      "Shoulder to knee.",
+      "Elbows wide.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling on the neck",
+        "adjustment": "Keep the fingertips light; the turn comes from the ribs."
+      },
+      {
+        "mistake": "Pedalling fast",
+        "adjustment": "Slow down and pause on each side."
+      },
+      {
+        "mistake": "Lower back arching as the leg lengthens",
+        "adjustment": "Keep the long leg higher."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "plank_leg_lift",
+    "name": "Plank Leg Lift",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "plank_leg_lift",
+    "purpose": "Challenge core stability and the glutes by lifting one leg from a forearm plank.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the forearm plank first. Lift only as high as the hips stay level. Stop if you feel pain in your back or shoulders.",
+    "instructions": [
+      "Start in a forearm plank, elbows under the shoulders.",
+      "Squeeze the glute and lift one straight leg a hand's width off the floor.",
+      "Keep the hips level and square to the floor.",
+      "Lower it with control, then lift the other leg."
+    ],
+    "commonCues": [
+      "Hips stay level.",
+      "Small lift.",
+      "One straight line from head to heels."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips twisting as the leg lifts",
+        "adjustment": "Lift the leg lower."
+      },
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Squeeze your glutes gently, or rest on your knees and hold a shorter time."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "glute_bridge_march",
+    "name": "Glute Bridge March",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "glute_bridge_march",
+    "purpose": "Train the glutes and core to keep the hips level while one foot lifts.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the two-leg glute bridge first. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the knees bent and the feet flat.",
+      "Lift the hips into a bridge, shoulders, hips and knees in line.",
+      "Lift one foot a little off the floor, keeping the knee bent, and set it down.",
+      "Then lift the other foot, keeping the hips high and level."
+    ],
+    "commonCues": [
+      "Hips level.",
+      "Press through the heel.",
+      "Ribs down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "One hip dropping",
+        "adjustment": "Lift less high and keep the hips level."
+      },
+      {
+        "mistake": "Arching the lower back at the top",
+        "adjustment": "Lift a little lower and think of keeping your ribs down."
+      },
+      {
+        "mistake": "Hips sinking as the foot lifts",
+        "adjustment": "Make the foot lift smaller."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "side_plank_knees",
+    "name": "Side Plank (Knees)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_plank_knees",
+    "purpose": "Strengthen the side of the core in an easier side plank from the knees.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the elbow under the shoulder. Stop if you feel pain in your shoulder, hips or back.",
+    "instructions": [
+      "Lie on your side, propped on the forearm, elbow under the shoulder.",
+      "Bend the knees so the feet are behind you.",
+      "Lift the hips until the head, hips and knees line up.",
+      "Rest the top hand on the hip and hold, breathing steadily. Then switch sides."
+    ],
+    "commonCues": [
+      "Elbow under shoulder.",
+      "Hips up.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Lift the hips into one line, or hold a shorter time."
+      },
+      {
+        "mistake": "Shoulder sinking toward the ear",
+        "adjustment": "Push the floor away with the forearm."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level in front of you, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "side_plank",
+    "name": "Side Plank",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 25,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_plank",
+    "purpose": "Strengthen the side of the core holding one straight line on the forearm.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Try the side plank from the knees first. Keep the elbow under the shoulder. Stop if you feel pain in your shoulder, hips or back.",
+    "instructions": [
+      "Lie on your side, propped on the forearm, elbow under the shoulder.",
+      "Straighten the legs and stack the feet.",
+      "Lift the hips until the body forms one straight line from head to heels.",
+      "Rest the top hand on the hip and hold, breathing steadily. Then switch sides."
+    ],
+    "commonCues": [
+      "Elbow under shoulder.",
+      "One straight line from head to heels.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Lift the hips into one line, or hold a shorter time."
+      },
+      {
+        "mistake": "Shoulder sinking toward the ear",
+        "adjustment": "Push the floor away with the forearm."
+      },
+      {
+        "mistake": "Rolling forward or back",
+        "adjustment": "Stack the hips and shoulders, chest facing forward."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level in front of you, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "jump_squat",
+    "name": "Jump Squat",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 30,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "jump_squat",
+    "purpose": "Build leg power with a squat that ends in a small, soft jump.",
+    "space": "About 2 × 2 m of clear, non-slip floor.",
+    "equipment": [
+      "Supportive footwear (recommended)"
+    ],
+    "safety": "Master the bodyweight squat first. This is a jumping move: land softly on the balls of the feet with soft knees. Keep a pace you could still talk at, and stop if you feel dizzy, short of breath, unwell, or pain in the joints. Swap for the low-impact version whenever you need to.",
+    "instructions": [
+      "Stand with the feet about shoulder-width apart.",
+      "Squat down with the arms reaching forward.",
+      "Drive up through the whole foot and jump a little off the floor.",
+      "Land softly on the balls of the feet, sink into a small squat, then stand."
+    ],
+    "commonCues": [
+      "Land softly.",
+      "Knees in line with the toes.",
+      "Small jumps first."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Landing on straight legs",
+        "adjustment": "Land on the balls of the feet and let the knees bend."
+      },
+      {
+        "mistake": "Knees caving in on landing",
+        "adjustment": "Keep the knee in line with the toes."
+      },
+      {
+        "mistake": "Jumping higher than you can land",
+        "adjustment": "Make the jumps smaller and keep the body in one line."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "close_grip_push_up",
+    "name": "Close-Grip Push-up",
+    "category": "fitness",
+    "level": "intermediate",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "close_grip_pushup",
+    "purpose": "Work the triceps and chest harder with the hands close and the elbows tucked.",
+    "space": "Floor space for your full body length. A sturdy wall or table works for the easier variation.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the push-up first. Stop if you feel pain in your wrists, elbows or shoulders.",
+    "instructions": [
+      "Start in a high plank with the hands under the shoulders.",
+      "Lower the chest with the elbows tucked close to the ribs, pointing back.",
+      "Keep one straight line from head to heels.",
+      "Press back up to the top."
+    ],
+    "commonCues": [
+      "Elbows back, close to the ribs.",
+      "One straight line from head to heels.",
+      "Lower slowly."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Elbows flaring out to the sides",
+        "adjustment": "Turn the elbows back toward the feet as you lower."
+      },
+      {
+        "mistake": "Hips sagging or piking",
+        "adjustment": "Try an easier incline variation with hands on a wall or sturdy table, or lower your knees to the floor."
+      },
+      {
+        "mistake": "Dropping too fast",
+        "adjustment": "Lower slowly and only as far as feels comfortable."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
     "reviewStatus": "draft_pending_coach_review"
   }
 ]

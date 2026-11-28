@@ -470,6 +470,10 @@ def repair_mesh(mesh):
     print(f"mesh repair: removed {len(frags)} fragment(s) ({len(dead)} faces), closed {filled} pinholes")
 
 
+# clips with flight (batch 10, clips_cardio.AIRBORNE)
+AIRBORNE = {"jumping_jack", "high_knees", "butt_kick_jog", "fast_feet", "skater_hop", "plank_jack", "jump_squat"}
+
+
 def floor_contact(arm, mesh, scene, names):
     """Per frame, move the hips vertically so the lowest point of the shoes rests on the floor (z = rest-pose sole height).
     Measured on the real skinned mesh, so squats lower the body instead of lifting the feet."""
@@ -500,6 +504,11 @@ def floor_contact(arm, mesh, scene, names):
             m2.vertices.foreach_get("co", co)
             ev.to_mesh_clear()
             dzs.append(ground - float(co.reshape(-1, 3)[feet, 2].min()))
+        if n in AIRBORNE:
+            # jumps: the first frame stands on the floor; every other frame is only lifted out of the floor, never
+            # pulled down to it (that would flatten the flight)
+            c = dzs[0]
+            dzs = [max(c, d) for d in dzs]
         if CONTACTS.get(n, ("",))[0] == "hands" and len(dzs) > 8:
             # hands on the floor: the body is moved smoothly (the lowest shoe point hops between ball, toe and the other
             # foot as a leg drives; following it frame by frame jerked the shoulders, and the pinned arms whipped the
@@ -614,7 +623,7 @@ LIFTING_HANDS = ("bird_dog", "shoulder_taps")
 KNEEL_FOOT_SMOOTH = True        # kneeling feet: measure the needed turn per frame, apply it eased over time
 CONTACTS = {
     "cat_cow": ("kneel",), "bird_dog": ("kneel",), "knee_pushup_down": ("kneel",), "knee_pushup_up": ("kneel",),
-    "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
+    "plank_hold": ("hands",), "mountain_climber_slow": ("hands",), "mountain_climber": ("hands",), "plank_jack": ("hands",), "pushup_down": ("hands",), "pushup_up": ("hands",),
     "glute_bridge": ("bridge",), "dead_bug": ("back",), "superman": ("prone",),
     # batch 7 (clips_fit2.py)
     "crunch": ("bridge",), "heel_taps": ("bridge",), "db_floor_press": ("bridge",), "single_leg_bridge": ("bridge",),
@@ -623,6 +632,11 @@ CONTACTS = {
     # (shoulder_taps: not pinned -- releasing the pin as a hand lifts jolted the elbow 7 cm in a frame; the authored hands
     # stay put on their own)
     "donkey_kick": ("kneel",), "fire_hydrant": ("kneel",), "childs_pose": ("kneel",),
+    # batch 11 (clips_core.py)
+    "hollow_hold": ("back",), "leg_raise": ("back",), "bicycle_crunch": ("back",), "plank_leg_lift": ("hands",),
+    "glute_bridge_march": ("bridge",),
+    # batch 12 (clips_harder.py)
+    "close_grip_pushup": ("hands",),
 }
 
 

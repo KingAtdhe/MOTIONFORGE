@@ -37,6 +37,14 @@ data class UserPreferences(
     /** App language: an I18n code, or "" for the phone's language. */
     val language: String = "",
     val reminder: eu.motionforge.app.feature.reminders.ReminderSchedule = eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT,
+    /** Sessions a week the person aims for (1–7); the calm weekly streak counts weeks that reach it. */
+    val weeklyGoal: Int = eu.motionforge.app.feature.progress.Milestones.DEFAULT_GOAL,
+    /** Show the weekly goal, streak and badges (on by default, can be turned off). */
+    val milestones: Boolean = true,
+    /** Challenges joined (opt-in), with when each was joined. */
+    val challenges: List<eu.motionforge.app.feature.progress.JoinedChallenge> = emptyList(),
+    /** Add each saved session to Health Connect as a workout (off by default; needs its write permission). */
+    val healthConnect: Boolean = false,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -64,6 +72,11 @@ class UserPreferencesRepository(context: Context) {
                         ?: eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT.days,
                     (p[REMINDER_MINUTE] ?: eu.motionforge.app.feature.reminders.ReminderSchedule.DEFAULT.minuteOfDay).coerceIn(0, 24 * 60 - 1),
                 ),
+                weeklyGoal = (p[WEEKLY_GOAL] ?: eu.motionforge.app.feature.progress.Milestones.DEFAULT_GOAL)
+                    .coerceIn(eu.motionforge.app.feature.progress.Milestones.GOAL_RANGE),
+                milestones = p[MILESTONES] ?: true,
+                challenges = eu.motionforge.app.feature.progress.Challenges.decode(p[CHALLENGES]),
+                healthConnect = p[HEALTH_CONNECT] ?: false,
             )
         }
 
@@ -111,6 +124,22 @@ class UserPreferencesRepository(context: Context) {
         }
     }
 
+    suspend fun setWeeklyGoal(goal: Int) {
+        store.edit { it[WEEKLY_GOAL] = goal.coerceIn(eu.motionforge.app.feature.progress.Milestones.GOAL_RANGE) }
+    }
+
+    suspend fun setMilestones(on: Boolean) {
+        store.edit { it[MILESTONES] = on }
+    }
+
+    suspend fun setChallenges(list: List<eu.motionforge.app.feature.progress.JoinedChallenge>) {
+        store.edit { it[CHALLENGES] = eu.motionforge.app.feature.progress.Challenges.encode(list) }
+    }
+
+    suspend fun setHealthConnect(on: Boolean) {
+        store.edit { it[HEALTH_CONNECT] = on }
+    }
+
     suspend fun setLanguage(code: String) {
         store.edit { it[LANGUAGE] = code }
     }
@@ -133,5 +162,9 @@ class UserPreferencesRepository(context: Context) {
         val LANGUAGE = stringPreferencesKey("language")
         val REMINDER_DAYS = stringPreferencesKey("reminder_days")
         val REMINDER_MINUTE = androidx.datastore.preferences.core.intPreferencesKey("reminder_minute")
+        val WEEKLY_GOAL = androidx.datastore.preferences.core.intPreferencesKey("weekly_goal")
+        val MILESTONES = booleanPreferencesKey("milestones")
+        val CHALLENGES = stringPreferencesKey("challenges")
+        val HEALTH_CONNECT = booleanPreferencesKey("health_connect")
     }
 }

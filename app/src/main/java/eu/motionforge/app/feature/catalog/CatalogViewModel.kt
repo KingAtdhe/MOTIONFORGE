@@ -54,6 +54,10 @@ class CatalogViewModel(
         _filter.value = _filter.value.copy(equipment = equipment)
     }
 
+    fun setLevel(level: LevelFilter) {
+        _filter.value = _filter.value.copy(level = level)
+    }
+
     fun setQuery(query: String) {
         _filter.value = _filter.value.copy(query = query.take(60))
     }

@@ -11,12 +11,12 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     LEGS("legs", "Legs & glutes", TrainingCategory.FITNESS, listOf(
         "bodyweight_squat", "reverse_lunge", "glute_bridge", "sumo_squat", "split_squat", "side_lunge", "forward_lunge",
         "curtsy_lunge", "squat_calf_raise", "calf_raise", "wall_sit", "good_morning", "glute_kickback", "side_leg_raise",
-        "single_leg_glute_bridge", "skater_step", "donkey_kick", "fire_hydrant", "single_leg_rdl",
+        "single_leg_glute_bridge", "skater_step", "donkey_kick", "fire_hydrant", "single_leg_rdl", "jump_squat",
         "dumbbell_squat", "dumbbell_goblet_squat", "dumbbell_reverse_lunge", "dumbbell_romanian_deadlift", "dumbbell_calf_raise",
     )),
     UPPER("upper", "Upper body", TrainingCategory.FITNESS, listOf(
         "knee_push_up", "incline_push_up", "wall_push_up", "push_up", "bench_dip", "plank_shoulder_taps", "arm_circles",
-        "high_plank", "bear_plank_hold", "superman",
+        "high_plank", "bear_plank_hold", "superman", "close_grip_push_up",
         "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "dumbbell_bent_over_row",
         "dumbbell_hammer_curl", "dumbbell_front_raise", "dumbbell_reverse_fly", "dumbbell_overhead_triceps_extension",
         "dumbbell_floor_press", "dumbbell_shrug",
@@ -25,6 +25,8 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
         "forearm_plank", "dead_bug", "bird_dog", "crunch", "reverse_crunch", "heel_taps", "tabletop_toe_taps", "high_plank",
         "slow_mountain_climber", "superman", "bear_plank_hold", "standing_knee_crunch", "standing_oblique_crunch",
         "standing_side_bend", "standing_torso_twist",
+        "hollow_hold", "bent_knee_leg_raise", "bicycle_crunch", "glute_bridge_march", "side_plank_knees",
+        "plank_leg_lift", "side_plank",
     )),
     BOXING("boxing", "Boxing", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()),  // every fighting lesson but footwork
     STRETCH("stretch", "Stretch & recover", TrainingCategory.FITNESS, listOf(
@@ -34,6 +36,11 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     )),
     // appended last: Home keeps the chosen focus as an index
     ROUNDS("rounds", "Boxing rounds", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()), // timed rounds, called combos
+    // intervals: short work, short rest; low-impact moves at level 1, jumps from level 2 (SessionBuilder.cardioSuits)
+    CARDIO("cardio", "Cardio & HIIT", TrainingCategory.FITNESS, listOf(
+        "step_jack", "high_knee_march", "butt_kicks", "skater_step", "slow_mountain_climber", "fast_feet", "boxing_speed_punches",
+        "jumping_jack", "high_knees", "butt_kick_jog", "skater_hop", "plank_jack", "mountain_climber",
+    )),
     ;
 
     companion object {
@@ -89,9 +96,23 @@ object SessionBuilder {
     fun workSeconds(level: Int) = when (level) { 3 -> 50; 2 -> 45; else -> 40 }
     /** Rest between rounds in boxing rounds, by level. */
     fun roundRest(level: Int) = when (level) { 3 -> 30; 2 -> 40; else -> 45 }
-    private val HARD_ONLY = setOf("push_up", "single_leg_rdl", "single_leg_glute_bridge", "skater_step", "bench_dip")
-    private val EASY_ONLY = setOf("wall_push_up", "knee_push_up")
+    private val HARD_ONLY = setOf("push_up", "single_leg_rdl", "single_leg_glute_bridge", "skater_step", "bench_dip",
+        "side_plank", "plank_leg_lift")
+    private val EASY_ONLY = setOf("wall_push_up", "knee_push_up", "side_plank_knees")
     private fun suits(id: String, level: Int) = when (level) { 1 -> id !in HARD_ONLY; 3 -> id !in EASY_ONLY; else -> true }
+
+    /** Cardio: jumps only from level 2 (the hardest three from level 3); level 3 drops the low-impact versions. */
+    private val CARDIO_JUMPS = setOf("jumping_jack", "high_knees", "butt_kick_jog")
+    private val CARDIO_HARD = setOf("skater_hop", "plank_jack", "mountain_climber")
+    private val CARDIO_LOW = setOf("step_jack", "high_knee_march", "butt_kicks", "skater_step", "slow_mountain_climber")
+    fun cardioSuits(id: String, level: Int) = when (level) {
+        1 -> id !in CARDIO_JUMPS && id !in CARDIO_HARD
+        2 -> id !in CARDIO_HARD
+        else -> id !in CARDIO_LOW
+    }
+    /** Interval work and rest (seconds) in Cardio & HIIT, by level. */
+    fun intervalWork(level: Int) = when (level) { 3 -> 40; 2 -> 35; else -> 30 }
+    fun intervalRest(level: Int) = when (level) { 3 -> 15; 2 -> 20; else -> 30 }
 
     private fun usable(e: Exercise, dumbbells: Boolean): Boolean {
         val needs = e.equipment.filter { !it.contains("(optional)") && !it.contains("(recommended)") }
@@ -134,11 +155,15 @@ object SessionBuilder {
                 val stance = all.filter { it.id == SessionPlanner.STANCE_ID }
                 stance + shuffled(all - stance.toSet(), seed)
             }
+            SessionFocus.CARDIO -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { cardioSuits(it.id, p.level) }, seed)
             else -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { usable(it, p.dumbbells) }, seed)
-        }.filter { suits(it.id, p.level) }
+        }.filter { p.focus == SessionFocus.CARDIO || suits(it.id, p.level) }
+            // level 1 keeps to beginner lessons (intermediate ones come from level 2)
+            .filter { p.level > 1 || it.level == eu.motionforge.app.core.model.Level.BEGINNER }
         if (pool.isEmpty()) return null
         val target = p.minutes * 60
-        val rest = SessionPlanner.REST_SECONDS
+        val cardio = p.focus == SessionFocus.CARDIO
+        val rest = if (cardio) intervalRest(p.level) else SessionPlanner.REST_SECONDS
         val steps = mutableListOf<SessionStep>()
         var total = 0
         fun add(e: Exercise, seconds: Int) {
@@ -151,7 +176,7 @@ object SessionBuilder {
             shuffled(COOL_DOWN.mapNotNull { byId[it] }, seed).take(if (p.minutes >= 15) 2 else 1)
         } else emptyList()
         val coolDownTime = coolDown.size * (45 + rest)
-        val each = if (stretching) 50 else workSeconds(p.level)
+        val each = when { stretching -> 50; cardio -> intervalWork(p.level); else -> workSeconds(p.level) }
         // a short list is gone through again in rounds (never the same move twice in a row)
         var last: String? = null
         rounds@ for (round in 0 until 4) for (e in pool) {

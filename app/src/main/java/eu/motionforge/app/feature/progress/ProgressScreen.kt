@@ -57,7 +57,15 @@ fun ProgressScreen(history: List<SessionRecord>?, coach: Coach, onStartSession: 
 
 /** Progress as part of a page: this week, the last four weeks and the history contact sheet. */
 @Composable
-fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List<SessionRecord>?, coach: Coach, onStartSession: () -> Unit) {
+fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(
+    history: List<SessionRecord>?,
+    coach: Coach,
+    onStartSession: () -> Unit,
+    weeklyGoal: Int = Milestones.DEFAULT_GOAL,
+    milestones: Boolean = true,
+    /** Joined challenges; null hides the challenges section (the plain Progress screen). */
+    challenges: List<JoinedChallenge>? = null,
+) {
     run {
         if (history == null) {
             Text("Loading your history…")
@@ -71,8 +79,15 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
             StatTile("${summary.minutesThisWeek}", "Minutes this week", Modifier.weight(1f))
         }
 
+        if (milestones) {
+            val streak = remember(history, weeklyGoal) { Milestones.streak(history, LocalDate.now(zone), zone, weeklyGoal) }
+            WeeklyGoalPanel(streak)
+        }
+
         eu.motionforge.app.core.design.SectionHeader("This week")
         eu.motionforge.app.core.design.WeekTicks(summary.trainedDaysThisWeek, LocalDate.now(zone).dayOfWeek)
+
+        if (challenges != null) ChallengesSection(history, challenges)
 
         if (history.isEmpty()) {
             Panel {
@@ -123,6 +138,8 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
                 }
             }
         }
+        val form = remember(history) { FormScore.trends(history) }
+        FormTrendsSection(form)
         val holds = remember(history) { ProgressStats.holdTrends(history) }
         if (holds.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -132,6 +149,12 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(history: List
                     RepTrendRow(t, seconds = true)
                 }
             }
+        }
+
+        if (milestones) {
+            val earned = remember(history, weeklyGoal) { Milestones.badges(history, zone, weeklyGoal) }
+            eu.motionforge.app.core.design.SectionHeader("Badges", trailing = "${earned.size} of ${Badge.entries.size}")
+            BadgeGrid(earned, zone)
         }
 
         eu.motionforge.app.core.design.SectionHeader("History")

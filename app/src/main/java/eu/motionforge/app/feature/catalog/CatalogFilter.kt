@@ -18,22 +18,29 @@ enum class EquipmentFilter(val label: String) {
     WITH("With equipment"),
 }
 
-/**
- * Catalogue filter. Difficulty is not offered yet because every MVP lesson is beginner level;
- * a filter with a single option would be a control that does nothing.
- */
+/** Level buckets offered in the catalogue filter. */
+enum class LevelFilter(val label: String, val level: eu.motionforge.app.core.model.Level?) {
+    ANY("Any level", null),
+    BEGINNER("Beginner", eu.motionforge.app.core.model.Level.BEGINNER),
+    INTERMEDIATE("Intermediate", eu.motionforge.app.core.model.Level.INTERMEDIATE),
+}
+
+/** Catalogue filter: category, length, equipment, level and a text search. */
 data class CatalogFilter(
     val category: TrainingCategory? = null,
     val duration: DurationFilter = DurationFilter.ANY,
     val equipment: EquipmentFilter = EquipmentFilter.ANY,
     /** Text typed in the search bar; blank = no search. */
     val query: String = "",
+    val level: LevelFilter = LevelFilter.ANY,
 ) {
-    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY || equipment != EquipmentFilter.ANY || query.isNotBlank()
+    val isActive: Boolean get() = category != null || duration != DurationFilter.ANY || equipment != EquipmentFilter.ANY || query.isNotBlank() ||
+        level != LevelFilter.ANY
 
     fun apply(exercises: List<Exercise>): List<Exercise> = CatalogSearch.search(exercises, query).filter { e ->
         (category == null || e.category == category) &&
             (duration.maxSeconds == null || e.durationSeconds <= duration.maxSeconds) &&
+            (level.level == null || e.level == level.level) &&
             when (equipment) {
                 EquipmentFilter.ANY -> true
                 EquipmentFilter.NONE -> !e.needsEquipment

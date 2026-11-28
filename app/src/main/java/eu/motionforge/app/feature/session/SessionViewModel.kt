@@ -46,6 +46,14 @@ class SessionViewModel(
     private val clock: () -> Long = { android.os.SystemClock.elapsedRealtime() },
     /** Called once the session is saved (a plan session then counts as done). */
     private val onSaved: suspend () -> Unit = {},
+    /** The saved history right now (read just before saving, to see which badges the save earns). */
+    private val historyNow: suspend () -> List<eu.motionforge.app.feature.progress.SessionRecord> = { emptyList() },
+    /** Badges earned by the save, given the history before it (empty when streaks and badges are turned off). */
+    private val badgesEarned: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Badge> = { emptyList() },
+    /** Joined challenges the save completed, given the history before it. */
+    private val challengesCompleted: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Challenge> = { emptyList() },
+    /** After a save: hands the session's start and end to the optional Health Connect export (a no-op when it's off). */
+    private val exportWorkout: suspend (startedAtMillis: Long, endedAtMillis: Long) -> Unit = { _, _ -> },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -56,6 +64,14 @@ class SessionViewModel(
 
     private val _save = MutableStateFlow(SaveState.IDLE)
     val save: StateFlow<SaveState> = _save.asStateFlow()
+
+    private val _newBadges = MutableStateFlow<List<eu.motionforge.app.feature.progress.Badge>>(emptyList())
+    /** Badges the saved session earned, shown on the summary. */
+    val newBadges: StateFlow<List<eu.motionforge.app.feature.progress.Badge>> = _newBadges.asStateFlow()
+
+    private val _completedChallenges = MutableStateFlow<List<eu.motionforge.app.feature.progress.Challenge>>(emptyList())
+    /** Challenges the saved session completed, shown on the summary. */
+    val completedChallenges: StateFlow<List<eu.motionforge.app.feature.progress.Challenge>> = _completedChallenges.asStateFlow()
 
     private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
     /** The rep counter for the current step (squat, push-up or lunge rules), or null when the step isn't counted. */
@@ -208,10 +224,13 @@ class SessionViewModel(
             update.event?.let { ev ->
                 lastRepEvent = ev
                 say(SessionNarrator.repLine(ev))
+                if (ev is RepEvent.ShallowRep) onEvent(SessionEvent.ShallowAttempt)
             }
             if (counter.repetitions > before) {
                 val target = step.targetReps
                 if (target != null && counter.repetitions >= target) say(CoachLine(SessionNarrator.TARGET_REACHED, eu.motionforge.app.core.coaching.CuePriority.ANNOUNCE))
+                // a possible form adjustment on this rep: tallied first, so a rep that ends the set stays in its set
+                if ((update.event as? RepEvent.RepCompleted)?.issues?.isNotEmpty() == true) onEvent(SessionEvent.RepFlagged)
                 onEvent(SessionEvent.RepCounted)
             }
         }
@@ -293,14 +312,22 @@ class SessionViewModel(
         if (!s.isSaveable || _save.value == SaveState.SAVING || _save.value == SaveState.SAVED) return
         _save.value = SaveState.SAVING
         viewModelScope.launch {
+            val before = runCatching { historyNow() }.getOrNull()
+            val ended = System.currentTimeMillis()
             _save.value = runCatching {
-                repository.save(s, startedAtMillis, System.currentTimeMillis(), perceivedEffort)
+                repository.save(s, startedAtMillis, ended, perceivedEffort)
             }.fold({
                 runCatching { onSaved() }
+                if (before != null) {
+                    _newBadges.value = runCatching { badgesEarned(before) }.getOrDefault(emptyList())
+                    _completedChallenges.value = runCatching { challengesCompleted(before) }.getOrDefault(emptyList())
+                }
                 toPersist.value = Disk.Forget
                 withContext(Dispatchers.IO) { store.clear() }
                 SaveState.SAVED
             }, { SaveState.FAILED })
+            // in the background: the summary never waits for (or fails because of) Health Connect
+            if (_save.value == SaveState.SAVED) launch { runCatching { exportWorkout(startedAtMillis, ended) } }
         }
     }
 }

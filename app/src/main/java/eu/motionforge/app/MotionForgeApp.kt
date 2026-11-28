@@ -1,5 +1,6 @@
 package eu.motionforge.app
 
+import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -188,6 +189,11 @@ fun MotionForgeApp(
                         )
                     },
                     trainedDaysThisWeek = weekSummary?.trainedDaysThisWeek.orEmpty(),
+                    weekStreak = if (!preferences.milestones) null else history?.let { h ->
+                        remember(h, preferences.weeklyGoal, today) {
+                            eu.motionforge.app.feature.progress.Milestones.streak(h, java.time.LocalDate.now(), java.time.ZoneId.systemDefault(), preferences.weeklyGoal)
+                        }
+                    },
                     onRetry = catalogViewModel::load,
                     activePlan = activePlan,
                     planSession = activePlan?.takeIf { preferences.planSessionsDone < it.totalSessions }?.let { p ->
@@ -213,6 +219,7 @@ fun MotionForgeApp(
                     onCategory = catalogViewModel::setCategory,
                     onDuration = catalogViewModel::setDuration,
                     onEquipment = catalogViewModel::setEquipment,
+                    onLevel = catalogViewModel::setLevel,
                     onClearFilters = catalogViewModel::clearFilters,
                     onQuery = catalogViewModel::setQuery,
                     onOpenLesson = { navController.navigate(Routes.lesson(it)) },
@@ -267,6 +274,8 @@ fun MotionForgeApp(
                         SessionPlanner.quick(c.exercises, preferences.focus)
                     } else if (built != null) {
                         eu.motionforge.app.feature.session.SessionBuilder.build(c.exercises, built)
+                    } else if (eu.motionforge.app.feature.session.Flows.parseKey(planArg) != null) {
+                        eu.motionforge.app.feature.session.Flows.build(eu.motionforge.app.feature.session.Flows.parseKey(planArg)!!, c.exercises)
                     } else if (planned != null) {
                         eu.motionforge.app.feature.plan.PlanSessions.build(planned.first, planned.second, c.exercises, planHistory)
                     } else {
@@ -286,6 +295,26 @@ fun MotionForgeApp(
                             tips = ready.exercises.associate { it.id to it.commonCues },
                             onSaved = {
                                 planned?.let { (p, i) -> container.preferences.markPlanSessionDone(p.id, i) }
+                            },
+                            historyNow = { container.sessions.history.first() },
+                            badgesEarned = { before ->
+                                val p = container.preferences.preferences.first()
+                                if (!p.milestones) emptyList()
+                                else eu.motionforge.app.feature.progress.Milestones.newlyEarned(
+                                    before, container.sessions.history.first(), java.time.ZoneId.systemDefault(), p.weeklyGoal,
+                                )
+                            },
+                            exportWorkout = { start, end ->
+                                if (container.preferences.preferences.first().healthConnect) {
+                                    eu.motionforge.app.feature.progress.HealthWorkouts.of(plan.title, plan.type, planArg, start, end)
+                                        ?.let { container.healthConnect.write(it) }
+                                }
+                            },
+                            challengesCompleted = { before ->
+                                eu.motionforge.app.feature.progress.Challenges.newlyCompleted(
+                                    container.preferences.preferences.first().challenges,
+                                    before, container.sessions.history.first(), java.time.ZoneId.systemDefault(),
+                                )
                             },
                         )
                     }

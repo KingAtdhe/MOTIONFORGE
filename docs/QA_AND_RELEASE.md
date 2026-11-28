@@ -67,6 +67,9 @@ Expected result when tracking quality is inadequate: show an understandable setu
 Do not publish publicly until:
 - Build is reproducible.
 - Privacy policy accurately describes actual data handling.
+- Health Connect (optional, off by default): the privacy policy and the Play Console Health Connect declaration state
+  that CORZA writes exercise sessions (type, start/end, title) only, reads nothing, and estimates nothing; the in-app
+  privacy note (Health Connect → CORZA) matches.
 - Camera permission rationale is clear.
 - Store data-safety declarations match implementation.
 - All training content has appropriate safety review.

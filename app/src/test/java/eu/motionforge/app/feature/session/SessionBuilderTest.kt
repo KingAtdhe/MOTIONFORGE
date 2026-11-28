@@ -153,4 +153,46 @@ class SessionBuilderTest {
         assertEquals(SessionBuilder.Params(SessionFocus.CORE, 10, false, 20_100, 1), SessionBuilder.parseKey("build-core-10-n-20100"))
         assertNull(SessionBuilder.parseKey("build-core-10-n-20100-L9"))
     }
+
+    @Test
+    fun cardioIsIntervalsAndJumpsComeWithLevels() {
+        for (level in SessionBuilder.LEVELS) {
+            val p = build(SessionFocus.CARDIO, 15, level = level)
+            val works = p.steps.filterIsInstance<SessionStep.Work>().filter { it.exerciseId in SessionFocus.CARDIO.ids }
+            assertTrue("$level: ${works.size} intervals", works.size >= 6)
+            works.forEach { assertEquals(SessionBuilder.intervalWork(level), it.durationSeconds) }
+            val ids = works.map { it.exerciseId }.toSet()
+            when (level) {
+                1 -> assertTrue("no jumps at level 1: $ids", ids.none { it in setOf("jumping_jack", "high_knees", "skater_hop", "plank_jack", "mountain_climber") })
+                3 -> assertTrue("no low-impact versions at level 3: $ids", ids.none { it in setOf("step_jack", "high_knee_march", "butt_kicks") })
+            }
+            // the rest before each interval is the level's interval rest
+            p.steps.zipWithNext().filter { (a, b) -> a is SessionStep.Rest && (b as? SessionStep.Work)?.exerciseId in SessionFocus.CARDIO.ids }
+                .forEach { (a, _) -> assertEquals(SessionBuilder.intervalRest(level), a.durationSeconds) }
+        }
+    }
+
+    @Test
+    fun coreKeepsTheHarderPlanksForLaterLevels() {
+        for (day in 20_000L until 20_012L) {
+            val easy = build(SessionFocus.CORE, 20, day = day, level = 1).steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.toSet()
+            assertTrue("level 1: $easy", easy.none { it == "side_plank" || it == "plank_leg_lift" })
+            val hard = build(SessionFocus.CORE, 20, day = day, level = 3).steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.toSet()
+            assertTrue("level 3: $hard", "side_plank_knees" !in hard)
+        }
+        // every new core lesson exists in the catalogue
+        val ids = catalog.map { it.id }.toSet()
+        listOf("hollow_hold", "bent_knee_leg_raise", "bicycle_crunch", "glute_bridge_march", "side_plank_knees", "plank_leg_lift", "side_plank")
+            .forEach { assertTrue(it, it in ids) }
+    }
+
+    @Test
+    fun levelOneKeepsToBeginnerLessonsInEveryFocus() {
+        for (f in SessionFocus.entries) for (db in listOf(false, true)) for (day in 20_000L until 20_005L) {
+            val p = SessionBuilder.build(catalog, SessionBuilder.Params(f, 20, db, day, 1)) ?: continue
+            val ids = p.steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.filter { it in byId }
+            assertTrue("$f: ${ids.filter { byId.getValue(it).level != eu.motionforge.app.core.model.Level.BEGINNER }}",
+                ids.all { byId.getValue(it).level == eu.motionforge.app.core.model.Level.BEGINNER })
+        }
+    }
 }

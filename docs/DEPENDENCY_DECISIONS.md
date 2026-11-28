@@ -66,3 +66,12 @@ a device; CI runs it in its own step (MF_SCREENSHOTS=1) and pushes the PNGs to t
 release is built with Kotlin 2.3, newer than this project's Kotlin 2.2. `ui-test-junit4` / `ui-test-manifest` come from
 the Compose BOM.
 ## Font: Barlow family (OFL; replaced Archivo and Manrope 2026-11-22) (variable, OFL) replaces Big Shoulders Display + Schibsted Grotesk (2026-11-22)
+
+## androidx.health.connect:connect-client 1.1.0 (2026-11-28)
+Optional Health Connect export (Profile, off by default): each saved session is written as one `ExerciseSessionRecord`
+(type, start/end, title) with `Metadata.activelyRecorded(clientRecordId, Device(TYPE_PHONE))`, so retries never
+duplicate. 1.1.0 is the current stable release on the AndroidX Health Connect release page (the 1.2 line is alpha);
+it needs minSdk 26 (this app's minimum). Write only (`android.permission.health.WRITE_EXERCISE`); nothing is read.
+The privacy-note activity (`HealthPermissionsActivity`) answers `ACTION_SHOW_PERMISSIONS_RATIONALE` and, on Android 14+,
+`VIEW_PERMISSION_USAGE` / `HEALTH_PERMISSIONS`. **Release:** Google Play requires the Health Connect permissions
+declaration in the Play Console and a privacy policy that states this export before the build can be published.

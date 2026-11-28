@@ -1460,3 +1460,186 @@ yet checked in the Play Console or the EU trademark register (EUIPO TMview) — 
 - **Kept on purpose:** the application ID `eu.motionforge.app`, Kotlin packages, the repo name and the database file
   `motionforge.db` (renaming the database would lose people's history; the ID is fixed once an app is published and
   nobody sees it). Rename the ID only if the owner asks, before the first Play upload.
+
+## 2026-11-28 (1) — Weekly goal, streak and badges
+
+The owner asked for streaks and badges. The product spec rules out *pressure-based* streaks, so this is the calm kind:
+- **Weekly goal** (1–7 sessions, default 3; Profile → Weekly goal). The **streak** counts weeks in a row that reached
+  it. Rest days never break it, a week still running never breaks it (it only ends after a whole week below the goal),
+  and there are no warnings, countdowns or "don't lose your streak" messages anywhere. One switch turns the goal,
+  streak and badges off everywhere.
+- **15 badges** for training done: first session, first boxing rounds, all-rounder (both categories), 10/25/50
+  sessions, 1 h and 5 h trained, 100 and 1,000 camera-counted reps, 5 min of camera-timed holds, a personal best,
+  goal reached, 4 and 12 goal weeks in a row. Nothing rewards training every day or through discomfort. Each badge's
+  date is the session that earned it (the history is replayed oldest first), so they need no storage of their own
+  and the data reset clears them too.
+- **Where:** You → a weekly goal panel (segments fill per session and turn yellow when the goal is reached, the streak
+  and best streak) and a badge grid (earned in yellow, the rest as outlines, each with a screen-reader label); Home →
+  one quiet line under the week ticks; the session summary → "New badge" after saving when one was earned.
+- `feature/progress/Milestones.kt` (pure logic, `MilestonesTest`: 11 tests, run locally with kotlinc) and
+  `MilestonesUi.kt`. Translations: 55 strings in all 23 tables (`tools/i18n/parts_milestones.py`), `check.py` clean.
+
+## 2026-11-28 (2) — Cardio & HIIT
+
+The owner asked for more exercises, including cardio. Eight new lessons (136 in total), all **guided, not scored**:
+jumping jack, high knees, butt kicks (jog), fast feet, skater hop, plank jack, mountain climber, and boxing speed
+punches. The camera counters are not wired to them until they are checked against rendered videos, so each lesson
+says plainly that the camera does not assess it yet and how to place the phone. Each jumping move says to land
+softly, keep a pace you could still talk at, stop if dizzy, short of breath or in pain, and swap for a low-impact version.
+
+- **New session focus "Cardio & HIIT"** (Fitness) on Home. Interval work/rest by level: 30/30 s, 35/20 s, 40/15 s.
+  Level 1 has no jumps and no hard moves (step jack, march, butt kicks, skater step, slow mountain climber, fast feet,
+  speed punches), level 2 adds jumping jack, high knees and the kick jog, level 3 adds skater hop, plank jack and mountain
+  climber and drops the low-impact versions. The dumbbell toggle is hidden for this focus. `SessionBuilderTest` covers it.
+- **Animation** (`tools/blender/clips_cardio.py`, batch 10): 8 new clips for both coaches (154 authored). Jumping clips
+  are marked AIRBORNE so the floor-contact pass never pulls a jump down onto the floor; plank jack and mountain climber
+  keep the hands planted. QC: jerk check against the existing slow versions; butt_kick_jog first showed a 2 cm leg
+  over-reach and a knee jerk spike (the heel's blend back home passed outside the leg's reach), fixed by clamping
+  the ankle target inside 98.5 % of the leg length (over-reach gone, knee jerk halved, the rest is the fast heel
+  swing itself). Motion studies rendered and checked frame by frame for both coaches.
+- **Translations:** 98 new strings in all 23 tables (`parts_batch10.py`, `parts_batch10b.py`, `parts_batch10c.py`);
+  lesson phrasing reuses already-translated lines where possible. `check.py` clean.
+- **Tests run locally** (kotlinc 2.0.21 + JUnit): SessionBuilderTest, ExerciseCatalogParserTest, DemoClipsTest.
+  CI runs the full suite.
+- **Known limits:** the new moves are not camera-counted yet; candidate counters (ARM_LIFT for jumping jack, KNEE_LIFT,
+  BUTT_KICK, SKATE, CLIMBER) need rendered-video fixtures before any lesson moves to limited rule-based tracking.
+
+## 2026-11-28 (3) — Challenges
+
+The owner asked for challenges. Nine opt-in challenges on the You page, each over a fixed window that starts when you
+join it, all measured from saved sessions (nothing self-reported):
+
+| Challenge | Goal | Window |
+|---|---|---|
+| Four-week habit | 12 sessions | 4 weeks |
+| Hundred minutes | 100 minutes trained | 2 weeks |
+| 300 squats / 150 push-ups / 200 lunges | reps **counted by the camera** (any lesson the camera counts for that move; wall, incline and knee push-ups too) | 4 weeks |
+| Ring time | 8 fighting fundamentals sessions | 4 weeks |
+| Cardio fortnight | 6 sessions with a cardio move | 2 weeks |
+| Ten steady minutes | 10 min of holds **timed by the camera** | 3 weeks |
+| Explorer | 20 different exercises | 4 weeks |
+
+- Calm like the weekly goal: no reminders, no countdown warnings. A card shows "Day 5 of 28", a bar and the amount. If
+  the window ends first it says so plainly and offers to start again; a complete one turns yellow. Up to 3 run at once
+  (a finished one frees its slot). Leaving asks once and says the sessions stay in the history. Guided (uncounted)
+  lessons never add to rep or hold challenges, so nothing is credited that wasn't measured.
+- The session summary shows "Challenge complete" after the save that crossed the line.
+- Storage: only "which challenge, joined when" in the preferences (`challenges`); progress is recomputed from the
+  history, so the local data reset clears it with everything else.
+- `feature/progress/Challenges.kt` (pure logic, `ChallengesTest`: 7 tests, run locally with kotlinc + JUnit — window
+  edges, before-joining sessions, camera-only reps, minutes/holds/variety, the 3-running limit and restart, and
+  "newly completed" only on the crossing save), `ChallengesUi.kt`; screenshot `13_challenges` in the CI reports.
+- Translations: 41 strings in all 23 tables (`parts_challenges.py`, `parts_challenges_b.py`), `check.py` clean.
+- Not verified locally: the Compose code (no Android SDK here); CI compiles it and renders the screenshot.
+
+## 2026-11-28 (4) — Core & abs
+
+Seven new core lessons (143 in total), all **guided, not scored** until a camera check is validated on rendered
+videos: hollow hold (tuck), bent-knee leg raise, bicycle crunch, glute bridge march, side plank from the knees, plank
+leg lift and side plank. Each says how to place the phone (at floor level) and when to stop.
+
+- **Core focus on Home** gains them. Level 1 never gets the side plank or the plank leg lift; level 3 swaps the knee
+  side plank for the full one (`SessionBuilderTest.coreKeepsTheHarderPlanksForLaterLevels`).
+- **Animation** (`tools/blender/clips_core.py`, batch 11, both coaches, 153 clips): lying clips reuse the crunch
+  frame and a new `_leg(hip, knee)` helper for legs in the air; the plank leg lift reuses the forearm plank's geometry.
+  The side planks are new: a straight standing body turned onto its left side about its front-back axis, the angle
+  solved so the left shoulder sits straight above an elbow resting on the floor; top hand on the hip. Feet can now
+  carry an optional roll (a 4th element of the foot target, `Rig.foot_q(..., roll)`), so a foot can rest on its edge.
+  Contacts: lying clips "back" (no shoe on the floor), bridge march "bridge", plank leg lift "hands".
+  QC: no leg over-reach; 0.5 cm arm over-reach in the male side planks; motion studies checked frame by frame for both
+  coaches.
+- **Authoring preview:** `MF_ONLY=clip,clip` builds only those clips (no props), about 1.5 min instead of 6, for
+  iterating on poses; never used for a delivered build.
+- **CI:** screenshots from pull-request runs are now also published (branch `ci-screenshots-pr`), so the design can be
+  reviewed without downloading the reports artifact.
+- **Translations:** 71 strings in all 23 tables (`parts_batch11.py`, `parts_batch11b.py`), `check.py` clean.
+- **Tests run locally** (kotlinc + JUnit): SessionBuilderTest, ExerciseCatalogParserTest, DemoClipsTest,
+  ChallengesTest, MilestonesTest — 63 tests, all passing.
+
+## 2026-11-28 (5) — Form score
+
+The owner asked for a form score. It is built only from what the camera's rep counters already measure, on the
+moves whose counters check form rules on every rep (squat, push-up and lunge families):
+
+- **Score** = reps with no possible form adjustment flagged ÷ all attempts (counted reps + attempts too shallow to
+  count). Shown only with at least 5 attempts (one odd rep cannot swing it), only when the set was tracked well
+  enough to count reps (the same rule as the rep count), never for guided or uncounted moves.
+- **Session summary:** a "Form check" panel ("18 of 20 reps with nothing flagged", 90 %) that says plainly it covers
+  squats, push-ups and lunges only, checks a few simple rules, and does not judge technique beyond them; each
+  exercise line adds "N of M with nothing flagged".
+- **You page:** a "Form" section per exercise (latest %, bars for the last 8 sets).
+- **Engine:** two new events, `RepFlagged` (sent just before its `RepCounted`, so a rep that ends a set stays in that
+  set) and `ShallowAttempt`; each step result carries `cleanReps` / `shallowReps`, kept across a process restart
+  (snapshot) and saved. **Database version 3** with a non-destructive migration (two nullable columns; older sessions
+  simply have no score).
+- `feature/progress/FormScore.kt` (pure) + `FormScoreUi.kt`. Tests (kotlinc + JUnit, all passing): `FormScoreTest` (4),
+  `SessionEngineTest.formTallyCountsFlaggedAndShallowRepsOnlyForFormRuleMoves`, `SessionSnapshotTest.roundTripKeepsFormTallies`;
+  88 tests across the logic suites run locally. Screenshot `05_progress` now includes the Form section.
+- i18n: the extractor now skips `execSQL(` lines (a SQL statement had been picked up as a string to translate).
+  7 strings in all 23 tables (`parts_form.py`), `check.py` clean.
+- Not verified locally: Compose screens and the Room migration on a device (no Android SDK here); CI compiles and runs
+  the Robolectric suites.
+
+## 2026-11-28 (6) — Stretch & mobility flows
+
+Four follow-along flows on Home ("Stretch & mobility flows"), each a fixed sequence of the catalogue's stretch and
+mobility lessons with an 8 s "next" transition between moves:
+
+| Flow | Moves | Length |
+|---|---|---|
+| Morning mobility | arm circles, side bend, torso twist, hip circles, leg swings, squat hold, hamstring and calf stretch (all standing) | 7 min |
+| After training | quad, hamstring, calf and hip-flexor stretches, chest opener, shoulder and triceps stretches, child's pose | 8 min |
+| Desk break | arm circles, chest opener, shoulder and triceps stretches, side bend, torso twist, calf stretch (standing) | 6 min |
+| Hips & lower back | cat-cow, child's pose, hip circles, hip-flexor stretch, leg swings, squat hold, hamstring stretch, child's pose | 8 min |
+
+- A flow keeps each lesson's own camera check (counted or timed holds where a lesson already has a validated one);
+  the rest is guided by the timer. No equipment, no boxing drills. Session key `flow-<name>`, same session screen,
+  saved to the history like any session.
+- `feature/session/Flows.kt`; `FlowsTest` (3 tests: moves exist and need no equipment, transitions and lengths, keys
+  never collide with built-session keys), run locally and passing.
+- Translations: 9 strings in all 23 tables (`parts_flows.py`), `check.py` clean.
+
+## 2026-11-28 (7) — Harder levels
+
+The owner asked for harder levels. Lessons now carry a level: **Beginner** or **Intermediate** (145 lessons, 24
+intermediate).
+
+- **Intermediate** (`tools/levels_2026_11_28.py`, both catalogue copies): full push-up, single-leg RDL and glute
+  bridge, bench dip, kettlebell swing, plank shoulder taps, side plank, plank leg lift, skater hop, plank jack,
+  mountain climber; and the three-punch combinations and defend-then-counter drills (roll-hook, pull-counter,
+  slip-cross, jab-slip, block-cross, cross-hook-cross, one-two-uppercut, uppercut-hook, hook-cross, jab-body-cross,
+  body-head jab). Each already names its easier version or prerequisite in its safety text.
+- **Two new intermediate moves** (`tools/blender/clips_harder.py`, batch 12, both coaches, 155 clips): **jump squat**
+  (squat, a small jump with flight, soft landing into a quarter squat; airborne-safe floor pass) and **close-grip
+  push-up** (hands under the shoulders, elbows tucked back along the ribs). Both guided, not scored, until a camera
+  check is validated. Motion studies checked for both coaches; no new over-reach.
+- **Train → Filters → Level** (Any / Beginner / Intermediate); the lesson detail already shows the level.
+- **Built sessions:** level 1 keeps to beginner lessons in every focus (`SessionBuilderTest.levelOneKeepsToBeginnerLessonsInEveryFocus`);
+  intermediate lessons join from level 2. Jump squat joins Legs & glutes, close-grip push-up Upper body.
+- Small polish from the CI screenshots: a running challenge's "Leave" is a quiet text button, not a full-width one;
+  the Form bars match the Reps rows better.
+- Translations: 24 strings in all 23 tables (`parts_batch12.py`), `check.py` clean.
+- Tests run locally (kotlinc + JUnit): 92 logic tests plus DemoClipsTest against the rebuilt coaches, all passing.
+
+## 2026-11-28 (8) — Health Connect
+
+The owner asked for Health Connect. It is **optional and off by default** (Profile → Health Connect):
+
+- When on, each session you save is added to Health Connect as **one workout**: its type (boxing, HIIT, stretching or
+  calisthenics, from what was trained), start and end time, and title. Nothing else is written: no calories, no heart
+  rate, nothing estimated. **Nothing is read** from Health Connect, and nothing goes to a server.
+- The Profile text says exactly that **before** Android's permission screen appears; the switch asks for the single
+  write permission only when it is turned on. If access is refused or later removed, it says so and adds nothing.
+  If Health Connect is missing or outdated it says so and offers "Get Health Connect" (Play Store).
+- Saving never waits for Health Connect: the workout is written in the background after the session is saved, and
+  any failure is silent (the session is safe on the phone either way). The record id is stable for the session
+  (`corza-session-<start time>`), so a retry never adds it twice.
+- Health Connect's privacy note for CORZA (`HealthPermissionsActivity`, in the app's language) explains what is
+  written, what never is, and that workouts already added stay in Health Connect until deleted there.
+- `connect-client` 1.1.0 (current stable; version catalog + DEPENDENCY_DECISIONS). `HealthWorkout.kt` (pure mapping,
+  `HealthWorkoutTest` 2 tests, run locally and passing) + `data/HealthConnectSync.kt`.
+- **Not verified locally:** the Health Connect calls and the permission flow need an Android device with Health
+  Connect; CI compiles them. **Before release:** the Play Console Health Connect declaration and the privacy policy
+  must describe this export (QA_AND_RELEASE.md).
+- Translations: 13 strings in all 23 tables (`parts_health.py`; "Health Connect" stays as the product name),
+  `check.py` clean.

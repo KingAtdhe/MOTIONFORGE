@@ -42,6 +42,10 @@ data class SessionExerciseEntity(
     @ColumnInfo(name = "tracking_quality") val trackingQuality: String,
     /** Seconds held in position (hold checks), null when not measured. Added in version 2. */
     @ColumnInfo(name = "held_seconds") val heldSeconds: Int? = null,
+    /** Reps with no possible form adjustment flagged (form-rule moves only). Added in version 3. */
+    @ColumnInfo(name = "clean_reps") val cleanReps: Int? = null,
+    /** Attempts too shallow to count. Added in version 3. */
+    @ColumnInfo(name = "shallow_reps") val shallowReps: Int? = null,
 )
 
 @Dao
@@ -69,7 +73,7 @@ abstract class SessionDao {
     abstract suspend fun deleteAll()
 }
 
-@Database(entities = [SessionEntity::class, SessionExerciseEntity::class], version = 2, exportSchema = false)
+@Database(entities = [SessionEntity::class, SessionExerciseEntity::class], version = 3, exportSchema = false)
 abstract class SessionDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
@@ -78,6 +82,14 @@ abstract class SessionDatabase : RoomDatabase() {
         val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE session_exercises ADD COLUMN held_seconds INTEGER")
+            }
+        }
+
+        /** 2 → 3: form tallies per exercise (nullable, old rows stay null: no score for them). History is kept. */
+        val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE session_exercises ADD COLUMN clean_reps INTEGER")
+                db.execSQL("ALTER TABLE session_exercises ADD COLUMN shallow_reps INTEGER")
             }
         }
     }

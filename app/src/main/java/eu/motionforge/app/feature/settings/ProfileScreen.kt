@@ -84,6 +84,45 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
             Text("Goal: ${preferences.goal?.displayName ?: "not set"}", style = MaterialTheme.typography.bodyMedium)
             Text("Account: guest (no account needed)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        ProfileSection("Weekly goal") {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text("Streaks and badges", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "Your streak counts the weeks in a row you reach your goal. Rest days never break it, and the app " +
+                            "never nags you about it.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = preferences.milestones,
+                    onCheckedChange = { on -> scope.launch { prefsRepo.setMilestones(on) } },
+                    modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Streaks and badges") },
+                )
+            }
+            if (preferences.milestones) {
+                val goal = preferences.weeklyGoal
+                val range = eu.motionforge.app.feature.progress.Milestones.GOAL_RANGE
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        if (goal == 1) "1 session a week" else "$goal sessions a week",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { scope.launch { prefsRepo.setWeeklyGoal(goal - 1) } },
+                        enabled = goal > range.first,
+                        modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Lower the weekly goal") },
+                    ) { androidx.compose.material3.Text("−") }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { scope.launch { prefsRepo.setWeeklyGoal(goal + 1) } },
+                        enabled = goal < range.last,
+                        modifier = Modifier.semantics { contentDescription = eu.motionforge.app.core.i18n.tr("Raise the weekly goal") },
+                    ) { androidx.compose.material3.Text("+") }
+                }
+            }
+        }
         ProfileSection("Your coach") {
             Text("Who demonstrates the moves in lessons and sessions.", style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -129,6 +168,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
         }
         ProfileSection("Language") { LanguageSetting(preferences) }
         ProfileSection("Reminders") { ReminderSettings(preferences) }
+        ProfileSection("Health Connect") { HealthConnectSetting(preferences) }
         ProfileSection("Camera & privacy") {
             Text(
                 "Camera images are processed on this phone to estimate body landmarks. Frames are kept in " +

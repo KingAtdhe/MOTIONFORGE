@@ -97,6 +97,8 @@ fun HomeScreen(
     onResumeUnfinished: (SessionSnapshot) -> Unit = {},
     onDiscardUnfinished: () -> Unit = {},
     trainedDaysThisWeek: Set<DayOfWeek> = emptySet(),
+    /** The weekly goal and streak (null when streaks and badges are off or history is loading). */
+    weekStreak: eu.motionforge.app.feature.progress.WeekStreak? = null,
     /** The plan being followed and its next session (with today's targets), or nulls. */
     activePlan: eu.motionforge.app.feature.plan.TrainingPlan? = null,
     planSession: SessionPlan? = null,
@@ -163,6 +165,7 @@ fun HomeScreen(
                         Filmstrip(quick, coach, active, side)
                         PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
                         BuildYourOwn(exercises, onStartBuilt, side, buildLevel)
+                        MobilityFlows(exercises, onStartBuilt, side)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -179,6 +182,19 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                         WeekTicks(trainedDaysThisWeek, remember { LocalDate.now().dayOfWeek })
+                        weekStreak?.let { w ->
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                when {
+                                    w.metThisWeek && w.current > 1 -> "Weekly goal reached · ${w.current} weeks in a row"
+                                    w.metThisWeek -> "Weekly goal reached"
+                                    w.current > 0 -> "${w.doneThisWeek} of ${w.goal} this week · streak ${w.current} weeks"
+                                    else -> "${w.doneThisWeek} of ${w.goal} sessions toward this week's goal"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
 
                     val lastViewed = exercises.firstOrNull { it.id == preferences.lastViewedExerciseId }
@@ -437,7 +453,7 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
                 options = eu.motionforge.app.feature.session.SessionBuilder.MINUTES.map { "$it min" },
                 selectedIndex = minutes, onSelect = { minutes = it }, compact = true,
             )
-            if (params.focus.category == eu.motionforge.app.core.model.TrainingCategory.FITNESS && params.focus != eu.motionforge.app.feature.session.SessionFocus.STRETCH) {
+            if (params.focus.category == eu.motionforge.app.core.model.TrainingCategory.FITNESS && params.focus != eu.motionforge.app.feature.session.SessionFocus.STRETCH && params.focus != eu.motionforge.app.feature.session.SessionFocus.CARDIO) {
                 eu.motionforge.app.core.design.ChoiceButton("Dumbbells", dumbbells, onClick = { dumbbells = !dumbbells })
             }
         }
@@ -459,6 +475,41 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
                 "Start ${params.focus.label.lowercase()}, ${formatClock(plan.totalSeconds)}",
                 onClick = { onStart(eu.motionforge.app.feature.session.SessionBuilder.key(params.focus, params.minutes, params.dumbbells, day, level)) },
             )
+        }
+    }
+}
+
+
+/** Stretch & mobility flows: fixed follow-along routines, each a row with its length. */
+@Composable
+private fun MobilityFlows(exercises: List<eu.motionforge.app.core.model.Exercise>, onStart: (String) -> Unit, modifier: Modifier) {
+    val flows = remember(exercises) {
+        eu.motionforge.app.feature.session.Flow.entries.filter { eu.motionforge.app.feature.session.Flows.build(it, exercises) != null }
+    }
+    if (flows.isEmpty()) return
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        SectionHeader("Stretch & mobility flows")
+        flows.forEach { f ->
+            val minutes = eu.motionforge.app.feature.session.Flows.minutes(f)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onStart(eu.motionforge.app.feature.session.Flows.key(f)) }
+                    .padding(vertical = 8.dp)
+                    .semantics(mergeDescendants = true) {
+                        role = Role.Button
+                        contentDescription = eu.motionforge.app.core.i18n.tr(f.title) + ". " + eu.motionforge.app.core.i18n.tr(f.detail) + " " +
+                            eu.motionforge.app.core.i18n.tr("$minutes min")
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(f.title, style = MaterialTheme.typography.titleMedium)
+                    Text(f.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(12.dp))
+                Text("$minutes min", style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }

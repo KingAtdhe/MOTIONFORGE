@@ -155,4 +155,28 @@ class SessionEngineTest {
         val sq = SessionState(SessionPlanner.single(squat)).on(SessionEvent.Start(true)).ticks(10, tracking = true).on(SessionEvent.HoldProgress(5), SessionEvent.Stop)
         assertNull(sq.results.single().heldSeconds)
     }
+
+    @Test
+    fun formTallyCountsFlaggedAndShallowRepsOnlyForFormRuleMoves() {
+        var s = SessionState(SessionPlanner.single(squat)).on(SessionEvent.Start(true)).ticks(3, tracking = true)
+        s = s.on(SessionEvent.RepCounted, SessionEvent.RepCounted, SessionEvent.RepCounted)
+        s = s.on(SessionEvent.RepFlagged, SessionEvent.RepCounted, SessionEvent.ShallowAttempt, SessionEvent.RepFlagged, SessionEvent.RepCounted)
+        s = s.ticks(squat.durationSeconds, tracking = true)
+        val r = s.results.single()
+        assertEquals(5, r.repetitions)
+        assertEquals(3, r.cleanReps)
+        assertEquals(1, r.shallowReps)
+
+        // a move without per-rep form rules gets no form tally, even with reps counted
+        val bridge = catalog.first { it.id == "glute_bridge" }
+        var b = SessionState(SessionPlanner.single(bridge)).on(SessionEvent.Start(true)).ticks(2, tracking = true)
+        b = b.on(SessionEvent.RepCounted, SessionEvent.RepFlagged, SessionEvent.RepCounted).ticks(bridge.durationSeconds, tracking = true)
+        assertNull(b.results.single().cleanReps)
+        assertNull(b.results.single().shallowReps)
+
+        // without the camera nothing is counted, so there is no tally either
+        val off = SessionState(SessionPlanner.single(squat)).on(SessionEvent.Start(false), SessionEvent.RepFlagged, SessionEvent.ShallowAttempt)
+            .ticks(squat.durationSeconds)
+        assertNull(off.results.single().cleanReps)
+    }
 }
