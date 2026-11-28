@@ -2718,10 +2718,10 @@ PROPS_BY_CLIP.update({
     "db_calf_raise": ("dumbbell_L", "dumbbell_R"), "kb_swing": ("kettlebell",), "bench_dip": ("bench_dip",),
     "wall_pushup": ("wall_front",), "wall_sit": ("wall_back",),
 })
-PLANTED_HANDS = PLANTED_HANDS + ("plank_jack", "mountain_climber", "plank_leg_lift")
+PLANTED_HANDS = PLANTED_HANDS + ("plank_jack", "mountain_climber", "plank_leg_lift", "close_grip_pushup")
 LIFE_FLOOR = LIFE_FLOOR + ("plank_jack", "mountain_climber", "crunch", "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps", "single_leg_bridge",
                            "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold", "db_floor_press", "bench_dip", "wall_pushup",
-                           "hollow_hold", "leg_raise", "bicycle_crunch", "plank_leg_lift", "glute_bridge_march")
+                           "hollow_hold", "leg_raise", "bicycle_crunch", "plank_leg_lift", "glute_bridge_march", "close_grip_pushup")
 
 
 def build_all(arm, height, name):
@@ -2822,6 +2822,11 @@ def build_all(arm, height, name):
     import clips_core as cco
     RETIME.update(cco.RETIME)
     for name, fn in cco.CLIPS:
+        r.write(name, fn(r, st))
+    # batch 12 — intermediate moves (2026-11-28)
+    import clips_harder as chd
+    RETIME.update(chd.RETIME)
+    for name, fn in chd.CLIPS:
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

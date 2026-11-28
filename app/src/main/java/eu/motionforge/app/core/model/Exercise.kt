@@ -49,6 +49,7 @@ enum class TrainingCategory(val wireName: String, val displayName: String) {
 
 enum class Level(val wireName: String, val displayName: String) {
     BEGINNER("beginner", "Beginner"),
+    INTERMEDIATE("intermediate", "Intermediate"),
 }
 
 enum class CameraView(val wireName: String, val displayName: String) {

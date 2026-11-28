@@ -294,6 +294,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "close_grip_pushup",
+      "durationSeconds": 5.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "crunch",
       "durationSeconds": 2.367,
       "reviewStatus": "draft_pending_coach_review"
@@ -531,6 +536,11 @@
     {
       "name": "incline_pushup_up",
       "durationSeconds": 1.2,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "jump_squat",
+      "durationSeconds": 5.367,
       "reviewStatus": "draft_pending_coach_review"
     },
     {

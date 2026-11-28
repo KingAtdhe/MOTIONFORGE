@@ -131,6 +131,9 @@ SHOTS = {
     "glute_bridge_march": ("glute_bridge_march", ("far", "foot_R"), 85),
     "side_plank_knees": ("side_plank_knees", 0.0, 20),
     "side_plank": ("side_plank", 0.0, 20),
+    # batch 12 — intermediate (2026-11-28)
+    "jump_squat": ("jump_squat", ("far", "hips"), 30),
+    "close_grip_push_up": ("close_grip_pushup", ("far", "head"), 70),
     "boxing_speed_punches": ("boxing_speed_punches", "punch", -55),
     "boxing_body_cross": ("boxing_body_cross", ("far", "hand_R"), -45),
     "boxing_body_hook": ("boxing_body_hook", ("far", "hand_L"), -40),

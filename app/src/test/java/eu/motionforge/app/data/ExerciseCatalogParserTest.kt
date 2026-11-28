@@ -17,7 +17,7 @@ class ExerciseCatalogParserTest {
     @Test
     fun bundledCatalogParses() {
         val exercises = ExerciseCatalogParser.parse(bundled)
-        assertEquals(143, exercises.size)
+        assertEquals(145, exercises.size)
         assertTrue(exercises.any { it.category == TrainingCategory.FITNESS })
         assertTrue(exercises.any { it.category == TrainingCategory.FIGHTING_FUNDAMENTALS })
     }
@@ -125,6 +125,8 @@ class ExerciseCatalogParserTest {
         "boxing_speed_punches",
         // batch 11 (2026-11-28): core & abs
         "hollow_hold", "leg_raise", "bicycle_crunch", "plank_leg_lift", "glute_bridge_march", "side_plank_knees", "side_plank",
+        // batch 12 (2026-11-28): intermediate
+        "jump_squat", "close_grip_pushup",
         )
         ExerciseCatalogParser.parse(bundled).forEach {
             val clip = it.demoAnimation ?: return@forEach

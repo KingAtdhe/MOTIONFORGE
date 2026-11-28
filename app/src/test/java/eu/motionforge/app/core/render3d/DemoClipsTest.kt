@@ -51,6 +51,7 @@ class DemoClipsTest {
         // batch 10 — cardio & HIIT (2026-11-28)
         "jumping_jack", "high_knees", "butt_kick_jog", "fast_feet", "skater_hop", "plank_jack", "mountain_climber", "boxing_speed_punches",
         "hollow_hold", "leg_raise", "bicycle_crunch", "plank_leg_lift", "glute_bridge_march", "side_plank_knees", "side_plank",
+        "jump_squat", "close_grip_pushup",
     )
 
     /** Coaches whose model is bundled. None while new coach models are being made; the app then shows written steps. */

@@ -61,7 +61,7 @@ fun FormTrendsSection(trends: List<FormTrend>) {
                 Row(Modifier.height(36.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
                     t.recent.forEachIndexed { j, p ->
                         Box(
-                            Modifier.width(8.dp).height((4 + 32 * p / 100).dp)
+                            Modifier.width(14.dp).height((4 + 32 * p / 100).dp)
                                 .background(if (j == t.recent.lastIndex) MfColors.Ink else MfColors.Rule),
                         )
                     }

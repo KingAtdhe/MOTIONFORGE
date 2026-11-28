@@ -170,10 +170,13 @@ private fun ChallengeCard(p: ChallengeProgress, onLeave: () -> Unit, onRestart: 
             ChallengeStatus.COMPLETE -> Text("Well done. Clear it, or start it again.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             ChallengeStatus.ENDED -> Text("The window ended. Start it again whenever you like.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (p.status == ChallengeStatus.RUNNING) {
-                SecondaryButton("Leave", onClick = onLeave, modifier = Modifier.weight(1f))
-            } else {
+        if (p.status == ChallengeStatus.RUNNING) {
+            // a quiet way out, not a call to action
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onLeave) { Text("Leave", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+        } else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            run {
                 if (canRestart) SecondaryButton("Start again", onClick = onRestart, modifier = Modifier.weight(1f))
                 SecondaryButton("Clear", onClick = onClear, modifier = Modifier.weight(1f))
             }

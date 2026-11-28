@@ -11,12 +11,12 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
     LEGS("legs", "Legs & glutes", TrainingCategory.FITNESS, listOf(
         "bodyweight_squat", "reverse_lunge", "glute_bridge", "sumo_squat", "split_squat", "side_lunge", "forward_lunge",
         "curtsy_lunge", "squat_calf_raise", "calf_raise", "wall_sit", "good_morning", "glute_kickback", "side_leg_raise",
-        "single_leg_glute_bridge", "skater_step", "donkey_kick", "fire_hydrant", "single_leg_rdl",
+        "single_leg_glute_bridge", "skater_step", "donkey_kick", "fire_hydrant", "single_leg_rdl", "jump_squat",
         "dumbbell_squat", "dumbbell_goblet_squat", "dumbbell_reverse_lunge", "dumbbell_romanian_deadlift", "dumbbell_calf_raise",
     )),
     UPPER("upper", "Upper body", TrainingCategory.FITNESS, listOf(
         "knee_push_up", "incline_push_up", "wall_push_up", "push_up", "bench_dip", "plank_shoulder_taps", "arm_circles",
-        "high_plank", "bear_plank_hold", "superman",
+        "high_plank", "bear_plank_hold", "superman", "close_grip_push_up",
         "dumbbell_biceps_curl", "dumbbell_shoulder_press", "dumbbell_lateral_raise", "dumbbell_bent_over_row",
         "dumbbell_hammer_curl", "dumbbell_front_raise", "dumbbell_reverse_fly", "dumbbell_overhead_triceps_extension",
         "dumbbell_floor_press", "dumbbell_shrug",
@@ -158,6 +158,8 @@ object SessionBuilder {
             SessionFocus.CARDIO -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { cardioSuits(it.id, p.level) }, seed)
             else -> shuffled(p.focus.ids.mapNotNull { byId[it] }.filter { usable(it, p.dumbbells) }, seed)
         }.filter { p.focus == SessionFocus.CARDIO || suits(it.id, p.level) }
+            // level 1 keeps to beginner lessons (intermediate ones come from level 2)
+            .filter { p.level > 1 || it.level == eu.motionforge.app.core.model.Level.BEGINNER }
         if (pool.isEmpty()) return null
         val target = p.minutes * 60
         val cardio = p.focus == SessionFocus.CARDIO

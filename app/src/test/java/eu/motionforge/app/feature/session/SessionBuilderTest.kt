@@ -185,4 +185,14 @@ class SessionBuilderTest {
         listOf("hollow_hold", "bent_knee_leg_raise", "bicycle_crunch", "glute_bridge_march", "side_plank_knees", "plank_leg_lift", "side_plank")
             .forEach { assertTrue(it, it in ids) }
     }
+
+    @Test
+    fun levelOneKeepsToBeginnerLessonsInEveryFocus() {
+        for (f in SessionFocus.entries) for (db in listOf(false, true)) for (day in 20_000L until 20_005L) {
+            val p = SessionBuilder.build(catalog, SessionBuilder.Params(f, 20, db, day, 1)) ?: continue
+            val ids = p.steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.filter { it in byId }
+            assertTrue("$f: ${ids.filter { byId.getValue(it).level != eu.motionforge.app.core.model.Level.BEGINNER }}",
+                ids.all { byId.getValue(it).level == eu.motionforge.app.core.model.Level.BEGINNER })
+        }
+    }
 }

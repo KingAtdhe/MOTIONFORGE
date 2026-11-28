@@ -471,7 +471,7 @@ def repair_mesh(mesh):
 
 
 # clips with flight (batch 10, clips_cardio.AIRBORNE)
-AIRBORNE = {"jumping_jack", "high_knees", "butt_kick_jog", "fast_feet", "skater_hop", "plank_jack"}
+AIRBORNE = {"jumping_jack", "high_knees", "butt_kick_jog", "fast_feet", "skater_hop", "plank_jack", "jump_squat"}
 
 
 def floor_contact(arm, mesh, scene, names):
@@ -635,6 +635,8 @@ CONTACTS = {
     # batch 11 (clips_core.py)
     "hollow_hold": ("back",), "leg_raise": ("back",), "bicycle_crunch": ("back",), "plank_leg_lift": ("hands",),
     "glute_bridge_march": ("bridge",),
+    # batch 12 (clips_harder.py)
+    "close_grip_pushup": ("hands",),
 }
 
 

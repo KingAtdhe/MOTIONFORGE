@@ -1598,3 +1598,25 @@ mobility lessons with an 8 s "next" transition between moves:
 - `feature/session/Flows.kt`; `FlowsTest` (3 tests: moves exist and need no equipment, transitions and lengths, keys
   never collide with built-session keys), run locally and passing.
 - Translations: 9 strings in all 23 tables (`parts_flows.py`), `check.py` clean.
+
+## 2026-11-28 (7) — Harder levels
+
+The owner asked for harder levels. Lessons now carry a level: **Beginner** or **Intermediate** (145 lessons, 24
+intermediate).
+
+- **Intermediate** (`tools/levels_2026_11_28.py`, both catalogue copies): full push-up, single-leg RDL and glute
+  bridge, bench dip, kettlebell swing, plank shoulder taps, side plank, plank leg lift, skater hop, plank jack,
+  mountain climber; and the three-punch combinations and defend-then-counter drills (roll-hook, pull-counter,
+  slip-cross, jab-slip, block-cross, cross-hook-cross, one-two-uppercut, uppercut-hook, hook-cross, jab-body-cross,
+  body-head jab). Each already names its easier version or prerequisite in its safety text.
+- **Two new intermediate moves** (`tools/blender/clips_harder.py`, batch 12, both coaches, 155 clips): **jump squat**
+  (squat, a small jump with flight, soft landing into a quarter squat; airborne-safe floor pass) and **close-grip
+  push-up** (hands under the shoulders, elbows tucked back along the ribs). Both guided, not scored, until a camera
+  check is validated. Motion studies checked for both coaches; no new over-reach.
+- **Train → Filters → Level** (Any / Beginner / Intermediate); the lesson detail already shows the level.
+- **Built sessions:** level 1 keeps to beginner lessons in every focus (`SessionBuilderTest.levelOneKeepsToBeginnerLessonsInEveryFocus`);
+  intermediate lessons join from level 2. Jump squat joins Legs & glutes, close-grip push-up Upper body.
+- Small polish from the CI screenshots: a running challenge's "Leave" is a quiet text button, not a full-width one;
+  the Form bars match the Reps rows better.
+- Translations: 24 strings in all 23 tables (`parts_batch12.py`), `check.py` clean.
+- Tests run locally (kotlinc + JUnit): 92 logic tests plus DemoClipsTest against the rebuilt coaches, all passing.
