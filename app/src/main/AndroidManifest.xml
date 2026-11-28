@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <!-- Only to re-arm the optional training reminder after a restart (nothing runs when reminders are off). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Optional (Profile, off by default): add each saved session to Health Connect as a workout. Write only; the
+         app reads nothing from Health Connect. -->
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
 
     <!-- Camera is needed for live tracking but the app (demos, catalogue, progress) works without one. -->
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
@@ -18,6 +21,8 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- Health Connect (Android 13 and lower ship it as an app) -->
+        <package android:name="com.google.android.apps.healthdata" />
     </queries>
 
     <application
@@ -63,5 +68,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Health Connect asks every app it grants access to for its privacy note: what is written and why. -->
+        <activity
+            android:name=".feature.settings.HealthPermissionsActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MotionForge">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <!-- Android 14+: the same note, reached from the system's permission usage screen -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".feature.settings.HealthPermissionsActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
     </application>
 </manifest>

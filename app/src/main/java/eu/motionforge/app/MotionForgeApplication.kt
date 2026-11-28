@@ -17,6 +17,7 @@ class AppContainer(context: Context) {
     val sessions: SessionRepository by lazy { SessionRepository(context) }
     val clips: ClipManifestRepository by lazy { ClipManifestRepository(context) }
     val activeSession: ActiveSessionStore by lazy { ActiveSessionStore(context) }
+    val healthConnect: eu.motionforge.app.data.HealthConnectSync by lazy { eu.motionforge.app.data.HealthConnectSync(context) }
 }
 
 class MotionForgeApplication : Application() {

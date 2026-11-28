@@ -1620,3 +1620,26 @@ intermediate).
   the Form bars match the Reps rows better.
 - Translations: 24 strings in all 23 tables (`parts_batch12.py`), `check.py` clean.
 - Tests run locally (kotlinc + JUnit): 92 logic tests plus DemoClipsTest against the rebuilt coaches, all passing.
+
+## 2026-11-28 (8) — Health Connect
+
+The owner asked for Health Connect. It is **optional and off by default** (Profile → Health Connect):
+
+- When on, each session you save is added to Health Connect as **one workout**: its type (boxing, HIIT, stretching or
+  calisthenics, from what was trained), start and end time, and title. Nothing else is written: no calories, no heart
+  rate, nothing estimated. **Nothing is read** from Health Connect, and nothing goes to a server.
+- The Profile text says exactly that **before** Android's permission screen appears; the switch asks for the single
+  write permission only when it is turned on. If access is refused or later removed, it says so and adds nothing.
+  If Health Connect is missing or outdated it says so and offers "Get Health Connect" (Play Store).
+- Saving never waits for Health Connect: the workout is written in the background after the session is saved, and
+  any failure is silent (the session is safe on the phone either way). The record id is stable for the session
+  (`corza-session-<start time>`), so a retry never adds it twice.
+- Health Connect's privacy note for CORZA (`HealthPermissionsActivity`, in the app's language) explains what is
+  written, what never is, and that workouts already added stay in Health Connect until deleted there.
+- `connect-client` 1.1.0 (current stable; version catalog + DEPENDENCY_DECISIONS). `HealthWorkout.kt` (pure mapping,
+  `HealthWorkoutTest` 2 tests, run locally and passing) + `data/HealthConnectSync.kt`.
+- **Not verified locally:** the Health Connect calls and the permission flow need an Android device with Health
+  Connect; CI compiles them. **Before release:** the Play Console Health Connect declaration and the privacy policy
+  must describe this export (QA_AND_RELEASE.md).
+- Translations: 13 strings in all 23 tables (`parts_health.py`; "Health Connect" stays as the product name),
+  `check.py` clean.

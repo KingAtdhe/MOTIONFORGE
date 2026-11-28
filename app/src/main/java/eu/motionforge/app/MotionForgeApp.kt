@@ -304,6 +304,12 @@ fun MotionForgeApp(
                                     before, container.sessions.history.first(), java.time.ZoneId.systemDefault(), p.weeklyGoal,
                                 )
                             },
+                            exportWorkout = { start, end ->
+                                if (container.preferences.preferences.first().healthConnect) {
+                                    eu.motionforge.app.feature.progress.HealthWorkouts.of(plan.title, plan.type, planArg, start, end)
+                                        ?.let { container.healthConnect.write(it) }
+                                }
+                            },
                             challengesCompleted = { before ->
                                 eu.motionforge.app.feature.progress.Challenges.newlyCompleted(
                                     container.preferences.preferences.first().challenges,

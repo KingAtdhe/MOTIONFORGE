@@ -43,6 +43,8 @@ data class UserPreferences(
     val milestones: Boolean = true,
     /** Challenges joined (opt-in), with when each was joined. */
     val challenges: List<eu.motionforge.app.feature.progress.JoinedChallenge> = emptyList(),
+    /** Add each saved session to Health Connect as a workout (off by default; needs its write permission). */
+    val healthConnect: Boolean = false,
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -74,6 +76,7 @@ class UserPreferencesRepository(context: Context) {
                     .coerceIn(eu.motionforge.app.feature.progress.Milestones.GOAL_RANGE),
                 milestones = p[MILESTONES] ?: true,
                 challenges = eu.motionforge.app.feature.progress.Challenges.decode(p[CHALLENGES]),
+                healthConnect = p[HEALTH_CONNECT] ?: false,
             )
         }
 
@@ -133,6 +136,10 @@ class UserPreferencesRepository(context: Context) {
         store.edit { it[CHALLENGES] = eu.motionforge.app.feature.progress.Challenges.encode(list) }
     }
 
+    suspend fun setHealthConnect(on: Boolean) {
+        store.edit { it[HEALTH_CONNECT] = on }
+    }
+
     suspend fun setLanguage(code: String) {
         store.edit { it[LANGUAGE] = code }
     }
@@ -158,5 +165,6 @@ class UserPreferencesRepository(context: Context) {
         val WEEKLY_GOAL = androidx.datastore.preferences.core.intPreferencesKey("weekly_goal")
         val MILESTONES = booleanPreferencesKey("milestones")
         val CHALLENGES = stringPreferencesKey("challenges")
+        val HEALTH_CONNECT = booleanPreferencesKey("health_connect")
     }
 }

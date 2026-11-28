@@ -18,6 +18,8 @@ filament = "1.71.4"
 kotlinxSerializationJson = "1.9.0"
 datastore = "1.1.7"
 room = "2.7.2"
+# Health Connect client: latest stable checked 2026-11-28 (1.1.0; the 1.2 line is still alpha)
+healthConnect = "1.1.0"
 ksp = "2.2.0-2.0.2"
 junit = "4.13.2"
 
@@ -56,6 +58,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
+androidx-health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

@@ -168,6 +168,7 @@ fun androidx.compose.foundation.layout.ColumnScope.ProfileContent(
         }
         ProfileSection("Language") { LanguageSetting(preferences) }
         ProfileSection("Reminders") { ReminderSettings(preferences) }
+        ProfileSection("Health Connect") { HealthConnectSetting(preferences) }
         ProfileSection("Camera & privacy") {
             Text(
                 "Camera images are processed on this phone to estimate body landmarks. Frames are kept in " +

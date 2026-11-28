@@ -52,6 +52,8 @@ class SessionViewModel(
     private val badgesEarned: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Badge> = { emptyList() },
     /** Joined challenges the save completed, given the history before it. */
     private val challengesCompleted: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Challenge> = { emptyList() },
+    /** After a save: hands the session's start and end to the optional Health Connect export (a no-op when it's off). */
+    private val exportWorkout: suspend (startedAtMillis: Long, endedAtMillis: Long) -> Unit = { _, _ -> },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -311,8 +313,9 @@ class SessionViewModel(
         _save.value = SaveState.SAVING
         viewModelScope.launch {
             val before = runCatching { historyNow() }.getOrNull()
+            val ended = System.currentTimeMillis()
             _save.value = runCatching {
-                repository.save(s, startedAtMillis, System.currentTimeMillis(), perceivedEffort)
+                repository.save(s, startedAtMillis, ended, perceivedEffort)
             }.fold({
                 runCatching { onSaved() }
                 if (before != null) {
@@ -323,6 +326,8 @@ class SessionViewModel(
                 withContext(Dispatchers.IO) { store.clear() }
                 SaveState.SAVED
             }, { SaveState.FAILED })
+            // in the background: the summary never waits for (or fails because of) Health Connect
+            if (_save.value == SaveState.SAVED) launch { runCatching { exportWorkout(startedAtMillis, ended) } }
         }
     }
 }
