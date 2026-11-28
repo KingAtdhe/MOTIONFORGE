@@ -25,6 +25,8 @@ enum class SessionFocus(val wire: String, val label: String, val category: Train
         "forearm_plank", "dead_bug", "bird_dog", "crunch", "reverse_crunch", "heel_taps", "tabletop_toe_taps", "high_plank",
         "slow_mountain_climber", "superman", "bear_plank_hold", "standing_knee_crunch", "standing_oblique_crunch",
         "standing_side_bend", "standing_torso_twist",
+        "hollow_hold", "bent_knee_leg_raise", "bicycle_crunch", "glute_bridge_march", "side_plank_knees",
+        "plank_leg_lift", "side_plank",
     )),
     BOXING("boxing", "Boxing", TrainingCategory.FIGHTING_FUNDAMENTALS, emptyList()),  // every fighting lesson but footwork
     STRETCH("stretch", "Stretch & recover", TrainingCategory.FITNESS, listOf(
@@ -94,8 +96,9 @@ object SessionBuilder {
     fun workSeconds(level: Int) = when (level) { 3 -> 50; 2 -> 45; else -> 40 }
     /** Rest between rounds in boxing rounds, by level. */
     fun roundRest(level: Int) = when (level) { 3 -> 30; 2 -> 40; else -> 45 }
-    private val HARD_ONLY = setOf("push_up", "single_leg_rdl", "single_leg_glute_bridge", "skater_step", "bench_dip")
-    private val EASY_ONLY = setOf("wall_push_up", "knee_push_up")
+    private val HARD_ONLY = setOf("push_up", "single_leg_rdl", "single_leg_glute_bridge", "skater_step", "bench_dip",
+        "side_plank", "plank_leg_lift")
+    private val EASY_ONLY = setOf("wall_push_up", "knee_push_up", "side_plank_knees")
     private fun suits(id: String, level: Int) = when (level) { 1 -> id !in HARD_ONLY; 3 -> id !in EASY_ONLY; else -> true }
 
     /** Cardio: jumps only from level 2 (the hardest three from level 3); level 3 drops the low-impact versions. */

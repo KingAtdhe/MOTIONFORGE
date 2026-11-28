@@ -1531,3 +1531,27 @@ join it, all measured from saved sessions (nothing self-reported):
   "newly completed" only on the crossing save), `ChallengesUi.kt`; screenshot `13_challenges` in the CI reports.
 - Translations: 41 strings in all 23 tables (`parts_challenges.py`, `parts_challenges_b.py`), `check.py` clean.
 - Not verified locally: the Compose code (no Android SDK here); CI compiles it and renders the screenshot.
+
+## 2026-11-28 (4) — Core & abs
+
+Seven new core lessons (143 in total), all **guided, not scored** until a camera check is validated on rendered
+videos: hollow hold (tuck), bent-knee leg raise, bicycle crunch, glute bridge march, side plank from the knees, plank
+leg lift and side plank. Each says how to place the phone (at floor level) and when to stop.
+
+- **Core focus on Home** gains them. Level 1 never gets the side plank or the plank leg lift; level 3 swaps the knee
+  side plank for the full one (`SessionBuilderTest.coreKeepsTheHarderPlanksForLaterLevels`).
+- **Animation** (`tools/blender/clips_core.py`, batch 11, both coaches, 153 clips): lying clips reuse the crunch
+  frame and a new `_leg(hip, knee)` helper for legs in the air; the plank leg lift reuses the forearm plank's geometry.
+  The side planks are new: a straight standing body turned onto its left side about its front-back axis, the angle
+  solved so the left shoulder sits straight above an elbow resting on the floor; top hand on the hip. Feet can now
+  carry an optional roll (a 4th element of the foot target, `Rig.foot_q(..., roll)`), so a foot can rest on its edge.
+  Contacts: lying clips "back" (no shoe on the floor), bridge march "bridge", plank leg lift "hands".
+  QC: no leg over-reach; 0.5 cm arm over-reach in the male side planks; motion studies checked frame by frame for both
+  coaches.
+- **Authoring preview:** `MF_ONLY=clip,clip` builds only those clips (no props), about 1.5 min instead of 6, for
+  iterating on poses; never used for a delivered build.
+- **CI:** screenshots from pull-request runs are now also published (branch `ci-screenshots-pr`), so the design can be
+  reviewed without downloading the reports artifact.
+- **Translations:** 71 strings in all 23 tables (`parts_batch11.py`, `parts_batch11b.py`), `check.py` clean.
+- **Tests run locally** (kotlinc + JUnit): SessionBuilderTest, ExerciseCatalogParserTest, DemoClipsTest,
+  ChallengesTest, MilestonesTest — 63 tests, all passing.

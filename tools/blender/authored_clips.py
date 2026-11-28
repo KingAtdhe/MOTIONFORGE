@@ -13,6 +13,7 @@ All poses are solved in armature space (Z up, the character faces -Y, its left i
 These are demonstrations, not measurements: nothing here is tracking data.
 """
 import math
+import os
 
 import bpy
 from mathutils import Matrix, Vector
@@ -110,8 +111,10 @@ class Rig:
         self.worst_arm = 0.0
 
     # ---- feet
-    def foot_q(self, s, yaw, pitch):
-        return Rz(yaw) @ Rx(pitch) @ Rz(-self.psi0[s])
+    def foot_q(self, s, yaw, pitch, roll=0.0):
+        # roll (optional 4th element of a foot): a world rotation about Y applied last, for a foot on its edge (side plank)
+        q = Rz(yaw) @ Rx(pitch) @ Rz(-self.psi0[s])
+        return Ry(roll) @ q if roll else q
 
     def foot(self, s, ax, ay, yaw, pitch=0.0, lift=0.0):
         """Foot given by where the ankle would be with the foot flat; a pitch (heel raise) pivots on the ball."""
@@ -120,8 +123,8 @@ class Rig:
         return (ball, yaw, pitch)
 
     def ankle(self, s, f):
-        ball, yaw, pitch = f
-        return ball - self.foot_q(s, yaw, pitch) @ self.fv[s]
+        ball, yaw, pitch = f[:3]
+        return ball - self.foot_q(s, yaw, pitch, f[3] if len(f) > 3 else 0.0) @ self.fv[s]
 
     def foot_toward(self, s, A, direction, yaw=0.0):
         """Foot whose ankle sits at A and whose ankle->ball vector points as close as possible to `direction`
@@ -193,8 +196,8 @@ class Rig:
         for s, sg in SIDES:
             th, sh, ft = f"thigh_{s}", f"shin_{s}", f"foot_{s}"
             Hp = self._child(M, th).translation
-            ball, yaw, pitch = sp["feet"][s]
-            qf = self.foot_q(s, yaw, pitch)
+            ball, yaw, pitch = sp["feet"][s][:3]
+            qf = self.foot_q(s, yaw, pitch, sp["feet"][s][3] if len(sp["feet"][s]) > 3 else 0.0)
             A = ball - qf @ self.fv[s]
             l1, l2 = self.l1[s], self.l2[s]
             d = A - Hp
@@ -2708,16 +2711,17 @@ STYLE = {
 
 
 # clips in which no shoe rests on the floor: the build must not pull the shoes down to it
-NO_FLOOR_CONTACT = {"dead_bug", "superman", "reverse_crunch", "toe_taps"}
+NO_FLOOR_CONTACT = {"dead_bug", "superman", "reverse_crunch", "toe_taps", "hollow_hold", "leg_raise", "bicycle_crunch"}
 # batch 7 (clips_fit2.py): props per clip, floor clips breathe only
 PROPS_BY_CLIP.update({
     "db_goblet_squat": ("dumbbell_goblet",), "db_floor_press": ("dumbbell_L", "dumbbell_R"), "db_shrug": ("dumbbell_L", "dumbbell_R"),
     "db_calf_raise": ("dumbbell_L", "dumbbell_R"), "kb_swing": ("kettlebell",), "bench_dip": ("bench_dip",),
     "wall_pushup": ("wall_front",), "wall_sit": ("wall_back",),
 })
-PLANTED_HANDS = PLANTED_HANDS + ("plank_jack", "mountain_climber")
+PLANTED_HANDS = PLANTED_HANDS + ("plank_jack", "mountain_climber", "plank_leg_lift")
 LIFE_FLOOR = LIFE_FLOOR + ("plank_jack", "mountain_climber", "crunch", "heel_taps", "reverse_crunch", "toe_taps", "high_plank", "shoulder_taps", "single_leg_bridge",
-                           "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold", "db_floor_press", "bench_dip", "wall_pushup")
+                           "donkey_kick", "fire_hydrant", "childs_pose", "bear_hold", "db_floor_press", "bench_dip", "wall_pushup",
+                           "hollow_hold", "leg_raise", "bicycle_crunch", "plank_leg_lift", "glute_bridge_march")
 
 
 def build_all(arm, height, name):
@@ -2726,6 +2730,12 @@ def build_all(arm, height, name):
     for a in list(bpy.data.actions):
         bpy.data.actions.remove(a)
     r = Rig(arm, height)
+    only = os.environ.get("MF_ONLY")
+    if only:
+        # preview builds while authoring: solve only these clips (comma-separated); never used for a delivered build
+        keep = set(only.split(","))
+        full_write = r.write
+        r.write = lambda n, specs: full_write(n, specs) if n in keep else None
     r.write("idle_neutral", idle(r, st))
     r.write("warmup_march", march(r, st))
     for base, fn in (("squat", squat), ("hip_hinge", hinge), ("pushup", pushup)):
@@ -2807,6 +2817,11 @@ def build_all(arm, height, name):
     import clips_cardio as cca
     RETIME.update(cca.RETIME)
     for name, fn in cca.CLIPS:
+        r.write(name, fn(r, st))
+    # batch 11 — core & abs (2026-11-28)
+    import clips_core as cco
+    RETIME.update(cco.RETIME)
+    for name, fn in cco.CLIPS:
         r.write(name, fn(r, st))
     print("authored clips:", len(bpy.data.actions), "| worst leg over-reach", round(r.worst_leg, 4), "m, arm", round(r.worst_arm, 4), "m")
     return [a.name for a in bpy.data.actions]

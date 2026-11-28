@@ -632,6 +632,9 @@ CONTACTS = {
     # (shoulder_taps: not pinned -- releasing the pin as a hand lifts jolted the elbow 7 cm in a frame; the authored hands
     # stay put on their own)
     "donkey_kick": ("kneel",), "fire_hydrant": ("kneel",), "childs_pose": ("kneel",),
+    # batch 11 (clips_core.py)
+    "hollow_hold": ("back",), "leg_raise": ("back",), "bicycle_crunch": ("back",), "plank_leg_lift": ("hands",),
+    "glute_bridge_march": ("bridge",),
 }
 
 

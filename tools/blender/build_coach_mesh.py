@@ -650,7 +650,8 @@ if RIGGED:
     # training equipment (dumbbells, kettlebell, band, bench), shown only in the clips that use it
     if not LEGACY_MOCAP:
         import coach_props  # noqa: E402
-        PROP_OBJS = coach_props.add_props(mx_arm, HEIGHT / 1.8)
+        # (preview builds with MF_ONLY have only some clips: no props)
+        PROP_OBJS = [] if os.environ.get("MF_ONLY") else coach_props.add_props(mx_arm, HEIGHT / 1.8)
     print("transferred", len(names), "clips to the rigged coach")
 
 # ---------------------------------------------------------------- save + export

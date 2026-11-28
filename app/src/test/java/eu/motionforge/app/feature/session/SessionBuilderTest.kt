@@ -171,4 +171,18 @@ class SessionBuilderTest {
                 .forEach { (a, _) -> assertEquals(SessionBuilder.intervalRest(level), a.durationSeconds) }
         }
     }
+
+    @Test
+    fun coreKeepsTheHarderPlanksForLaterLevels() {
+        for (day in 20_000L until 20_012L) {
+            val easy = build(SessionFocus.CORE, 20, day = day, level = 1).steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.toSet()
+            assertTrue("level 1: $easy", easy.none { it == "side_plank" || it == "plank_leg_lift" })
+            val hard = build(SessionFocus.CORE, 20, day = day, level = 3).steps.filterIsInstance<SessionStep.Work>().map { it.exerciseId }.toSet()
+            assertTrue("level 3: $hard", "side_plank_knees" !in hard)
+        }
+        // every new core lesson exists in the catalogue
+        val ids = catalog.map { it.id }.toSet()
+        listOf("hollow_hold", "bent_knee_leg_raise", "bicycle_crunch", "glute_bridge_march", "side_plank_knees", "plank_leg_lift", "side_plank")
+            .forEach { assertTrue(it, it in ids) }
+    }
 }

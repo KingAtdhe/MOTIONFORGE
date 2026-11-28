@@ -5278,5 +5278,306 @@
     ],
     "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Face the phone or stand at a slight angle, with your upper body in view.",
     "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "hollow_hold",
+    "name": "Hollow Hold (Tuck)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "hollow_hold",
+    "purpose": "Build deep core strength by holding a curled, braced position on your back.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the lower back pressed into the floor; if it lifts, bring the knees closer. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the knees bent and the feet on the floor.",
+      "Lift the legs into tabletop, knees over the hips.",
+      "Press the lower back into the floor and lift the head and shoulders.",
+      "Reach the arms long toward the knees and hold, breathing steadily."
+    ],
+    "commonCues": [
+      "Lower back stays down.",
+      "Ribs toward the hips.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Lower back arching off the floor",
+        "adjustment": "Bring the knees closer to the chest until the back stays down."
+      },
+      {
+        "mistake": "Straining the neck",
+        "adjustment": "Look at the ceiling, chin slightly tucked."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bent_knee_leg_raise",
+    "name": "Bent-Knee Leg Raise",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "leg_raise",
+    "purpose": "Strengthen the lower abdominals by lifting and lowering the legs with control.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Lower only as far as the lower back stays down, and never let the legs drop. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back, arms on the floor beside you, knees bent.",
+      "Lift the feet just off the floor.",
+      "Raise the knees up over the hips, keeping the knees bent.",
+      "Lower slowly until the feet hover just above the floor, then lift again."
+    ],
+    "commonCues": [
+      "Lower back stays down.",
+      "Slow on the way down.",
+      "Feet never touch."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Swinging the legs",
+        "adjustment": "Make the movement smaller and slower."
+      },
+      {
+        "mistake": "Lower back arching off the floor",
+        "adjustment": "Lower the legs less far."
+      },
+      {
+        "mistake": "Pushing hard into the floor with the arms",
+        "adjustment": "Let the stomach do the work."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "bicycle_crunch",
+    "name": "Bicycle Crunch",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "bicycle_crunch",
+    "purpose": "Work the abdominals and obliques with a slow, twisting crunch.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the hands light at the head and never pull on the neck. Move slowly. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the fingertips at your temples, elbows wide.",
+      "Lift the head and shoulders and bring the knees up.",
+      "Bring one knee in as the other leg lengthens low, and turn the opposite shoulder toward the bent knee.",
+      "Switch sides slowly, keeping the shoulders lifted."
+    ],
+    "commonCues": [
+      "Shoulder to knee.",
+      "Elbows wide.",
+      "Slow down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Pulling on the neck",
+        "adjustment": "Keep the fingertips light; the turn comes from the ribs."
+      },
+      {
+        "mistake": "Pedalling fast",
+        "adjustment": "Slow down and pause on each side."
+      },
+      {
+        "mistake": "Lower back arching as the leg lengthens",
+        "adjustment": "Keep the long leg higher."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "plank_leg_lift",
+    "name": "Plank Leg Lift",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "plank_leg_lift",
+    "purpose": "Challenge core stability and the glutes by lifting one leg from a forearm plank.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the forearm plank first. Lift only as high as the hips stay level. Stop if you feel pain in your back or shoulders.",
+    "instructions": [
+      "Start in a forearm plank, elbows under the shoulders.",
+      "Squeeze the glute and lift one straight leg a hand's width off the floor.",
+      "Keep the hips level and square to the floor.",
+      "Lower it with control, then lift the other leg."
+    ],
+    "commonCues": [
+      "Hips stay level.",
+      "Small lift.",
+      "One straight line from head to heels."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips twisting as the leg lifts",
+        "adjustment": "Lift the leg lower."
+      },
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Squeeze your glutes gently, or rest on your knees and hold a shorter time."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "glute_bridge_march",
+    "name": "Glute Bridge March",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 40,
+    "recommendedView": "side",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "glute_bridge_march",
+    "purpose": "Train the glutes and core to keep the hips level while one foot lifts.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Master the two-leg glute bridge first. Stop if you feel pain in your neck or back.",
+    "instructions": [
+      "Lie on your back with the knees bent and the feet flat.",
+      "Lift the hips into a bridge, shoulders, hips and knees in line.",
+      "Lift one foot a little off the floor, keeping the knee bent, and set it down.",
+      "Then lift the other foot, keeping the hips high and level."
+    ],
+    "commonCues": [
+      "Hips level.",
+      "Press through the heel.",
+      "Ribs down."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "One hip dropping",
+        "adjustment": "Lift less high and keep the hips level."
+      },
+      {
+        "mistake": "Arching the lower back at the top",
+        "adjustment": "Lift a little lower and think of keeping your ribs down."
+      },
+      {
+        "mistake": "Hips sinking as the foot lifts",
+        "adjustment": "Make the foot lift smaller."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level, side-on, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "side_plank_knees",
+    "name": "Side Plank (Knees)",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_plank_knees",
+    "purpose": "Strengthen the side of the core in an easier side plank from the knees.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Keep the elbow under the shoulder. Stop if you feel pain in your shoulder, hips or back.",
+    "instructions": [
+      "Lie on your side, propped on the forearm, elbow under the shoulder.",
+      "Bend the knees so the feet are behind you.",
+      "Lift the hips until the head, hips and knees line up.",
+      "Rest the top hand on the hip and hold, breathing steadily. Then switch sides."
+    ],
+    "commonCues": [
+      "Elbow under shoulder.",
+      "Hips up.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Lift the hips into one line, or hold a shorter time."
+      },
+      {
+        "mistake": "Shoulder sinking toward the ear",
+        "adjustment": "Push the floor away with the forearm."
+      },
+      {
+        "mistake": "Holding the breath",
+        "adjustment": "Breathe slowly in and out through the hold."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level in front of you, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
+  },
+  {
+    "id": "side_plank",
+    "name": "Side Plank",
+    "category": "fitness",
+    "level": "beginner",
+    "durationSeconds": 25,
+    "recommendedView": "front",
+    "analysisMode": "guided_not_scored",
+    "demoAnimation": "side_plank",
+    "purpose": "Strengthen the side of the core holding one straight line on the forearm.",
+    "space": "A mat-sized area of clear floor.",
+    "equipment": [
+      "Exercise mat (optional)"
+    ],
+    "safety": "Try the side plank from the knees first. Keep the elbow under the shoulder. Stop if you feel pain in your shoulder, hips or back.",
+    "instructions": [
+      "Lie on your side, propped on the forearm, elbow under the shoulder.",
+      "Straighten the legs and stack the feet.",
+      "Lift the hips until the body forms one straight line from head to heels.",
+      "Rest the top hand on the hip and hold, breathing steadily. Then switch sides."
+    ],
+    "commonCues": [
+      "Elbow under shoulder.",
+      "One straight line from head to heels.",
+      "Keep breathing."
+    ],
+    "commonMistakes": [
+      {
+        "mistake": "Hips sagging toward the floor",
+        "adjustment": "Lift the hips into one line, or hold a shorter time."
+      },
+      {
+        "mistake": "Shoulder sinking toward the ear",
+        "adjustment": "Push the floor away with the forearm."
+      },
+      {
+        "mistake": "Rolling forward or back",
+        "adjustment": "Stack the hips and shoulders, chest facing forward."
+      }
+    ],
+    "limitations": "The camera does not assess this move yet. Follow the demonstration; the timer guides you. Put the phone at floor level in front of you, with your whole body in view.",
+    "reviewStatus": "draft_pending_coach_review"
   }
 ]

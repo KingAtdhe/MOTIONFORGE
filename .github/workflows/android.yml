@@ -57,17 +57,19 @@ jobs:
           MF_SCREENSHOTS: "1"
         run: ./gradlew --no-daemon -Pmotionforge.requirePoseModel=true testDebugUnitTest --tests "eu.motionforge.app.screenshots.*"
 
-      - name: Publish screenshots to the ci-screenshots branch (main only)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Publish screenshots (main -> ci-screenshots; pull requests -> ci-screenshots-pr, for design review)
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
         continue-on-error: true
         run: |
           [ -d app/build/reports/screenshots ] || exit 0
+          BRANCH=ci-screenshots
+          [ "${{ github.event_name }}" = "pull_request" ] && BRANCH=ci-screenshots-pr
           mkdir -p /tmp/shots && cp app/build/reports/screenshots/*.png /tmp/shots/
           cd /tmp/shots
-          git init -q && git checkout -q -b ci-screenshots
+          git init -q && git checkout -q -b "$BRANCH"
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
           git add -A && git commit -q -m "Screenshots of ${GITHUB_SHA::7}"
-          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-screenshots
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" "$BRANCH"
 
       - name: Every lesson opens and runs, both coaches (end-to-end)
         env:

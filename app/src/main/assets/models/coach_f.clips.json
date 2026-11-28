@@ -24,6 +24,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "bicycle_crunch",
+      "durationSeconds": 4.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "bird_dog",
       "durationSeconds": 6.767,
       "reviewStatus": "draft_pending_coach_review"
@@ -449,6 +454,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "glute_bridge_march",
+      "durationSeconds": 2.5,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "glute_kickback",
       "durationSeconds": 5.167,
       "reviewStatus": "draft_pending_coach_review"
@@ -504,6 +514,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "hollow_hold",
+      "durationSeconds": 1.833,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "idle_neutral",
       "durationSeconds": 4.0,
       "reviewStatus": "draft_pending_coach_review"
@@ -554,6 +569,11 @@
       "reviewStatus": "draft_pending_coach_review"
     },
     {
+      "name": "leg_raise",
+      "durationSeconds": 2.633,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
       "name": "leg_swing",
       "durationSeconds": 11.6,
       "reviewStatus": "draft_pending_coach_review"
@@ -581,6 +601,11 @@
     {
       "name": "plank_jack",
       "durationSeconds": 4.0,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "plank_leg_lift",
+      "durationSeconds": 3.733,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
@@ -631,6 +656,16 @@
     {
       "name": "side_lunge",
       "durationSeconds": 4.7,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "side_plank",
+      "durationSeconds": 1.833,
+      "reviewStatus": "draft_pending_coach_review"
+    },
+    {
+      "name": "side_plank_knees",
+      "durationSeconds": 1.833,
       "reviewStatus": "draft_pending_coach_review"
     },
     {
