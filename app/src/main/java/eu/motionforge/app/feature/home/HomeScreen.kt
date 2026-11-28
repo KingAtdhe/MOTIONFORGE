@@ -165,6 +165,7 @@ fun HomeScreen(
                         Filmstrip(quick, coach, active, side)
                         PlanSection(activePlan, preferences.planSessionsDone, onChoosePlan, onLeavePlan, side)
                         BuildYourOwn(exercises, onStartBuilt, side, buildLevel)
+                        MobilityFlows(exercises, onStartBuilt, side)
                     } else {
                         Panel(side) { Text("No lessons are available in this build.") }
                     }
@@ -474,6 +475,41 @@ private fun BuildYourOwn(exercises: List<eu.motionforge.app.core.model.Exercise>
                 "Start ${params.focus.label.lowercase()}, ${formatClock(plan.totalSeconds)}",
                 onClick = { onStart(eu.motionforge.app.feature.session.SessionBuilder.key(params.focus, params.minutes, params.dumbbells, day, level)) },
             )
+        }
+    }
+}
+
+
+/** Stretch & mobility flows: fixed follow-along routines, each a row with its length. */
+@Composable
+private fun MobilityFlows(exercises: List<eu.motionforge.app.core.model.Exercise>, onStart: (String) -> Unit, modifier: Modifier) {
+    val flows = remember(exercises) {
+        eu.motionforge.app.feature.session.Flow.entries.filter { eu.motionforge.app.feature.session.Flows.build(it, exercises) != null }
+    }
+    if (flows.isEmpty()) return
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        SectionHeader("Stretch & mobility flows")
+        flows.forEach { f ->
+            val minutes = eu.motionforge.app.feature.session.Flows.minutes(f)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onStart(eu.motionforge.app.feature.session.Flows.key(f)) }
+                    .padding(vertical = 8.dp)
+                    .semantics(mergeDescendants = true) {
+                        role = Role.Button
+                        contentDescription = eu.motionforge.app.core.i18n.tr(f.title) + ". " + eu.motionforge.app.core.i18n.tr(f.detail) + " " +
+                            eu.motionforge.app.core.i18n.tr("$minutes min")
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(f.title, style = MaterialTheme.typography.titleMedium)
+                    Text(f.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(12.dp))
+                Text("$minutes min", style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }

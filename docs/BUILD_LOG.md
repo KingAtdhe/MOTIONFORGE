@@ -1579,3 +1579,22 @@ moves whose counters check form rules on every rep (squat, push-up and lunge fam
   7 strings in all 23 tables (`parts_form.py`), `check.py` clean.
 - Not verified locally: Compose screens and the Room migration on a device (no Android SDK here); CI compiles and runs
   the Robolectric suites.
+
+## 2026-11-28 (6) — Stretch & mobility flows
+
+Four follow-along flows on Home ("Stretch & mobility flows"), each a fixed sequence of the catalogue's stretch and
+mobility lessons with an 8 s "next" transition between moves:
+
+| Flow | Moves | Length |
+|---|---|---|
+| Morning mobility | arm circles, side bend, torso twist, hip circles, leg swings, squat hold, hamstring and calf stretch (all standing) | 7 min |
+| After training | quad, hamstring, calf and hip-flexor stretches, chest opener, shoulder and triceps stretches, child's pose | 8 min |
+| Desk break | arm circles, chest opener, shoulder and triceps stretches, side bend, torso twist, calf stretch (standing) | 6 min |
+| Hips & lower back | cat-cow, child's pose, hip circles, hip-flexor stretch, leg swings, squat hold, hamstring stretch, child's pose | 8 min |
+
+- A flow keeps each lesson's own camera check (counted or timed holds where a lesson already has a validated one);
+  the rest is guided by the timer. No equipment, no boxing drills. Session key `flow-<name>`, same session screen,
+  saved to the history like any session.
+- `feature/session/Flows.kt`; `FlowsTest` (3 tests: moves exist and need no equipment, transitions and lengths, keys
+  never collide with built-session keys), run locally and passing.
+- Translations: 9 strings in all 23 tables (`parts_flows.py`), `check.py` clean.

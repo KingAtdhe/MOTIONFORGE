@@ -273,6 +273,8 @@ fun MotionForgeApp(
                         SessionPlanner.quick(c.exercises, preferences.focus)
                     } else if (built != null) {
                         eu.motionforge.app.feature.session.SessionBuilder.build(c.exercises, built)
+                    } else if (eu.motionforge.app.feature.session.Flows.parseKey(planArg) != null) {
+                        eu.motionforge.app.feature.session.Flows.build(eu.motionforge.app.feature.session.Flows.parseKey(planArg)!!, c.exercises)
                     } else if (planned != null) {
                         eu.motionforge.app.feature.plan.PlanSessions.build(planned.first, planned.second, c.exercises, planHistory)
                     } else {
