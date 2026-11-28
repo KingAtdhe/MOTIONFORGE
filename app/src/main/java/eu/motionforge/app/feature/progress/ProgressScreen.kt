@@ -63,6 +63,8 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(
     onStartSession: () -> Unit,
     weeklyGoal: Int = Milestones.DEFAULT_GOAL,
     milestones: Boolean = true,
+    /** Joined challenges; null hides the challenges section (the plain Progress screen). */
+    challenges: List<JoinedChallenge>? = null,
 ) {
     run {
         if (history == null) {
@@ -84,6 +86,8 @@ fun androidx.compose.foundation.layout.ColumnScope.ProgressContent(
 
         eu.motionforge.app.core.design.SectionHeader("This week")
         eu.motionforge.app.core.design.WeekTicks(summary.trainedDaysThisWeek, LocalDate.now(zone).dayOfWeek)
+
+        if (challenges != null) ChallengesSection(history, challenges)
 
         if (history.isEmpty()) {
             Panel {

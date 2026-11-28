@@ -301,6 +301,12 @@ fun MotionForgeApp(
                                     before, container.sessions.history.first(), java.time.ZoneId.systemDefault(), p.weeklyGoal,
                                 )
                             },
+                            challengesCompleted = { before ->
+                                eu.motionforge.app.feature.progress.Challenges.newlyCompleted(
+                                    container.preferences.preferences.first().challenges,
+                                    before, container.sessions.history.first(), java.time.ZoneId.systemDefault(),
+                                )
+                            },
                         )
                     }
                     SessionScreen(

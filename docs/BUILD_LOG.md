@@ -1503,3 +1503,31 @@ softly, keep a pace you could still talk at, stop if dizzy, short of breath or i
   CI runs the full suite.
 - **Known limits:** the new moves are not camera-counted yet; candidate counters (ARM_LIFT for jumping jack, KNEE_LIFT,
   BUTT_KICK, SKATE, CLIMBER) need rendered-video fixtures before any lesson moves to limited rule-based tracking.
+
+## 2026-11-28 (3) — Challenges
+
+The owner asked for challenges. Nine opt-in challenges on the You page, each over a fixed window that starts when you
+join it, all measured from saved sessions (nothing self-reported):
+
+| Challenge | Goal | Window |
+|---|---|---|
+| Four-week habit | 12 sessions | 4 weeks |
+| Hundred minutes | 100 minutes trained | 2 weeks |
+| 300 squats / 150 push-ups / 200 lunges | reps **counted by the camera** (any lesson the camera counts for that move; wall, incline and knee push-ups too) | 4 weeks |
+| Ring time | 8 fighting fundamentals sessions | 4 weeks |
+| Cardio fortnight | 6 sessions with a cardio move | 2 weeks |
+| Ten steady minutes | 10 min of holds **timed by the camera** | 3 weeks |
+| Explorer | 20 different exercises | 4 weeks |
+
+- Calm like the weekly goal: no reminders, no countdown warnings. A card shows "Day 5 of 28", a bar and the amount. If
+  the window ends first it says so plainly and offers to start again; a complete one turns yellow. Up to 3 run at once
+  (a finished one frees its slot). Leaving asks once and says the sessions stay in the history. Guided (uncounted)
+  lessons never add to rep or hold challenges, so nothing is credited that wasn't measured.
+- The session summary shows "Challenge complete" after the save that crossed the line.
+- Storage: only "which challenge, joined when" in the preferences (`challenges`); progress is recomputed from the
+  history, so the local data reset clears it with everything else.
+- `feature/progress/Challenges.kt` (pure logic, `ChallengesTest`: 7 tests, run locally with kotlinc + JUnit — window
+  edges, before-joining sessions, camera-only reps, minutes/holds/variety, the 3-running limit and restart, and
+  "newly completed" only on the crossing save), `ChallengesUi.kt`; screenshot `13_challenges` in the CI reports.
+- Translations: 41 strings in all 23 tables (`parts_challenges.py`, `parts_challenges_b.py`), `check.py` clean.
+- Not verified locally: the Compose code (no Android SDK here); CI compiles it and renders the screenshot.

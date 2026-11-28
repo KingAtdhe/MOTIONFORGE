@@ -50,6 +50,8 @@ class SessionViewModel(
     private val historyNow: suspend () -> List<eu.motionforge.app.feature.progress.SessionRecord> = { emptyList() },
     /** Badges earned by the save, given the history before it (empty when streaks and badges are turned off). */
     private val badgesEarned: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Badge> = { emptyList() },
+    /** Joined challenges the save completed, given the history before it. */
+    private val challengesCompleted: suspend (before: List<eu.motionforge.app.feature.progress.SessionRecord>) -> List<eu.motionforge.app.feature.progress.Challenge> = { emptyList() },
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(restored?.restoredState() ?: SessionState(plan))
@@ -64,6 +66,10 @@ class SessionViewModel(
     private val _newBadges = MutableStateFlow<List<eu.motionforge.app.feature.progress.Badge>>(emptyList())
     /** Badges the saved session earned, shown on the summary. */
     val newBadges: StateFlow<List<eu.motionforge.app.feature.progress.Badge>> = _newBadges.asStateFlow()
+
+    private val _completedChallenges = MutableStateFlow<List<eu.motionforge.app.feature.progress.Challenge>>(emptyList())
+    /** Challenges the saved session completed, shown on the summary. */
+    val completedChallenges: StateFlow<List<eu.motionforge.app.feature.progress.Challenge>> = _completedChallenges.asStateFlow()
 
     private val evaluator = TrackingStateEvaluator(TrackingStateEvaluator.FULL_BODY, eitherSide = true)
     /** The rep counter for the current step (squat, push-up or lunge rules), or null when the step isn't counted. */
@@ -306,7 +312,10 @@ class SessionViewModel(
                 repository.save(s, startedAtMillis, System.currentTimeMillis(), perceivedEffort)
             }.fold({
                 runCatching { onSaved() }
-                if (before != null) _newBadges.value = runCatching { badgesEarned(before) }.getOrDefault(emptyList())
+                if (before != null) {
+                    _newBadges.value = runCatching { badgesEarned(before) }.getOrDefault(emptyList())
+                    _completedChallenges.value = runCatching { challengesCompleted(before) }.getOrDefault(emptyList())
+                }
                 toPersist.value = Disk.Forget
                 withContext(Dispatchers.IO) { store.clear() }
                 SaveState.SAVED

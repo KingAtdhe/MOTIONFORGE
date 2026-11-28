@@ -18,7 +18,7 @@ fun YouScreen(
     onResetData: () -> Unit,
 ) {
     ScreenColumn(title = "You") {
-        ProgressContent(history, coach, onStartSession, preferences.weeklyGoal, preferences.milestones)
+        ProgressContent(history, coach, onStartSession, preferences.weeklyGoal, preferences.milestones, preferences.challenges)
         ProfileContent(preferences, onOpenTechnicalChecks, onResetData)
     }
 }

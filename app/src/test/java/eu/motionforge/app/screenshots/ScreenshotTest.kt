@@ -112,6 +112,24 @@ class ScreenshotTest {
 
     @Test fun progressEmpty() = shot("04_progress_empty") { ProgressScreen(emptyList(), Coach.DEFAULT) {} }
 
+    @Test fun challenges() = shot("13_challenges") {
+        val day = 24L * 3600 * 1000
+        val now = System.currentTimeMillis()
+        val history = List(5) { i ->
+            SessionRecord(
+                i.toLong(), "Short fitness session", TrainingCategory.FITNESS, now - i * day - 3600_000, 900, 6, true,
+                listOf(ExerciseRecord("bodyweight_squat", "Bodyweight Squat", 60, 24, "good"), ExerciseRecord("jumping_jack", "Jumping Jack", 30, null, "guided")),
+            )
+        }
+        val joined = listOf(
+            eu.motionforge.app.feature.progress.JoinedChallenge(eu.motionforge.app.feature.progress.Challenge.SQUATS, now - 6 * day),
+            eu.motionforge.app.feature.progress.JoinedChallenge(eu.motionforge.app.feature.progress.Challenge.CARDIO, now - 6 * day),
+        )
+        eu.motionforge.app.core.design.ScreenColumn(title = "You") {
+            eu.motionforge.app.feature.progress.ChallengesSection(history, joined)
+        }
+    }
+
     @Test fun progress() = shot("05_progress") {
         val day = 24L * 3600 * 1000
         val now = System.currentTimeMillis()

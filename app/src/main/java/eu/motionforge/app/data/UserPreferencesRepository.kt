@@ -41,6 +41,8 @@ data class UserPreferences(
     val weeklyGoal: Int = eu.motionforge.app.feature.progress.Milestones.DEFAULT_GOAL,
     /** Show the weekly goal, streak and badges (on by default, can be turned off). */
     val milestones: Boolean = true,
+    /** Challenges joined (opt-in), with when each was joined. */
+    val challenges: List<eu.motionforge.app.feature.progress.JoinedChallenge> = emptyList(),
 )
 
 private val Context.userDataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -71,6 +73,7 @@ class UserPreferencesRepository(context: Context) {
                 weeklyGoal = (p[WEEKLY_GOAL] ?: eu.motionforge.app.feature.progress.Milestones.DEFAULT_GOAL)
                     .coerceIn(eu.motionforge.app.feature.progress.Milestones.GOAL_RANGE),
                 milestones = p[MILESTONES] ?: true,
+                challenges = eu.motionforge.app.feature.progress.Challenges.decode(p[CHALLENGES]),
             )
         }
 
@@ -126,6 +129,10 @@ class UserPreferencesRepository(context: Context) {
         store.edit { it[MILESTONES] = on }
     }
 
+    suspend fun setChallenges(list: List<eu.motionforge.app.feature.progress.JoinedChallenge>) {
+        store.edit { it[CHALLENGES] = eu.motionforge.app.feature.progress.Challenges.encode(list) }
+    }
+
     suspend fun setLanguage(code: String) {
         store.edit { it[LANGUAGE] = code }
     }
@@ -150,5 +157,6 @@ class UserPreferencesRepository(context: Context) {
         val REMINDER_MINUTE = androidx.datastore.preferences.core.intPreferencesKey("reminder_minute")
         val WEEKLY_GOAL = androidx.datastore.preferences.core.intPreferencesKey("weekly_goal")
         val MILESTONES = booleanPreferencesKey("milestones")
+        val CHALLENGES = stringPreferencesKey("challenges")
     }
 }
